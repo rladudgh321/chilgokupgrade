@@ -1,5 +1,46 @@
 const baseURL = process.env.NEXT_PUBLIC_BASE_URL;
 
+export interface Paginated<T> {
+  ok: boolean;
+  totalItems: number;
+  totalPages: number;
+  currentPage: number;
+  data: T[];
+}
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export type Build = Record<string, any>;
+
+// export function BuildFindAll(page:number=1, limit:number=10, keyword?: string) {
+//   return fetch(`${baseURL}/api/supabase/build?page=${page}&limit=${limit}&keyword=${keyword ?? ""}`, {
+//     method: 'get',
+//   }).then((response) => response.json()).catch((err) => console.error(err));
+// }
+
+export async function BuildFindAll(
+  page: number = 1,
+  limit: number = 10,
+  keyword?: string,
+  opts?: { signal?: AbortSignal }
+) {
+  const qs = new URLSearchParams({
+    page: String(page),
+    limit: String(limit),
+    ...(keyword?.trim() ? { keyword: keyword.trim() } : {}),
+  });
+
+  const res = await fetch(`${baseURL}/api/supabase/build?${qs.toString()}`, {
+    method: "GET",
+    signal: opts?.signal,
+  });
+
+  if (!res.ok) {
+    const text = await res.text().catch(() => "");
+    throw new Error(`GET /api/supabase/build failed (${res.status}): ${text}`);
+  }
+  return res.json();
+}
+
 export async function BuildCreate(data: object){
   const res = await fetch(`${baseURL}/api/supabase/build`, {
     method: "POST",
@@ -93,11 +134,4 @@ export async function updateAddressVisibility(id: number, payload: { isAddressPu
     if (!res.ok) throw new Error("주소 공개여부 업데이트 실패");
     return res.json();
   });
-}
-
-export function BuildFindAll(page:number=1, limit:number=10, keyword?: string) {
-  return fetch(`${baseURL}/build?page=${page}&limit=${limit}&keyword=${keyword ?? ""}`, {
-    method: 'get',
-    credentials: 'include',
-  }).then((response) => response.json()).catch((err) => console.error(err));
 }

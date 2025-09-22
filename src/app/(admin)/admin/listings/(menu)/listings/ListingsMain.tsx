@@ -82,6 +82,11 @@ function formatYYYYMMDD(d: Date) {
 }
 
 const ListingsMain = () => {
+    useEffect(async () => {
+    const gg = await BuildFindAll(1,1);
+        console.log('gg', gg)
+    },[])
+
   const [page, setPage] = useState(1);
   const limit = 10;
   const [searchKeyword, setSearchKeyword] = useState(""); // ✅ 검색 상태
