@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
@@ -74,7 +75,10 @@ const ListingsMain = ({ ListingsData }: ListingsMainProps) => {
     initialData: ListingsData, // 서버에서 받은 초기 프롭
   });
 
-  const rows = (data?.data ?? []) as IBuild[];
+  const rows = useMemo<IBuild[]>(
+  () => (Array.isArray(data?.data) ? (data.data as IBuild[]) : []),
+  [data?.data]
+);
 
   // 현재 페이지의 모든 id
   const allIdsOnPage = useMemo(

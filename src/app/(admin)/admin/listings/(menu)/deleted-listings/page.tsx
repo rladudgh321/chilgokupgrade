@@ -1,19 +1,15 @@
-import Pagination from "@/app/components/shared/_Pagination"
 import Selected from "../Selected"
+import DeletedListings from "./DeletedListing"
+import { BuildFindAllDeleted } from "@/app/apis/build";
 
-const DeletedListings = () => {
+const DeletedListingsPage = async() => {
+  const DeletedData = await BuildFindAllDeleted();
   return (
     <div>
       <Selected />
-      DeletedListings
-
-      
-      {/* 페이지네이션*/}
-      <div>
-        <Pagination currentPage={11} totalPages={20} />
-      </div>
+      <DeletedListings DeletedData={DeletedData} />
     </div>
   )
 }
 
-export default DeletedListings
+export default DeletedListingsPage

@@ -59,6 +59,28 @@ export async function BuildCreate(data: object){
   }
 }
 
+// 삭제 취소(복원): deletedAt → null
+export async function BuildRestore(id: number, opts?: { signal?: AbortSignal }) {
+  const res = await fetch(`${baseURL}/api/supabase/build/${id}/restore`, {
+    method: "PUT",
+    signal: opts?.signal,
+  });
+  const json = await res.json().catch(() => ({}));
+  if (!res.ok) throw new Error(json?.message ?? "복원 실패");
+  return json as { message: string; restoredId: number; restoredAt: string };
+}
+
+// 영구 삭제(물리 삭제)
+export async function BuildHardDelete(id: number, opts?: { signal?: AbortSignal }) {
+  const res = await fetch(`${baseURL}/api/supabase/build/${id}/hard`, {
+    method: "DELETE",
+    signal: opts?.signal,
+  });
+  const json = await res.json().catch(() => ({}));
+  if (!res.ok) throw new Error(json?.message ?? "영구 삭제 실패");
+  return json as { message: string; deletedId: number };
+}
+
 
 export const uploadImage = async (formData: FormData) => {
   const res = await fetch(`${baseURL}/image/upload`, {
@@ -88,13 +110,6 @@ export const uploadImages = async (formData: FormData) => {
   return res.json();
 };
 
-export function BuildDelete(id: number){
-  return fetch(`${baseURL}/build/${id}`, {
-    method: 'delete',
-    credentials: 'include',
-  }).then((response) => response.json()).catch((err) => console.error('fetch error', err));
-}
-
 export async function BuildDeleteSome(ids: number[], opts?: { signal?: AbortSignal }) {
   const res = await fetch(`${baseURL}/api/supabase/build/some`, {
     method: 'DELETE',
@@ -105,6 +120,32 @@ export async function BuildDeleteSome(ids: number[], opts?: { signal?: AbortSign
   const json = await res.json().catch(() => ({}));
   if (!res.ok) throw new Error(json?.message ?? "deleteBuildSome 실패");
   return json as { message: string; deletedCount: number; deletedIds: number[]; deletedAt: string };
+}
+
+// 삭제된 매물 모두 보기
+export async function BuildFindAllDeleted(
+  page: number = 1,
+  limit: number = 10,
+  keyword?: string,
+  opts?: { signal?: AbortSignal }
+) {
+  const qs = new URLSearchParams({
+    page: String(page),
+    limit: String(limit),
+    status: "deleted",                                // 👈 핵심
+    ...(keyword?.trim() ? { keyword: keyword.trim() } : {}),
+  });
+
+  const res = await fetch(`${baseURL}/api/supabase/build/delete?${qs.toString()}`, {
+    method: "GET",
+    signal: opts?.signal,
+  });
+
+  if (!res.ok) {
+    const text = await res.text().catch(() => "");
+    throw new Error(`GET /api/supabase/build?status=deleted failed (${res.status}): ${text}`);
+  }
+  return res.json();
 }
 
 export async function UpdateBuildToggle(id: number, payload: { visibility: boolean }) {

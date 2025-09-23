@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
-import { createServerClient } from "@supabase/ssr";
+import { createClient } from "@/app/utils/supabase/server";
+import { cookies } from "next/headers";
 
 const BodySchema = z.object({
   ids: z.array(z.union([z.number().int(), z.string()]))
@@ -26,13 +27,8 @@ export async function DELETE(req: NextRequest) {
     // ✅ 여기서 반드시 배열만 추출
     const ids: number[] = parsed.data.ids; // ← 객체 전체가 아니라 필드만!
 
-    const url = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-    const key =
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ??
-      process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_DEFAULT_KEY!;
-    const supabase = createServerClient(url, key, {
-      cookies: { getAll: () => [], setAll: () => {} },
-    });
+    const cookieStore = await cookies();
+        const supabase = createClient(cookieStore);
 
     const table = "Build";
     const deletedCol = "deletedAt";
