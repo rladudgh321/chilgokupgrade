@@ -3,7 +3,7 @@
 import { useMemo, useState } from "react";
 import { useForm, FormProvider } from "react-hook-form";
 import { useQuery, keepPreviousData, useQueryClient, useMutation } from "@tanstack/react-query";
-import Pagination from "@/app/components/shared/_Pagination";
+import Pagination from "@/app/components/shared/Pagination";
 import ToggleSwitch from "@/app/components/admin/listings/ToggleSwitch";
 import { BuildFindAllDeleted, BuildHardDelete, BuildRestore, toggleBuild } from "@/app/apis/build";
 import { clsx } from "clsx";
@@ -135,7 +135,6 @@ const DeletedListings = ({ DeletedData }: DeletedListingsProps) => {
         <table className="min-w-full table-auto text-center">
           <thead>
             <tr className="bg-slate-600 text-white">
-              <th className="p-3 text-sm font-medium">#</th>
               <th className="p-3 text-sm font-medium">매물번호</th>
               <th className="p-3 text-sm font-medium">공개/거래</th>
               <th className="p-3 text-sm font-medium">거래종류</th>
@@ -161,7 +160,6 @@ const DeletedListings = ({ DeletedData }: DeletedListingsProps) => {
                     index % 2 === 0 ? "bg-slate-100" : "bg-slate-200",
                   )}
                 >
-                  <td className="p-3">{index + 1}</td>
                   <td className="p-3">{id}</td>
 
                   <td className="p-3">
@@ -249,11 +247,7 @@ const DeletedListings = ({ DeletedData }: DeletedListingsProps) => {
 
         {/* 페이지네이션 */}
         <div className="my-4 flex justify-center">
-          <Pagination
-            currentPage={data?.currentPage ?? page}
-            totalPages={data?.totalPages ?? 1}
-            onPageChange={setPage}
-          />
+          <Pagination totalPages={data?.totalPages ?? 1} currentPage={page} onPageChange={setPage} />
         </div>
       </div>
     </FormProvider>

@@ -77,10 +77,12 @@ const ListingsMain = ({ ListingsData }: ListingsMainProps) => {
     initialData: ListingsData, // 서버에서 받은 초기 프롭
   });
 
-  const rows = useMemo<IBuild[]>(
-  () => (Array.isArray(data?.data) ? (data.data as IBuild[]) : []),
-  [data?.data]
-);
+  const rows = useMemo<IBuild[]>(() => {
+    // data가 없거나 data.data가 배열이 아니면 안전하게 빈 배열
+    if (!Array.isArray(data?.data)) return [];
+    // 배열이 맞으면 IBuild[]로 사용
+    return data.data as IBuild[];
+  }, [data?.data]);
 
   // 현재 페이지의 모든 id
   const allIdsOnPage = useMemo(
@@ -286,7 +288,7 @@ const ListingsMain = ({ ListingsData }: ListingsMainProps) => {
             {rows.map((listing: IBuild, index: number) => {
               const id = Number(listing.id);
               const confirmDate = confirmDates[id];
-
+              
               return (
                 <tr
                   key={id}
@@ -444,7 +446,11 @@ const ListingsMain = ({ ListingsData }: ListingsMainProps) => {
         </table>
 
         <div className="my-4 flex justify-center">
-          <Pagination totalPages={data?.totalPages ?? 1} currentPage={page} onPageChange={setPage} />
+          <Pagination
+            totalPages={data?.totalPages ?? 1}
+            currentPage={data?.currentPage ?? page} // ✅ 데이터가 확정되면 그 값을 우선
+            onPageChange={setPage}
+          />
         </div>
       </div>
     </FormProvider>

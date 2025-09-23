@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { NextRequest, NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import { createClient } from "@/app/utils/supabase/server";
@@ -28,6 +29,7 @@ export async function GET(req: NextRequest) {
       .select("*", { count: "exact" })
       .not(deletedCol, "is", null)               // ✅ deletedAt IS NOT NULL
       .order(createdCol, { ascending: false })
+      .order("id", { ascending: false })
       .range(from, to);
 
     // 검색: 숫자면 id, 아니면 address ILIKE

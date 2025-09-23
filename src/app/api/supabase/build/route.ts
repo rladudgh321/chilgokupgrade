@@ -20,9 +20,9 @@ export async function GET(req: NextRequest) {
     const supabase = createClient(cookieStore);
 
     // ⚙️ 스키마에 맞게 조정하세요.
-    const table = "Build";          // (확실하지 않음) snake_case면 "builds"
-    const deletedCol = "deletedAt"; // (확실하지 않음) snake_case면 "deleted_at"
-    const createdCol = "createdAt"; // (확실하지 않음) snake_case면 "created_at"
+    const table = "Build";
+    const deletedCol = "deletedAt";
+    const createdCol = "createdAt";
 
     // 기본 필터: 소프트 삭제 제외
     let q = supabase
@@ -30,6 +30,7 @@ export async function GET(req: NextRequest) {
       .select("*", { count: "exact" })
       .is(deletedCol, null)                        // ✅ deletedAt IS NULL
       .order(createdCol, { ascending: false })
+      .order("id", { ascending: false })  
       .range(from, to);
 
     // 키워드: 숫자면 id 정확히, 문자열이면 address ILIKE
@@ -66,7 +67,8 @@ export async function GET(req: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
-  const supabase = await createClient(cookieStore);
+  const cookieStore = await cookies();
+  const supabase = createClient(cookieStore);
   const body = await request.json();
 
     const { data, error } = await supabase
