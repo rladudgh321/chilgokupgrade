@@ -16,6 +16,8 @@ datasource db {
 
 model Build {
   id              Int            @id @default(autoincrement())
+  views           Int? @default(0)
+
   address         String? //주소
   dong            String? //동
   ho              String? //호
@@ -99,6 +101,7 @@ model Build {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt @default(now())  
   deletedAt  DateTime?
+  
 }
 
 enum AddressPublic {

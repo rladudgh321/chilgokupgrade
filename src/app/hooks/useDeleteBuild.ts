@@ -1,11 +1,11 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { BuildDelete } from "@/app/apis/build";
+import { BuildDelete, BuildDeleteSome } from "@/app/apis/build";
 
 export const useDeleteBuild = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (id: number) => BuildDelete(id),
+    mutationFn: (ids: number[]) => BuildDeleteSome(ids),
     onSuccess: () => {
       // 삭제 후 캐시된 데이터 갱신
       queryClient.invalidateQueries({ queryKey: ["posts"] });

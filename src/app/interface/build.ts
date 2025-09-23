@@ -1,6 +1,8 @@
 export interface IBuild {
   id?: number;
 
+  views?: number;
+
   // 주소 정보
   address?: string;
   dong?: string;

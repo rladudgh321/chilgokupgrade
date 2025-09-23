@@ -95,17 +95,16 @@ export function BuildDelete(id: number){
   }).then((response) => response.json()).catch((err) => console.error('fetch error', err));
 }
 
-export function BuildDeleteSome(ids: number[]) {
-  return fetch(`${baseURL}/build/some`, {
+export async function BuildDeleteSome(ids: number[], opts?: { signal?: AbortSignal }) {
+  const res = await fetch(`${baseURL}/api/supabase/build/some`, {
     method: 'DELETE',
-    credentials: 'include',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({ ids }), // 👈 반드시 이렇게!
-  })
-    .then((res) => res.json())
-    .catch((err) => console.error('fetch error', err));
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ ids }),
+    signal: opts?.signal,
+  });
+  const json = await res.json().catch(() => ({}));
+  if (!res.ok) throw new Error(json?.message ?? "deleteBuildSome 실패");
+  return json as { message: string; deletedCount: number; deletedIds: number[]; deletedAt: string };
 }
 
 export async function UpdateBuildToggle(id: number, payload: { visibility: boolean }) {
