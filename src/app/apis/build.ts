@@ -162,16 +162,18 @@ export async function toggleBuild(id: number, visibility?: boolean, opts?: { sig
   return json as { message: string; id: number; visibility: boolean };
 }
 
-export async function updateAddressVisibility(id: number, payload: { isAddressPublic: "public" | "private" | "exclude" }) {
-  return fetch(`${baseURL}/build/${id}/address-visibility`, {
-    method: 'put',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    credentials: 'include',
+export async function updateAddressVisibility(
+  id: number,
+  payload: { isAddressPublic: "public" | "private" | "exclude" },
+  opts?: { signal?: AbortSignal }
+) {
+  const res = await fetch(`${baseURL}/api/supabase/build/${id}/address-visibility`, {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    signal: opts?.signal,
     body: JSON.stringify(payload),
-  }).then(res => {
-    if (!res.ok) throw new Error("주소 공개여부 업데이트 실패");
-    return res.json();
   });
+  const json = await res.json().catch(() => ({}));
+  if (!res.ok) throw new Error(json?.message ?? "주소 공개여부 업데이트 실패");
+  return json as { message: string; id: number; isAddressPublic: "public" | "private" | "exclude" };
 }

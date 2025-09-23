@@ -7,10 +7,12 @@ const ToggleSwitch = ({
   toggle = false,
   id,
   onToggle,
+  className
 }: {
   toggle?: boolean;
   id: string;
   onToggle?: (checked: boolean) => void;
+  className?: string;
 }) => {
   const [isChecked, setIsChecked] = useState(toggle);
 
@@ -21,7 +23,7 @@ const ToggleSwitch = ({
   };
 
   return (
-    <div className="flex justify-center items-center space-x-4">
+    <div className={clsx("flex justify-center items-center space-x-4", className)}>
       <div className="relative">
         <input
           type="checkbox"

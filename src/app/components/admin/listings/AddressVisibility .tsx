@@ -8,18 +8,13 @@ import { clsx } from "clsx";
 type AddressState = "public" | "private" | "exclude";
 
 interface AddressVisibilityProps {
-  /** 현재 선택된 상태 */
   activeAddressPublic: AddressState;
-  /** 부모 상태 변경 콜백 (UI 즉시 반영) */
   handleRadioChange: (item: AddressState) => void;
-
-  /** 서버로 동기화할지 여부 (기본: true). create 단계에서는 false 로 전달 */
   serverSync?: boolean;
-
-  /** 서버 동기화 시 사용할 listing id */
   listingId?: number;
-
-  ArrayType?: boolean; 
+  ArrayType?: boolean;
+  /** 🔹 삭제 목록 등에서 비활성화 */
+  disabled?: boolean;
 }
 
 const AddressVisibility: FC<AddressVisibilityProps> = ({
@@ -27,90 +22,107 @@ const AddressVisibility: FC<AddressVisibilityProps> = ({
   handleRadioChange,
   serverSync = true,
   listingId,
-  ArrayType = true
+  ArrayType = true,
+  disabled = false,
 }) => {
-  // 서버 동기화 뮤테이션 (항상 선언, 호출은 조건부)
-  const { mutate, isPending } = useMutation({
+  // 행마다 고유 그룹/아이디
+  const uid = String(listingId ?? Math.random().toString(36).slice(2));
+  const group = `addr-public-${uid}`;
+  const idPublic  = `${group}-public`;
+  const idPrivate = `${group}-private`;
+  const idExclude = `${group}-exclude`;
+
+  type Ctx = { prev: AddressState };
+
+  const { mutate, isPending } = useMutation<
+    { message: string; id: number; isAddressPublic: AddressState },
+    Error,
+    { id: number; state: AddressState },
+    Ctx
+  >({
     mutationKey: ["patchAddressVisibility", listingId],
-    mutationFn: (vars: { id: number; state: AddressState }) =>
+    mutationFn: (vars) =>
       updateAddressVisibility(vars.id, { isAddressPublic: vars.state }),
-    onSuccess: () => {
-      // 성공 알림(원치 않으면 제거하세요)
-      alert("주소 공개여부가 성공적으로 변경되었습니다.");
+    onMutate: async (vars) => {
+      const prev = activeAddressPublic;
+      handleRadioChange(vars.state);   // 낙관적 반영
+      return { prev };
     },
-    onError: (error) => {
-      alert(`주소 공개여부 변경 실패: ${error}`);
+    onError: (error, _vars, ctx) => {
+      if (ctx?.prev) handleRadioChange(ctx.prev); // 롤백
+      alert(`주소 공개여부 변경 실패: ${error.message ?? String(error)}`);
     },
   });
 
   const onPick = (state: AddressState) => {
-    // 1) 즉시 UI 반영
-    handleRadioChange(state);
-
-    // 2) 서버 동기화 조건부 호출
-    if (serverSync) {
-      if (listingId == null) {
-        // 개발 중 실수 방지용
-        console.warn("[AddressVisibility] serverSync=true인데 listingId가 없습니다.");
-        return;
-      }
-      mutate({ id: listingId, state });
+    if (disabled) return;                     // 🔹 비활성화면 무시
+    if (!serverSync) return handleRadioChange(state);
+    if (listingId == null) {
+      console.warn("[AddressVisibility] serverSync=true인데 listingId가 없습니다.");
+      return;
     }
+    mutate({ id: listingId, state });
   };
 
-  const getRadioButtonStyle = (activeState: string, item: string) => ({
-    backgroundColor: activeState === item ? "#2b6cb0" : "white",
-    color: activeState === item ? "white" : "gray",
+  const pillStyle = (active: string, me: string) => ({
+    backgroundColor: active === me ? "#2b6cb0" : "white",
+    color: active === me ? "white" : "gray",
     borderColor: "#cbd5e0",
     padding: "0.5rem 1rem",
     fontSize: "0.875rem",
     fontWeight: 500,
     borderRadius: "0.375rem",
-    cursor: "pointer",
-    boxShadow: "0 2px 5px rgba(0, 0, 0, 0.1)",
+    cursor: disabled || isPending ? "not-allowed" : "pointer",
+    boxShadow: "0 2px 5px rgba(0,0,0,0.1)",
     transition: "all 0.2s ease",
-    opacity: isPending ? 0.7 : 1, // 서버 처리 중 살짝 비활성화 느낌
+    opacity: disabled || isPending ? 0.5 : 1,
   });
 
   return (
     <div className="flex flex-col">
       <label className="block text-sm font-medium text-gray-700">주소 공개 여부</label>
 
-      <div className={clsx("flex items-center mb-4 flex-wrap gap-2", { "justify-center": ArrayType})}>
-        <label htmlFor="addressPublicYes" className="flex items-center space-x-2">
+      <div className={clsx("flex items-center mb-4 flex-wrap gap-2", { "justify-center": ArrayType })}>
+        <label htmlFor={idPublic} className="flex items-center space-x-2">
           <input
             type="radio"
-            id="addressPublicYes"
+            id={idPublic}
+            name={group}
             value="public"
             className="hidden"
             checked={activeAddressPublic === "public"}
             onChange={() => onPick("public")}
+            disabled={disabled || isPending}
           />
-          <span style={getRadioButtonStyle(activeAddressPublic, "public")}>공개</span>
+          <span style={pillStyle(activeAddressPublic, "public")}>공개</span>
         </label>
 
-        <label htmlFor="addressPublicNo" className="flex items-center space-x-2">
+        <label htmlFor={idPrivate} className="flex items-center space-x-2">
           <input
             type="radio"
-            id="addressPublicNo"
+            id={idPrivate}
+            name={group}
             value="private"
             className="hidden"
             checked={activeAddressPublic === "private"}
             onChange={() => onPick("private")}
+            disabled={disabled || isPending}
           />
-          <span style={getRadioButtonStyle(activeAddressPublic, "private")}>비공개</span>
+          <span style={pillStyle(activeAddressPublic, "private")}>비공개</span>
         </label>
 
-        <label htmlFor="addressPublicExclude" className="flex items-center space-x-2">
+        <label htmlFor={idExclude} className="flex items-center space-x-2">
           <input
             type="radio"
-            id="addressPublicExclude"
+            id={idExclude}
+            name={group}
             value="exclude"
             className="hidden"
             checked={activeAddressPublic === "exclude"}
             onChange={() => onPick("exclude")}
+            disabled={disabled || isPending}
           />
-          <span style={getRadioButtonStyle(activeAddressPublic, "exclude")}>지번 제외 공개</span>
+          <span style={pillStyle(activeAddressPublic, "exclude")}>지번 제외 공개</span>
         </label>
       </div>
     </div>

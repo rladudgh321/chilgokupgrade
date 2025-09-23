@@ -5,7 +5,7 @@ import { useForm, FormProvider } from "react-hook-form";
 import { useQuery, keepPreviousData, useQueryClient, useMutation } from "@tanstack/react-query";
 import Pagination from "@/app/components/shared/_Pagination";
 import ToggleSwitch from "@/app/components/admin/listings/ToggleSwitch";
-import { BuildFindAllDeleted, BuildHardDelete, BuildRestore, toggleBuild, updateAddressVisibility } from "@/app/apis/build";
+import { BuildFindAllDeleted, BuildHardDelete, BuildRestore, toggleBuild } from "@/app/apis/build";
 import { clsx } from "clsx";
 import { IBuild } from "@/app/interface/build";
 import formatFullKoreanMoney from "@/app/utility/NumberToKoreanMoney";
@@ -166,21 +166,21 @@ const DeletedListings = ({ DeletedData }: DeletedListingsProps) => {
 
                   <td className="p-3">
                     <AddressVisibility
-                      activeAddressPublic={listing.isAddressPublic!}
-                      handleRadioChange={(newState: "public" | "private" | "exclude") => {
-                        updateAddressVisibility(id, { isAddressPublic: newState }).catch(() =>
-                          alert("주소 공개여부 변경 실패"),
-                        );
-                      }}
+                      activeAddressPublic={listing.isAddressPublic as "public" | "private" | "exclude"}
+                      listingId={id}
+                      serverSync={false}     // 🔹 서버 호출 금지 (삭제 목록이므로)
+                      disabled               // 🔹 UI 비활성화
+                      handleRadioChange={() => { /* 삭제 목록에서는 수정 불가 */ }}
                     />
-                    <div className="mt-1">매물공개여부</div>
+
+                    <div className="mt-1 text-xs text-slate-500">(수정 불가)</div>
+
                     <ToggleSwitch
                       toggle={!!listing.visibility}
                       id={`visibility-${id}`}
-                      onToggle={() => {
-                          toggleBuild(listing.id!) // body 없음 → 현재값 반전
-                            .catch(() => alert("매물 공개여부 변경 실패"));
-                          }}
+                      onToggle={() => {}}
+                      // 🔹 ToggleSwitch에 disabled prop이 없으면 아래 클래스로 비활성화
+                      className="pointer-events-none opacity-50 cursor-not-allowed"
                     />
                   </td>
 

@@ -5,7 +5,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useForm, FormProvider } from "react-hook-form";
 import Pagination from "@/app/components/shared/Pagination";
 import ToggleSwitch from "@/app/components/admin/listings/ToggleSwitch";
-import { BuildDeleteSome, BuildFindAll, toggleBuild, updateAddressVisibility } from "@/app/apis/build";
+import { BuildDeleteSome, BuildFindAll, toggleBuild } from "@/app/apis/build";
 import { clsx } from "clsx";
 import { IBuild } from "@/app/interface/build";
 import formatFullKoreanMoney from "@/app/utility/NumberToKoreanMoney";
@@ -38,6 +38,8 @@ interface ListingsMainProps {
     totalPages: number;
   };
 }
+
+type PageData = { ok: boolean; totalItems: number; totalPages: number; currentPage: number; data: IBuild[] };
 
 const LIMIT = 10;
 
@@ -306,11 +308,20 @@ const ListingsMain = ({ ListingsData }: ListingsMainProps) => {
 
                   <td className="p-3">
                     <AddressVisibility
-                      activeAddressPublic={listing.isAddressPublic!}
-                      handleRadioChange={(newState: "public" | "private" | "exclude") => {
-                        updateAddressVisibility(id, { isAddressPublic: newState }).catch(() =>
-                          alert("주소 공개여부 변경 실패"),
-                        );
+                      activeAddressPublic={listing.isAddressPublic as "public" | "private" | "exclude"}
+                      listingId={id}                     // ✅ 행 고유 id
+                      serverSync
+                      handleRadioChange={(newState) => {
+                        // 낙관적 캐시 업데이트
+                        queryClient.setQueryData(qk, (prev: PageData | undefined) => {
+                          if (!prev) return prev;
+                          return {
+                            ...prev,
+                            data: prev.data.map((row) =>
+                              Number(row.id) === id ? { ...row, isAddressPublic: newState } : row
+                            ),
+                          };
+                        });
                       }}
                     />
 
