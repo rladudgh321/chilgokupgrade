@@ -86,4 +86,5 @@ export interface IBuild {
   // 자동 생성 필드
   createdAt?: Date | string;
   updatedAt?: Date | string;
+  deletedAt?: Date | string;
 }

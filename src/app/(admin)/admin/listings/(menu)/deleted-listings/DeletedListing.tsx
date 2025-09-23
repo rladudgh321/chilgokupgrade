@@ -1,12 +1,11 @@
-// app/(...)/DeletedListing.tsx (클라이언트 컴포넌트 - 수정본)
 "use client";
 
-import { useMemo, useState, useEffect } from "react";
+import { useMemo, useState } from "react";
 import { useForm, FormProvider } from "react-hook-form";
 import { useQuery, keepPreviousData, useQueryClient, useMutation } from "@tanstack/react-query";
 import Pagination from "@/app/components/shared/_Pagination";
 import ToggleSwitch from "@/app/components/admin/listings/ToggleSwitch";
-import { BuildFindAllDeleted, BuildHardDelete, BuildRestore, updateAddressVisibility, UpdateBuildToggle } from "@/app/apis/build";
+import { BuildFindAllDeleted, BuildHardDelete, BuildRestore, toggleBuild, updateAddressVisibility } from "@/app/apis/build";
 import { clsx } from "clsx";
 import { IBuild } from "@/app/interface/build";
 import formatFullKoreanMoney from "@/app/utility/NumberToKoreanMoney";
@@ -16,15 +15,6 @@ import AddressVisibility from "@/app/components/admin/listings/AddressVisibility
 
 type SearchFormValues = { keyword: string };
 const LIMIT = 10;
-
-function formatYYYYMMDD(d: Date) {
-  const tzDate = new Date(d.getTime() + new Date().getTimezoneOffset() * -60000);
-  const year = tzDate.getFullYear();
-  const month = String(tzDate.getMonth() + 1).padStart(2, "0");
-  const day = String(tzDate.getDate()).padStart(2, "0");
-  return `${year}-${month}-${day}`;
-}
-
 interface Paginated<T> {
   ok: boolean;
   totalItems: number;
@@ -62,7 +52,7 @@ const DeletedListings = ({ DeletedData }: DeletedListingsProps) => {
     placeholderData: keepPreviousData,
     initialData: shouldUseInitial ? DeletedData : undefined,
     // 초기 하이드레이션 즉시 재요청을 막고 싶으면(선택):
-    // staleTime: 10_000,
+    staleTime: 10_000,
   });
 
   // 🔹 rows 안정화 (deps = data?.data)
@@ -71,49 +61,10 @@ const DeletedListings = ({ DeletedData }: DeletedListingsProps) => {
     [data]
   );
 
-  // 확인일 / 메뉴 상태
-  const [confirmDates, setConfirmDates] = useState<Record<number, string | undefined>>({});
-  const [menuRowId, setMenuRowId] = useState<number | null>(null);
-  const today = useMemo(() => formatYYYYMMDD(new Date()), []);
-
-  useEffect(() => {
-    const init: Record<number, string | undefined> = {};
-    rows.forEach((item: any) => {
-      if (item.confirmDate) init[item.id] = item.confirmDate;
-    });
-    setConfirmDates((prev) => ({ ...init, ...prev }));
-  }, [rows]);
-
   const onSubmit = handleSubmit((formData) => {
     setKeyword(formData.keyword);
     setPage(1);
   });
-
-  const addConfirmDate = (id: number) => setConfirmDates((p) => ({ ...p, [id]: today }));
-  const updateConfirmDateToToday = (id: number) => {
-    setConfirmDates((p) => ({ ...p, [id]: today }));
-    setMenuRowId(null);
-  };
-  const deleteConfirmDate = (id: number) => {
-    setConfirmDates((p) => {
-      const copy = { ...p };
-      delete copy[id];
-      return copy;
-    });
-    setMenuRowId(null);
-  };
-  const editConfirmDate = (id: number) => {
-    const input = window.prompt("2026-01-01 형식으로 작성해주세요");
-    if (!input) return;
-    const valid = /^\d{4}-\d{2}-\d{2}$/.test(input);
-    if (!valid) return alert("형식이 올바르지 않습니다. 예: 2026-01-01");
-    const dt = new Date(input);
-    if (Number.isNaN(dt.getTime()) || formatYYYYMMDD(dt) !== input) {
-      return alert("존재하지 않는 날짜입니다. 예: 2026-01-01");
-    }
-    setConfirmDates((p) => ({ ...p, [id]: input }));
-    setMenuRowId(null);
-  };
 
   type PageData = Paginated<IBuild>;
 
@@ -195,15 +146,13 @@ const DeletedListings = ({ DeletedData }: DeletedListingsProps) => {
               <th className="p-3 text-sm font-medium">조회수</th>
               <th className="p-3 text-sm font-medium">등록일<br />(수정일)</th>
               <th className="p-3 text-sm font-medium">삭제일</th>
-              <th className="p-3 text-sm font-medium">복원</th>
+              <th className="p-3 text-sm font-medium">비고</th>
             </tr>
           </thead>
 
           <tbody>
             {rows.map((listing: IBuild, index: number) => {
               const id = Number(listing.id);
-              const confirmDate = confirmDates[id];
-
               return (
                 <tr
                   key={id}
@@ -228,11 +177,10 @@ const DeletedListings = ({ DeletedData }: DeletedListingsProps) => {
                     <ToggleSwitch
                       toggle={!!listing.visibility}
                       id={`visibility-${id}`}
-                      onToggle={(checked) => {
-                        UpdateBuildToggle(id, { visibility: checked }).catch(() =>
-                          alert("매물 공개여부 변경 실패"),
-                        );
-                      }}
+                      onToggle={() => {
+                          toggleBuild(listing.id!) // body 없음 → 현재값 반전
+                            .catch(() => alert("매물 공개여부 변경 실패"));
+                          }}
                     />
                   </td>
 
@@ -270,7 +218,7 @@ const DeletedListings = ({ DeletedData }: DeletedListingsProps) => {
 
                   {/* ✅ 여기 교체: 복원 / 영구 삭제 버튼 */}
                   <td className="p-3">
-                    <div className="flex gap-2 justify-center">
+                    <div className="flex gap-2 justify-center flex-col">
                       <button
                         onClick={() => {
                           if (!window.confirm("이 매물을 복원할까요?")) return;

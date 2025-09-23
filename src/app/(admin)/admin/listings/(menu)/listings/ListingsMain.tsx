@@ -5,7 +5,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useForm, FormProvider } from "react-hook-form";
 import Pagination from "@/app/components/shared/Pagination";
 import ToggleSwitch from "@/app/components/admin/listings/ToggleSwitch";
-import { BuildDeleteSome, BuildFindAll, updateAddressVisibility, UpdateBuildToggle } from "@/app/apis/build";
+import { BuildDeleteSome, BuildFindAll, toggleBuild, updateAddressVisibility } from "@/app/apis/build";
 import { clsx } from "clsx";
 import { IBuild } from "@/app/interface/build";
 import formatFullKoreanMoney from "@/app/utility/NumberToKoreanMoney";
@@ -318,10 +318,9 @@ const ListingsMain = ({ ListingsData }: ListingsMainProps) => {
                     <ToggleSwitch
                       toggle={!!listing.visibility}
                       id={`visibility-${id}`}
-                      onToggle={(checked) => {
-                        UpdateBuildToggle(id, { visibility: checked }).catch(() =>
-                          alert("매물 공개여부 변경 실패"),
-                        );
+                      onToggle={() => {
+                         toggleBuild(listing.id!) // body 없음 → 현재값 반전
+                          .catch(() => alert("매물 공개여부 변경 실패"));
                       }}
                     />
                   </td>

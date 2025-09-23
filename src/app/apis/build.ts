@@ -148,18 +148,18 @@ export async function BuildFindAllDeleted(
   return res.json();
 }
 
-export async function UpdateBuildToggle(id: number, payload: { visibility: boolean }) {
-  return fetch(`${baseURL}/build/${id}/toggle`, {
-    method: 'PATCH',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    credentials: 'include',
-    body: JSON.stringify(payload),
-  }).then(res => {
-    if (!res.ok) throw new Error("토글 업데이트 실패");
-    return res.json();
+export async function toggleBuild(id: number, visibility?: boolean, opts?: { signal?: AbortSignal }) {
+  const body = visibility === undefined ? {} : { visibility };
+  const res = await fetch(`${baseURL}/api/supabase/build/${id}/toggle`, {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    credentials: "include",
+    signal: opts?.signal,
+    body: JSON.stringify(body),
   });
+  const json = await res.json().catch(() => ({}));
+  if (!res.ok) throw new Error(json?.message ?? "토글 실패");
+  return json as { message: string; id: number; visibility: boolean };
 }
 
 export async function updateAddressVisibility(id: number, payload: { isAddressPublic: "public" | "private" | "exclude" }) {
