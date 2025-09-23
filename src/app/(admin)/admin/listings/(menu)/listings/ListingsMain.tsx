@@ -18,6 +18,7 @@ import {
   useQueryClient,
   keepPreviousData,
 } from "@tanstack/react-query";
+import Link from "next/link";
 
 type SearchFormValues = { keyword: string };
 
@@ -424,9 +425,9 @@ const ListingsMain = ({ ListingsData }: ListingsMainProps) => {
 
                   <td className="p-3">
                     <div className="flex flex-col gap-y-2 justify-center items-center">
-                      <button className="text-sm text-white bg-green-500 px-3 py-1 rounded-lg shadow hover:bg-green-400 transition duration-200">
+                      <Link href="#" className="text-sm text-white bg-green-500 px-3 py-1 rounded-lg shadow hover:bg-green-400 transition duration-200">
                         수정
-                      </button>
+                      </Link>
                       <button
                         onClick={() => handleDelete(id)}
                         disabled={isDeleting}
