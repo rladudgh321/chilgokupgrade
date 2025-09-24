@@ -18,59 +18,52 @@ const BASE_CSS = `
 `;
 
 export function openPrintSafe({ title, css, bodyHtml }: PrintOptions) {
-  // 1) 새 탭 열기 (noreferrer 제거)
-  let win = window.open("", "_blank", "noopener");
-  if (!win) {
-    // 팝업이 막혔을 때 폴백: Blob URL로 열기
-    const full = `<!doctype html>
+  // 완전한 HTML 문서 생성 (onload에서 이미지 로딩 후 자동 인쇄)
+  const fullHtml = `<!doctype html>
 <html>
 <head>
-<meta charset="utf-8" />
-<title>${title ?? "Print"}</title>
-<style>${BASE_CSS}${css ?? ""}</style>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>${title ?? "Print"}</title>
+  <base href="${location.origin}/" />
+  <style>${BASE_CSS}${css ?? ""}</style>
 </head>
-<body><div class="print-root">${bodyHtml}</div></body>
+<body>
+  <div class="print-root">${bodyHtml}</div>
+  <script>
+    (function() {
+      function whenImagesReady() {
+        var imgs = Array.prototype.slice.call(document.images || []);
+        if (imgs.length === 0) return Promise.resolve();
+        return Promise.all(imgs.map(function(img){
+          if (img.complete) return Promise.resolve();
+          return new Promise(function(res){
+            img.onload = function(){ res(); };
+            img.onerror = function(){ res(); };
+          });
+        }));
+      }
+      function triggerPrint() {
+        try { window.focus(); } catch (e) {}
+        try { window.print(); } catch (e) {}
+      }
+      if (document.readyState === 'complete') {
+        whenImagesReady().then(triggerPrint);
+      } else {
+        window.addEventListener('load', function(){
+          whenImagesReady().then(triggerPrint);
+        });
+      }
+    })();
+  <\/script>
+</body>
 </html>`;
-    const blob = new Blob([full], { type: "text/html" });
-    const url = URL.createObjectURL(blob);
-    win = window.open(url, "_blank", "noopener");
-    if (!win) alert("팝업이 차단되었습니다. 이 사이트의 팝업을 허용해주세요.");
-    return;
+
+  // 항상 Blob URL로 새 탭 열기 (상대 경로 리소스도 base로 해결)
+  const blob = new Blob([fullHtml], { type: "text/html" });
+  const url = URL.createObjectURL(blob);
+  const popup = window.open(url, "_blank", "noopener,noreferrer");
+  if (popup) {
+    alert("팝업이 차단되었습니다. 이 사이트의 팝업을 허용해주세요.");
   }
-
-  // 2) DOM API로 구성 (document.write 사용 안 함)
-  const doc = win.document;
-  doc.title = title ?? "Print";
-
-  const style = doc.createElement("style");
-  style.appendChild(doc.createTextNode(BASE_CSS + (css ?? "")));
-  doc.head.appendChild(style);
-
-  const root = doc.createElement("div");
-  root.className = "print-root";
-  root.innerHTML = bodyHtml;
-  doc.body.appendChild(root);
-
-  // 이미지가 있으면 모두 로드된 뒤 인쇄
-  const imgs = Array.from(doc.images);
-  const waitImgs = Promise.all(
-    imgs.map(
-      (img) =>
-        img.complete
-          ? Promise.resolve()
-          : new Promise<void>((res) => {
-              img.onload = () => res();
-              img.onerror = () => res();
-            })
-    )
-  );
-
-  waitImgs.then(() => {
-    try {
-      win.focus();
-      win.print();
-    } catch {
-      /* 일부 환경은 자동 print가 막혀도 내용은 보입니다. */
-    }
-  });
 }

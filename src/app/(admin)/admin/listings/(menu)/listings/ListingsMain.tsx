@@ -236,6 +236,7 @@ const ListingsMain = ({ ListingsData, sortKey }: ListingsMainProps) => {
       listing.mainImage as any,
       ...(Array.isArray(listing.subImage) ? listing.subImage.slice(0, 3) : []),
     ].filter(Boolean);
+    const adminHas = Array.isArray(listing.adminImage) && listing.adminImage.length > 0;
 
     const body = `
       <div class="card">
@@ -243,32 +244,107 @@ const ListingsMain = ({ ListingsData, sortKey }: ListingsMainProps) => {
         <div class="muted">${listing.address ?? ""}</div>
       </div>
 
-      ${imgs
-        .map(
-          (src) => `
-          <div class="card">
-            <img src="${src}" alt="매물 이미지" />
-          </div>`
-        )
-        .join("")}
+      <div class="card">
+        <table style="width:100%; border-collapse:collapse; table-layout:fixed;">
+          <tr>
+            ${[0,1,2]
+              .map((i) => imgs[i] ? `<td style="width:33.33%; padding:4px;">
+                  <img src="${imgs[i]}" alt="매물 이미지" style="width:100%; height:140px; object-fit:cover; border-radius:6px;" />
+                </td>` : `<td style="width:33.33%; padding:4px;"></td>`)
+              .join("")}
+          </tr>
+        </table>
+      </div>
 
       <div class="card">
-        <div class="row">
-          <div>거래: ${listing.dealType ?? "-"}</div>
-          <div>종류: ${listing.propertyType ?? "-"}</div>
-        </div>
-        <div class="row">
-          <div>실면적: ${listing.actualArea ?? "-"}평</div>
-          <div>공급면적: ${listing.supplyArea ?? "-"}평</div>
-        </div>
-        <div class="row">
-          <div>분양가: ${listing.salePrice ?? "-"}</div>
-          <div>실입주금: ${listing.actualEntryCost ?? "-"}</div>
-        </div>
-        <div class="row">
-          <div>층: ${listing.currentFloor ?? "-"}/${listing.totalFloors ?? "-"}</div>
-          <div>방/욕실: ${listing.rooms ?? "-"} / ${listing.bathrooms ?? "-"}</div>
-        </div>
+        <table style="width:100%; border-collapse:collapse; font-size:12px;">
+          <tbody>
+            <tr>
+              <td style="width:18%; padding:6px; background:#f5f6f8;">거래유형</td>
+              <td style="width:32%; padding:6px;">${listing.dealType ?? "-"}</td>
+              <td style="width:18%; padding:6px; background:#f5f6f8;">매물종류</td>
+              <td style="width:32%; padding:6px;">${listing.propertyType ?? "-"}</td>
+            </tr>
+            <tr>
+              <td style="padding:6px; background:#f5f6f8;">라벨</td>
+              <td style="padding:6px;">${listing.label ?? "-"}</td>
+              <td style="padding:6px; background:#f5f6f8;">인기/급매</td>
+              <td style="padding:6px;">${listing.popularity ?? "-"}</td>
+            </tr>
+            <tr>
+              <td style="padding:6px; background:#f5f6f8;">금액 표기</td>
+              <td style="padding:6px;">${listing.priceDisplay ?? "-"}</td>
+              <td style="padding:6px; background:#f5f6f8;">방향</td>
+              <td style="padding:6px;">${listing.direction ?? "-"}</td>
+            </tr>
+            <tr>
+              <td style="padding:6px; background:#f5f6f8;">분양가</td>
+              <td style="padding:6px;">${listing.salePrice != null ? formatFullKoreanMoney(Number(listing.salePrice)) : "-"}</td>
+              <td style="padding:6px; background:#f5f6f8;">전세가</td>
+              <td style="padding:6px;">${listing.rentalPrice != null ? formatFullKoreanMoney(Number(listing.rentalPrice)) : "-"}</td>
+            </tr>
+            <tr>
+              <td style="padding:6px; background:#f5f6f8;">실입주금</td>
+              <td style="padding:6px;">${listing.actualEntryCost != null ? formatFullKoreanMoney(Number(listing.actualEntryCost)) : "-"}</td>
+              <td style="padding:6px; background:#f5f6f8;">관리비</td>
+              <td style="padding:6px;">${listing.managementFee != null ? formatFullKoreanMoney(Number(listing.managementFee)) : "-"}</td>
+            </tr>
+            <tr>
+              <td style="padding:6px; background:#f5f6f8;">층</td>
+              <td style="padding:6px;">${listing.currentFloor ?? "-"}/${listing.totalFloors ?? "-"}</td>
+              <td style="padding:6px; background:#f5f6f8;">방/욕실</td>
+              <td style="padding:6px;">${listing.rooms ?? "-"} / ${listing.bathrooms ?? "-"}</td>
+            </tr>
+            <tr>
+              <td style="padding:6px; background:#f5f6f8;">실면적(평)</td>
+              <td style="padding:6px;">${listing.actualArea ?? "-"}</td>
+              <td style="padding:6px; background:#f5f6f8;">공급면적(평)</td>
+              <td style="padding:6px;">${listing.supplyArea ?? "-"}</td>
+            </tr>
+            <tr>
+              <td style="padding:6px; background:#f5f6f8;">연면적(㎡)</td>
+              <td style="padding:6px;">${listing.totalArea ?? "-"}</td>
+              <td style="padding:6px; background:#f5f6f8;">난방</td>
+              <td style="padding:6px;">${listing.heatingType ?? "-"}</td>
+            </tr>
+            <tr>
+              <td style="padding:6px; background:#f5f6f8;">입주</td>
+              <td style="padding:6px;">${listing.moveInType ?? "-"}</td>
+              <td style="padding:6px; background:#f5f6f8;">엘리베이터</td>
+              <td style="padding:6px;">${listing.elevatorType ?? "-"} ${listing.elevatorCount ? `(${listing.elevatorCount}대)` : ""}</td>
+            </tr>
+            <tr>
+              <td style="padding:6px; background:#f5f6f8;">주차</td>
+              <td style="padding:6px;">${Array.isArray(listing.parking) ? listing.parking.join(', ') : (listing.parking ?? "-")}</td>
+              <td style="padding:6px; background:#f5f6f8;">주차(세대/전체)</td>
+              <td style="padding:6px;">${listing.parkingPerUnit ?? "-"} / ${listing.totalParking ?? "-"}</td>
+            </tr>
+            <tr>
+              <td style="padding:6px; background:#f5f6f8;">옵션</td>
+              <td style="padding:6px;">${Array.isArray(listing.buildingOptions) ? listing.buildingOptions.join(', ') : "-"}</td>
+              <td style="padding:6px; background:#f5f6f8;">테마</td>
+              <td style="padding:6px;">${Array.isArray(listing.themes) ? listing.themes.join(', ') : "-"}</td>
+            </tr>
+            <tr>
+              <td style="padding:6px; background:#f5f6f8;">허가/승인/착공</td>
+              <td colspan="3" style="padding:6px;">
+                허가 ${listing.permitDate ? formatYYYYMMDD(new Date(String(listing.permitDate))) : "-"} · 
+                승인 ${listing.approvalDate ? formatYYYYMMDD(new Date(String(listing.approvalDate))) : "-"} · 
+                착공 ${listing.constructionYear ? formatYYYYMMDD(new Date(String(listing.constructionYear))) : "-"}
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="card">
+        <table style="width:100%; border-collapse:collapse; font-size:12px;">
+          <tbody>
+            <tr>
+              <td style="width:18%; padding:6px; background:#f5f6f8;">관리자용 사진</td>
+              <td colspan="3" style="padding:6px;">${adminHas ? "있음" : "없음"}</td>
+            </tr>
+          </tbody>
+        </table>
       </div>
     `;
     openPrintSafe({ title: `매물 #${listing.id}`, bodyHtml: body });
@@ -284,17 +360,88 @@ const ListingsMain = ({ ListingsData, sortKey }: ListingsMainProps) => {
       </div>
 
       <div class="card">
-        <div>거래: ${listing.dealType ?? "-"}</div>
-        <div>종류: ${listing.propertyType ?? "-"}</div>
-        <div>실면적: ${listing.actualArea ?? "-"}평 / 공급면적: ${listing.supplyArea ?? "-"}평</div>
-        <div>층: ${listing.currentFloor ?? "-"}/${listing.totalFloors ?? "-"}</div>
-        <div>방/욕실: ${listing.rooms ?? "-"} / ${listing.bathrooms ?? "-"}</div>
-        <div>방향: ${listing.direction ?? "-"}</div>
-        <div>분양가: ${listing.salePrice ?? "-"}</div>
-        <div>전세가: ${listing.rentalPrice ?? "-"}</div>
-        <div>실입주금: ${listing.actualEntryCost ?? "-"}</div>
-        <div>관리비: ${listing.managementFee ?? "-"}</div>
-        <div>관리자용 사진: ${adminHas ? "있음" : "없음"}</div>
+        <table style="width:100%; border-collapse:collapse; font-size:12px;">
+          <tbody>
+            <tr>
+              <td style="width:18%; padding:6px; background:#f5f6f8;">거래유형</td>
+              <td style="width:32%; padding:6px;">${listing.dealType ?? "-"}</td>
+              <td style="width:18%; padding:6px; background:#f5f6f8;">매물종류</td>
+              <td style="width:32%; padding:6px;">${listing.propertyType ?? "-"}</td>
+            </tr>
+            <tr>
+              <td style="padding:6px; background:#f5f6f8;">라벨</td>
+              <td style="padding:6px;">${listing.label ?? "-"}</td>
+              <td style="padding:6px; background:#f5f6f8;">인기/급매</td>
+              <td style="padding:6px;">${listing.popularity ?? "-"}</td>
+            </tr>
+            <tr>
+              <td style="padding:6px; background:#f5f6f8;">금액 표기</td>
+              <td style="padding:6px;">${listing.priceDisplay ?? "-"}</td>
+              <td style="padding:6px; background:#f5f6f8;">방향</td>
+              <td style="padding:6px;">${listing.direction ?? "-"}</td>
+            </tr>
+            <tr>
+              <td style="padding:6px; background:#f5f6f8;">분양가</td>
+              <td style="padding:6px;">${listing.salePrice != null ? formatFullKoreanMoney(Number(listing.salePrice)) : "-"}</td>
+              <td style="padding:6px; background:#f5f6f8;">전세가</td>
+              <td style="padding:6px;">${listing.rentalPrice != null ? formatFullKoreanMoney(Number(listing.rentalPrice)) : "-"}</td>
+            </tr>
+            <tr>
+              <td style="padding:6px; background:#f5f6f8;">실입주금</td>
+              <td style="padding:6px;">${listing.actualEntryCost != null ? formatFullKoreanMoney(Number(listing.actualEntryCost)) : "-"}</td>
+              <td style="padding:6px; background:#f5f6f8;">관리비</td>
+              <td style="padding:6px;">${listing.managementFee != null ? formatFullKoreanMoney(Number(listing.managementFee)) : "-"}</td>
+            </tr>
+            <tr>
+              <td style="padding:6px; background:#f5f6f8;">층</td>
+              <td style="padding:6px;">${listing.currentFloor ?? "-"}/${listing.totalFloors ?? "-"}</td>
+              <td style="padding:6px; background:#f5f6f8;">방/욕실</td>
+              <td style="padding:6px;">${listing.rooms ?? "-"} / ${listing.bathrooms ?? "-"}</td>
+            </tr>
+            <tr>
+              <td style="padding:6px; background:#f5f6f8;">실면적(평)</td>
+              <td style="padding:6px;">${listing.actualArea ?? "-"}</td>
+              <td style="padding:6px; background:#f5f6f8;">공급면적(평)</td>
+              <td style="padding:6px;">${listing.supplyArea ?? "-"}</td>
+            </tr>
+            <tr>
+              <td style="padding:6px; background:#f5f6f8;">연면적(㎡)</td>
+              <td style="padding:6px;">${listing.totalArea ?? "-"}</td>
+              <td style="padding:6px; background:#f5f6f8;">난방</td>
+              <td style="padding:6px;">${listing.heatingType ?? "-"}</td>
+            </tr>
+            <tr>
+              <td style="padding:6px; background:#f5f6f8;">입주</td>
+              <td style="padding:6px;">${listing.moveInType ?? "-"}</td>
+              <td style="padding:6px; background:#f5f6f8;">엘리베이터</td>
+              <td style="padding:6px;">${listing.elevatorType ?? "-"} ${listing.elevatorCount ? `(${listing.elevatorCount}대)` : ""}</td>
+            </tr>
+            <tr>
+              <td style="padding:6px; background:#f5f6f8;">주차</td>
+              <td style="padding:6px;">${Array.isArray(listing.parking) ? listing.parking.join(', ') : (listing.parking ?? "-")}</td>
+              <td style="padding:6px; background:#f5f6f8;">주차(세대/전체)</td>
+              <td style="padding:6px;">${listing.parkingPerUnit ?? "-"} / ${listing.totalParking ?? "-"}</td>
+            </tr>
+            <tr>
+              <td style="padding:6px; background:#f5f6f8;">옵션</td>
+              <td style="padding:6px;">${Array.isArray(listing.buildingOptions) ? listing.buildingOptions.join(', ') : "-"}</td>
+              <td style="padding:6px; background:#f5f6f8;">테마</td>
+              <td style="padding:6px;">${Array.isArray(listing.themes) ? listing.themes.join(', ') : "-"}</td>
+            </tr>
+            <tr>
+              <td style="padding:6px; background:#f5f6f8;">허가/승인/착공</td>
+              <td colspan="3" style="padding:6px;">
+                허가 ${listing.permitDate ? formatYYYYMMDD(new Date(String(listing.permitDate))) : "-"} · 
+                승인 ${listing.approvalDate ? formatYYYYMMDD(new Date(String(listing.approvalDate))) : "-"} · 
+                착공 ${listing.constructionYear ? formatYYYYMMDD(new Date(String(listing.constructionYear))) : "-"}
+              </td>
+            </tr>
+            <tr>
+              <td style="padding:6px; background:#f5f6f8;">관리자용 사진</td>
+              <td colspan="3" style="padding:6px;">${adminHas ? "있음" : "없음"}</td>
+            </tr>
+          </tbody>
+        </table>
       </div>
     `;
     openPrintSafe({ title: `매물 #${listing.id}`, bodyHtml: body });
