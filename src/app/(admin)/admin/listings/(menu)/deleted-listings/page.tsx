@@ -1,15 +1,9 @@
-import Selected from "../Selected"
-import DeletedListings from "./DeletedListing"
 import { BuildFindAllDeleted } from "@/app/apis/build";
+import DeletedShell from "./DeletedShell";
 
-const DeletedListingsPage = async() => {
+const DeletedListingsPage = async () => {
   const DeletedData = await BuildFindAllDeleted();
-  return (
-    <div>
-      <Selected />
-      <DeletedListings DeletedData={DeletedData} />
-    </div>
-  )
-}
+  return <DeletedShell DeletedData={DeletedData} />;
+};
 
-export default DeletedListingsPage
+export default DeletedListingsPage;

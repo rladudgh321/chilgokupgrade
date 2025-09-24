@@ -1,6 +1,6 @@
 "use client";
 /* eslint-disable @typescript-eslint/no-explicit-any */
-
+import type { SortKey } from "./ListingsShell";
 import { useEffect, useMemo, useState } from "react";
 import { useForm, FormProvider } from "react-hook-form";
 import Pagination from "@/app/components/shared/Pagination";
@@ -31,13 +31,14 @@ interface ListingsMainProps {
     totalItems: number;
     totalPages: number;
   };
+  sortKey: SortKey;
 }
 
 type PageData = { ok: boolean; totalItems: number; totalPages: number; currentPage: number; data: IBuild[] };
 
 const LIMIT = 10;
 
-const ListingsMain = ({ ListingsData }: ListingsMainProps) => {
+const ListingsMain = ({  ListingsData, sortKey }: ListingsMainProps) => {
   const queryClient = useQueryClient();
 
   // 검색
@@ -78,10 +79,37 @@ const ListingsMain = ({ ListingsData }: ListingsMainProps) => {
     return data.data as IBuild[];
   }, [data?.data]);
 
-  // 현재 페이지의 모든 id
+ // ✅ 표시용 정렬 (fetch 안 건드리고 프론트에서만 정렬)
+  const sortedRows = useMemo(() => {
+    const arr = [...rows];
+    switch (sortKey) {
+      case "recent":
+        return arr.sort(
+          (a, b) =>
+            new Date(String(b.createdAt)).getTime() -
+            new Date(String(a.createdAt)).getTime()
+        );
+      case "views":
+        return arr.sort((a, b) => (b.views ?? 0) - (a.views ?? 0));
+      case "price": {
+        const price = (x: any) =>
+          Math.max(Number(x.salePrice ?? 0), Number(x.actualEntryCost ?? 0));
+        return arr.sort((a, b) => price(b) - price(a));
+      }
+      case "totalArea":
+        return arr.sort(
+          (a, b) => Number(b.totalArea ?? 0) - Number(a.totalArea ?? 0)
+        );
+      default:
+        return arr;
+    }
+  }, [rows, sortKey]);
+
+  // ⬇️ 이후 테이블 렌더에서는 rows 대신 sortedRows 사용
+  //   (allIdsOnPage, 선택/삭제 로직도 sortedRows 기준으로)
   const allIdsOnPage = useMemo(
-    () => rows.map((it) => Number(it.id)).filter(Number.isFinite),
-    [rows]
+    () => sortedRows.map((it) => Number(it.id)).filter(Number.isFinite),
+    [sortedRows]
   );
   const allOnThisPageChecked =
     allIdsOnPage.length > 0 && allIdsOnPage.every((id) => selectedIds.includes(id));
@@ -279,7 +307,7 @@ const ListingsMain = ({ ListingsData }: ListingsMainProps) => {
           </thead>
 
           <tbody>
-            {rows.map((listing: IBuild, index: number) => {
+            {sortedRows.map((listing: IBuild, index: number) => {
               const id = Number(listing.id);
               const confirmDate = confirmDates[id];
               const createdAtDate = new Date(String(listing.createdAt));

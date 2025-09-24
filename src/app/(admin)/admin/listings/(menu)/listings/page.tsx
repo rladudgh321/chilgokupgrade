@@ -1,16 +1,9 @@
-import { BuildFindAll } from "@/app/apis/build"
-import Selected from "../Selected"
-import ListingsMain from "./ListingsMain"
+import { BuildFindAll } from "@/app/apis/build";
+import ListingsShell from "./ListingsShell";
 
 const Listings = async () => {
   const ListingsData = await BuildFindAll();
-  
-  return (
-    <div>
-      <Selected />
-      <ListingsMain ListingsData={ListingsData} />
-    </div>
-  )
-}
+  return <ListingsShell ListingsData={ListingsData} />;
+};
 
-export default Listings
+export default Listings;

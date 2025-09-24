@@ -5,7 +5,7 @@ import { useForm, FormProvider } from "react-hook-form";
 import { useQuery, keepPreviousData, useQueryClient, useMutation } from "@tanstack/react-query";
 import Pagination from "@/app/components/shared/Pagination";
 import ToggleSwitch from "@/app/components/admin/listings/ToggleSwitch";
-import { BuildFindAllDeleted, BuildHardDelete, BuildRestore, toggleBuild } from "@/app/apis/build";
+import { BuildFindAllDeleted, BuildHardDelete, BuildRestore } from "@/app/apis/build";
 import { clsx } from "clsx";
 import { IBuild } from "@/app/interface/build";
 import formatFullKoreanMoney from "@/app/utility/NumberToKoreanMoney";
@@ -13,8 +13,12 @@ import CopyText from "@/app/utility/Copy";
 import SearchIcon from "@svg/Search";
 import AddressVisibility from "@/app/components/admin/listings/AddressVisibility ";
 
+// 🔹 추가: 정렬 키 타입
+export type SortKey = "recent" | "views" | "price" | "totalArea";
+
 type SearchFormValues = { keyword: string };
 const LIMIT = 10;
+
 interface Paginated<T> {
   ok: boolean;
   totalItems: number;
@@ -25,24 +29,22 @@ interface Paginated<T> {
 
 interface DeletedListingsProps {
   DeletedData: Paginated<IBuild>;
+  sortKey: SortKey; // 🔹 추가
 }
 
-const DeletedListings = ({ DeletedData }: DeletedListingsProps) => {
+const DeletedListings = ({ DeletedData, sortKey }: DeletedListingsProps) => {
   const queryClient = useQueryClient();
   const methods = useForm<SearchFormValues>({ defaultValues: { keyword: "" } });
   const { register, handleSubmit } = methods;
 
-  // 🔹 서버에서 받은 초기 페이지로 시작
   const [page, setPage] = useState(DeletedData?.currentPage ?? 1);
   const [keyword, setKeyword] = useState("");
 
-  // 🔹 쿼리키
   const qk = useMemo(
     () => ["builds-deleted", page, LIMIT, (keyword ?? "").trim()],
     [page, keyword]
   );
 
-  // 🔹 page=초기값 + keyword="" 일 때만 서버 프롭을 initialData로 사용 (하이드레이션)
   const shouldUseInitial =
     (DeletedData?.currentPage ?? 1) === page && (keyword ?? "") === "";
 
@@ -51,15 +53,39 @@ const DeletedListings = ({ DeletedData }: DeletedListingsProps) => {
     queryFn: () => BuildFindAllDeleted(page, LIMIT, keyword),
     placeholderData: keepPreviousData,
     initialData: shouldUseInitial ? DeletedData : undefined,
-    // 초기 하이드레이션 즉시 재요청을 막고 싶으면(선택):
     staleTime: 10_000,
   });
 
-  // 🔹 rows 안정화 (deps = data?.data)
   const rows = useMemo<IBuild[]>(
     () => (Array.isArray(data?.data) ? (data!.data as IBuild[]) : []),
     [data]
   );
+
+  // 🔹 프론트 정렬 (현재 페이지 내에서만)
+  const sortedRows = useMemo(() => {
+    const arr = [...rows];
+    switch (sortKey) {
+      case "recent":
+        return arr.sort(
+          (a, b) =>
+            new Date(String(b.createdAt)).getTime() -
+            new Date(String(a.createdAt)).getTime()
+        );
+      case "views":
+        return arr.sort((a, b) => (b.views ?? 0) - (a.views ?? 0));
+      case "price": {
+        const price = (x: IBuild) =>
+          Math.max(Number(x.salePrice ?? 0), Number(x.actualEntryCost ?? 0));
+        return arr.sort((a, b) => price(b) - price(a));
+      }
+      case "totalArea":
+        return arr.sort(
+          (a, b) => Number(b.totalArea ?? 0) - Number(a.totalArea ?? 0)
+        );
+      default:
+        return arr;
+    }
+  }, [rows, sortKey]);
 
   const onSubmit = handleSubmit((formData) => {
     setKeyword(formData.keyword);
@@ -110,7 +136,7 @@ const DeletedListings = ({ DeletedData }: DeletedListingsProps) => {
 
   return (
     <FormProvider {...methods}>
-      {/* 상단 바 (서버 컴포넌트에서 <Selected /> 이미 렌더됨) */}
+      {/* 상단바 */}
       <div className="flex justify-between items-center">
         <div className="mb-4 max-w-4xl flex items-center">
           <form className="flex h-8 w-full" onSubmit={onSubmit}>
@@ -150,8 +176,12 @@ const DeletedListings = ({ DeletedData }: DeletedListingsProps) => {
           </thead>
 
           <tbody>
-            {rows.map((listing: IBuild, index: number) => {
+            {sortedRows.map((listing: IBuild, index: number) => {
               const id = Number(listing.id);
+              const createdAt = new Date(String(listing.createdAt));
+              const updatedAt = listing.updatedAt ? new Date(String(listing.updatedAt)) : null;
+              const showUpdated = !!(updatedAt && updatedAt.getTime() !== createdAt.getTime());
+
               return (
                 <tr
                   key={id}
@@ -166,18 +196,16 @@ const DeletedListings = ({ DeletedData }: DeletedListingsProps) => {
                     <AddressVisibility
                       activeAddressPublic={listing.isAddressPublic as "public" | "private" | "exclude"}
                       listingId={id}
-                      serverSync={false}     // 🔹 서버 호출 금지 (삭제 목록이므로)
-                      disabled               // 🔹 UI 비활성화
-                      handleRadioChange={() => { /* 삭제 목록에서는 수정 불가 */ }}
+                      serverSync={false}
+                      disabled
+                      handleRadioChange={() => {}}
                     />
-
                     <div className="mt-1 text-xs text-slate-500">(수정 불가)</div>
 
                     <ToggleSwitch
                       toggle={!!listing.visibility}
                       id={`visibility-${id}`}
                       onToggle={() => {}}
-                      // 🔹 ToggleSwitch에 disabled prop이 없으면 아래 클래스로 비활성화
                       className="pointer-events-none opacity-50 cursor-not-allowed"
                     />
                   </td>
@@ -203,18 +231,16 @@ const DeletedListings = ({ DeletedData }: DeletedListingsProps) => {
                   <td className="p-3">{listing?.views ?? 0}</td>
 
                   <td className="p-3">
-                    <div>{new Date(String(listing.createdAt)).toLocaleDateString()}</div>
-                    <div>
-                      {
-                        listing.createdAt !== listing.updatedAt && <div>({new Date(String(listing.updatedAt)).toLocaleDateString()})</div>
-                      }
-                    </div>
+                    <div>{createdAt.toLocaleDateString()}</div>
+                    {showUpdated && (
+                      <div>({updatedAt!.toLocaleDateString()})</div>
+                    )}
                   </td>
+
                   <td className="p-3">
                     {listing?.deletedAt ? new Date(String(listing.deletedAt)).toLocaleDateString() : "-"}
                   </td>
 
-                  {/* ✅ 여기 교체: 복원 / 영구 삭제 버튼 */}
                   <td className="p-3">
                     <div className="flex gap-2 justify-center flex-col">
                       <button
@@ -245,9 +271,12 @@ const DeletedListings = ({ DeletedData }: DeletedListingsProps) => {
           </tbody>
         </table>
 
-        {/* 페이지네이션 */}
         <div className="my-4 flex justify-center">
-          <Pagination totalPages={data?.totalPages ?? 1} currentPage={page} onPageChange={setPage} />
+          <Pagination
+            totalPages={data?.totalPages ?? 1}
+            currentPage={page}
+            onPageChange={setPage}
+          />
         </div>
       </div>
     </FormProvider>
