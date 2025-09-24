@@ -73,12 +73,20 @@ const ListingsMain = ({ ListingsData, sortKey }: ListingsMainProps) => {
     [page, searchKeyword]
   );
 
+  const shouldUseInitial = useMemo(
+    () =>
+      (ListingsData?.currentPage ?? 1) === page &&
+      (searchKeyword ?? "") === "",
+    [ListingsData?.currentPage, page, searchKeyword]
+  );
+
   // 목록 조회
   const { data, isLoading, isError } = useQuery({
     queryKey: qk,
     queryFn: () => BuildFindAll(page, LIMIT, searchKeyword),
     placeholderData: keepPreviousData,
-    initialData: ListingsData,
+    initialData: shouldUseInitial ? ListingsData : undefined,
+    staleTime: 10_000,
   });
 
   const rows = useMemo<IBuild[]>(() => {
