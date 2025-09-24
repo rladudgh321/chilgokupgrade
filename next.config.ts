@@ -4,12 +4,17 @@ const nextConfig: NextConfig = {
   /* config options here */
   images: {
     remotePatterns: [
+      // Supabase Storage 공개 URL
       {
-        protocol: 'http',
-        hostname: '127.0.0.1',
-        port: '4000',
-        pathname: '/**',
-        search: '',
+        protocol: 'https',
+        hostname: 'pijtsbicrnsbdaewosgt.supabase.co',
+        pathname: '/storage/v1/object/public/**',
+      },
+      // 너 데이터에 예시로 들어간 example.com 이미지
+      {
+        protocol: 'https',
+        hostname: 'example.com',
+        pathname: '/images/**', // 필요 경로에 맞게 조정
       },
     ],
   },

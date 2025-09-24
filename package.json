@@ -15,6 +15,8 @@
     "prisma": "prisma generate"
   },
   "dependencies": {
+    "@aws-sdk/client-s3": "^3.895.0",
+    "@aws-sdk/lib-storage": "^3.895.0",
     "@prisma/extension-accelerate": "^2.0.2",
     "@supabase/ssr": "^0.7.0",
     "@supabase/supabase-js": "^2.57.4",

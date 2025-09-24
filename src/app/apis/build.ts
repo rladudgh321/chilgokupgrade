@@ -101,33 +101,19 @@ export async function BuildUpdate(id: number, data: object) {
   return res.json();
 }
 
+// apis/build.ts (또는 apis/image.ts로 분리 권장)
 export const uploadImage = async (formData: FormData) => {
-  const res = await fetch(`${baseURL}/image/upload`, {
-    method: "POST",
-    body: formData,
-    credentials: "include",
-  });
-
-  if (!res.ok) {
-    throw new Error("대표 사진 업로드 실패");
-  }
-
-  return res.json();
+  const res = await fetch(`${baseURL}/api/image/upload`, { method: "POST", body: formData });
+  if (!res.ok) throw new Error("대표 사진 업로드 실패");
+  return res.json(); // { url }
 };
 
 export const uploadImages = async (formData: FormData) => {
-  const res = await fetch(`${baseURL}/image/uploads`, {
-    method: "POST",
-    body: formData,
-    credentials: "include",
-  });
-
-  if (!res.ok) {
-    throw new Error("사진들 업로드 실패");
-  }
-
-  return res.json();
+  const res = await fetch(`${baseURL}/api/image/uploads`, { method: "POST", body: formData });
+  if (!res.ok) throw new Error("사진들 업로드 실패");
+  return res.json(); // { urls: [] }
 };
+
 
 export async function BuildDeleteSome(ids: number[], opts?: { signal?: AbortSignal }) {
   const res = await fetch(`${baseURL}/api/supabase/build/some`, {
@@ -172,7 +158,6 @@ export async function toggleBuild(id: number, visibility?: boolean, opts?: { sig
   const res = await fetch(`${baseURL}/api/supabase/build/${id}/toggle`, {
     method: "PATCH",
     headers: { "Content-Type": "application/json" },
-    credentials: "include",
     signal: opts?.signal,
     body: JSON.stringify(body),
   });

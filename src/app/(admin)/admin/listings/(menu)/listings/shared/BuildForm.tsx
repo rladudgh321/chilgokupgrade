@@ -90,8 +90,8 @@ export interface FormData {
 
   // SaveImage
   mainImage: string;
-  subImage: string;
-  adminImage: string;
+  subImage: string[];
+  adminImage: string[];
 }
 
 export const BASE_DEFAULTS: FormData = {
@@ -166,8 +166,8 @@ export const BASE_DEFAULTS: FormData = {
   secretContact: "",
 
   mainImage: "",
-  subImage: "",
-  adminImage: "",
+  subImage: [],
+  adminImage: [],
 };
 
 type Props = {

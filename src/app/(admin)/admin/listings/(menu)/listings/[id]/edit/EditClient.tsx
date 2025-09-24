@@ -9,6 +9,21 @@ import { useForm } from "react-hook-form";
 import BuildForm, { BASE_DEFAULTS, FormData } from "@/app/(admin)/admin/listings/(menu)/listings/shared/BuildForm";
 import { BuildFindOne, BuildUpdate } from "@/app/apis/build";
 
+function toStrArray(v: unknown): string[] {
+  if (!v) return [];
+  if (Array.isArray(v)) {
+    return v
+      .map((x) => (typeof x === "string" ? x : (x as any)?.url ?? ""))
+      .filter((s) => typeof s === "string" && s.trim().length > 0);
+  }
+  if (typeof v === "string") return v.trim() ? [v.trim()] : [];
+  if (typeof v === "object" && v) {
+    const url = (v as any).url;
+    return typeof url === "string" && url.trim() ? [url.trim()] : [];
+  }
+  return [];
+}
+
 function normalizeForForm(d: any): FormData {
   return {
     ...BASE_DEFAULTS,
@@ -53,9 +68,13 @@ function normalizeForForm(d: any): FormData {
     secretNote: d.secretNote ?? "",
     secretContact: d.secretContact ?? "",
 
-    mainImage: d.mainImage ?? "",
-    subImage: d.subImage ?? "",
-    adminImage: d.adminImage ?? "",
+    mainImage:
+      typeof d.mainImage === "string" && d.mainImage.trim()
+        ? d.mainImage.trim()
+        : (typeof d.mainImage === "object" && d.mainImage?.url ? d.mainImage.url : ""),
+
+    subImage: toStrArray(d.subImage),
+    adminImage: toStrArray(d.adminImage),
 
     // enum/boolean/number/array/date
     isAddressPublic: d.isAddressPublic ?? "public",
