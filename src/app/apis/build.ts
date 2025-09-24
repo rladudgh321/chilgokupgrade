@@ -81,6 +81,25 @@ export async function BuildHardDelete(id: number, opts?: { signal?: AbortSignal 
   return json as { message: string; deletedId: number };
 }
 
+export async function BuildFindOne(id: number) {
+  const res = await fetch(`${baseURL}/api/supabase/build/${id}`, { method: "GET", cache: "no-store" });
+  if (!res.ok) throw new Error(`GET /api/supabase/build/${id} 실패`);
+  return res.json(); // 서버가 단일 객체를 반환한다고 가정
+}
+
+export async function BuildUpdate(id: number, data: object) {
+  const res = await fetch(`${baseURL}/api/supabase/build/${id}`, {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(data),
+    cache: "no-store",
+  });
+  if (!res.ok) {
+    const txt = await res.text().catch(() => "");
+    throw new Error(`PATCH /api/supabase/build/${id} 실패: ${txt}`);
+  }
+  return res.json();
+}
 
 export const uploadImage = async (formData: FormData) => {
   const res = await fetch(`${baseURL}/image/upload`, {

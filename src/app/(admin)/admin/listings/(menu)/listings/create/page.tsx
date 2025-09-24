@@ -1,4 +1,4 @@
-import CreateClient from './CreateClient'
+import CreateClient from "./CreateClient"
 
 const CreateListings = () => {
   return (

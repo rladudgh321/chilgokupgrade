@@ -425,7 +425,10 @@ const ListingsMain = ({ ListingsData }: ListingsMainProps) => {
 
                   <td className="p-3">
                     <div className="flex flex-col gap-y-2 justify-center items-center">
-                      <Link href="#" className="text-sm text-white bg-green-500 px-3 py-1 rounded-lg shadow hover:bg-green-400 transition duration-200">
+                      <Link
+                        href={`/admin/listings/listings/${id}/edit`}
+                        className="text-sm text-white bg-green-500 px-3 py-1 rounded-lg shadow hover:bg-green-400 transition duration-200"
+                      >
                         수정
                       </Link>
                       <button
