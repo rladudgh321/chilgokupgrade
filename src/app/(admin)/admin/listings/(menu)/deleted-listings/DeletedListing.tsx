@@ -264,6 +264,37 @@ const DeletedListings = ({ DeletedData, sortKey }: DeletedListingsProps) => {
                         영구 삭제
                       </button>
                     </div>
+
+                    {/* ▼ 비밀 메모 : 버튼처럼 보이지만 클릭 불가, hover 시 내용 노출 */}
+                    <div className="mt-3 relative group flex justify-center">
+                      {/* pseudo-button */}
+                      <div
+                        aria-hidden
+                        className="inline-block select-none px-3 py-1 rounded-md border border-slate-400 bg-white text-slate-700 text-xs font-medium shadow-sm"
+                      >
+                        비밀 메모
+                      </div>
+
+                      {/* hover card */}
+                      <div
+                        className="
+                          absolute left-1/2 top-full mt-2 -translate-x-1/2 z-20
+                          w-64 rounded-md border border-slate-200 bg-white p-3 text-left text-xs text-slate-700 shadow-xl
+                          opacity-0 invisible group-hover:opacity-100 group-hover:visible
+                        "
+                        role="tooltip"
+                      >
+                        <div className="font-semibold mb-1">비밀 메모</div>
+                        <div className="whitespace-pre-line break-words">
+                          {listing.secretNote ?? "—"}
+                        </div>
+
+                        <div className="font-semibold mt-2 mb-1">비밀 연락처</div>
+                        <div className="break-words">
+                          {listing.secretContact ?? "—"}
+                        </div>
+                      </div>
+                    </div>
                   </td>
                 </tr>
               );

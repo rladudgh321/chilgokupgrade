@@ -50,19 +50,21 @@ const Editor: React.FC<EditorProps> = ({ name, disabled }) => {
       {/* hidden input으로 RHF에 필드 등록 (초기 제출 안전장치) */}
       <input type="hidden" {...register(name)} value={html} readOnly />
 
+      {/* 제목 */}
       <div className="flex flex-col">
         <label htmlFor="title">제목</label>
         <input
           type="text"
           id="title"
           placeholder="제목을 입력하세요"
-          {...register('title', { required: true })}
+          {...register("title", { required: true })}
+          disabled={disabled}
           className="mt-1 block w-full p-3 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
         />
       </div>
 
       {/* Toolbar */}
-      <div className="flex space-x-4 bg-gray-100 p-3 rounded-lg shadow-md mb-4">
+      <div className="flex space-x-4 bg-gray-100 p-3 rounded-lg shadow-md mb-4 mt-4">
         <button className="p-2 text-xl text-gray-700 hover:bg-gray-200 rounded" onClick={(e) => { e.preventDefault(); applyStyle("bold"); }} disabled={disabled}>
           <strong>B</strong>
         </button>
@@ -89,11 +91,36 @@ const Editor: React.FC<EditorProps> = ({ name, disabled }) => {
         className="min-h-[300px] p-4 border border-gray-300 rounded-lg shadow-md text-gray-900 text-lg leading-6 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent whitespace-pre-wrap break-words bg-white"
       />
 
-      {/* (옵션) 미리보기 */}
-      {/* <div className="mt-6 p-4 border border-gray-300 rounded-lg bg-gray-50">
-        <h3 className="text-xl font-semibold mb-2">Editor Output:</h3>
-        <div dangerouslySetInnerHTML={{ __html: html }} />
-      </div> */}
+      {/* 비밀 메모 / 비밀 연락처 (에디터 아래) */}
+      <div className="mt-6 space-y-4">
+        <div className="flex flex-col">
+          <label htmlFor="secretNote" className="block text-sm font-medium text-gray-700">
+            비밀 메모 (내부용)
+          </label>
+          <textarea
+            id="secretNote"
+            placeholder="내부 공유용 메모를 입력하세요 (외부 비공개)"
+            rows={4}
+            {...register("secretNote")}
+            disabled={disabled}
+            className="mt-1 block w-full p-3 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+          />
+        </div>
+
+        <div className="flex flex-col">
+          <label htmlFor="secretContact" className="block text-sm font-medium text-gray-700">
+            비밀 연락처 (내부용)
+          </label>
+          <input
+            id="secretContact"
+            type="text"
+            placeholder="예: 010-1234-5678 / 내선 123 등"
+            {...register("secretContact")}
+            disabled={disabled}
+            className="mt-1 block w-full p-3 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+          />
+        </div>
+      </div>
     </div>
   );
 };
