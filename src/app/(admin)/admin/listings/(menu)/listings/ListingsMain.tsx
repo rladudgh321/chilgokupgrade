@@ -19,16 +19,9 @@ import {
   keepPreviousData,
 } from "@tanstack/react-query";
 import Link from "next/link";
+import { formatYYYYMMDD } from "@/app/utility/koreaDateControl";
 
 type SearchFormValues = { keyword: string };
-
-function formatYYYYMMDD(d: Date) {
-  const tzDate = new Date(d.getTime() + new Date().getTimezoneOffset() * -60000);
-  const year = tzDate.getFullYear();
-  const month = String(tzDate.getMonth() + 1).padStart(2, "0");
-  const day = String(tzDate.getDate()).padStart(2, "0");
-  return `${year}-${month}-${day}`;
-}
 
 interface ListingsMainProps {
   ListingsData: {
@@ -289,7 +282,11 @@ const ListingsMain = ({ ListingsData }: ListingsMainProps) => {
             {rows.map((listing: IBuild, index: number) => {
               const id = Number(listing.id);
               const confirmDate = confirmDates[id];
-              
+              const createdAtDate = new Date(String(listing.createdAt));
+              const updatedAtDate = listing.updatedAt ? new Date(String(listing.updatedAt)) : null;
+              // “수정”으로 볼 조건: updatedAt이 존재하고 createdAt보다 이후
+              const hasUpdate = !!(updatedAtDate && updatedAtDate.getTime() > createdAtDate.getTime());
+
               return (
                 <tr
                   key={id}
@@ -372,7 +369,19 @@ const ListingsMain = ({ ListingsData }: ListingsMainProps) => {
 
                   <td className="p-3">{listing?.views ?? 0}</td>
 
-                  <td className="p-3">{new Date(String(listing.createdAt)).toLocaleDateString()}</td>
+                  <td className="p-3">
+                    <div>{new Date(String(listing.createdAt)).toLocaleDateString()}</div>
+
+                    {hasUpdate && (
+                      <div className="mt-1 text-xs text-rose-600">
+                        (수정일: {formatYYYYMMDD(updatedAtDate!)})
+                      </div>
+                    )}
+
+                    <div className="mt-1 text-xs text-slate-600">
+                      현장 확인일: {confirmDates[id] ?? "—"}
+                    </div>
+                  </td>
 
                   <td className="p-3 relative">
                     <div className="flex flex-col gap-y-2 justify-center items-center">
