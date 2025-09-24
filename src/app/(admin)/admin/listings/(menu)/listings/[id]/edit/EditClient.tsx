@@ -65,7 +65,8 @@ function normalizeForForm(d: any): FormData {
     actualEntryCost: d.actualEntryCost ?? 0,
     rentalPrice: d.rentalPrice ?? 0,
     managementFee: d.managementFee ?? 0,
-
+    managementEtc: d.managementEtc ?? d.management_etc ?? "",
+    
     currentFloor: d.currentFloor ?? 0,
     totalFloors: d.totalFloors ?? 0,
     basementFloors: d.basementFloors ?? 0,

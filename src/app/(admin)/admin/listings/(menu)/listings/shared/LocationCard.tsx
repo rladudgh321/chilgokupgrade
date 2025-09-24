@@ -1,20 +1,30 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { useFormContext } from "react-hook-form";
-import AddressVisibility from "@/app/components/admin/listings/AddressVisibility "
+import { useFormContext, useWatch } from "react-hook-form";
+import AddressVisibility from "@/app/components/admin/listings/AddressVisibility ";
+
+type AddressState = "public" | "private" | "exclude";
 
 const LocationCard = () => {
-  const { register, formState: { errors } } = useFormContext(); // useFormContext로 폼 상태 접근
-  const [activeAddressPublic, setActiveAddressPublic] = useState<string>("public");
+  const {
+    register,
+    formState: { errors },
+    setValue,
+  } = useFormContext<{
+    address: string;
+    dong: string;
+    ho: string;
+    etc: string;
+    isAddressPublic: AddressState;
+    mapLocation: string;
+  }>();
 
-  // 초기 상태로 '공개' 라디오 버튼을 선택된 상태로 설정
-  useEffect(() => {
-    setActiveAddressPublic("public");
-  }, []);
+  // ✅ RHF 폼 값 구독 (reset 시 내려온 값이 여기로 들어옴)
+  const isAddressPublic = useWatch({ name: "isAddressPublic" }) as AddressState | undefined;
 
-  const handleRadioChange = (item: string) => {
-    setActiveAddressPublic(item === activeAddressPublic ? "public" : item);
+  // ✅ AddressVisibility에서 라디오 변경 → 폼 값에 바로 반영
+  const handleRadioChange = (next: AddressState) => {
+    setValue("isAddressPublic", next, { shouldDirty: true });
   };
 
   return (
@@ -31,15 +41,13 @@ const LocationCard = () => {
           placeholder="상세주소 입력하세요"
           className="mt-1 block w-full p-3 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
         />
-        {errors.address && <p className="text-red-500 text-xs">주소를 입력해주세요</p>}
+        {errors.address && <p className="text-red-500 text-xs">{errors.address.message as string}</p>}
       </div>
 
       {/* 동/호 */}
       <div className="grid grid-cols-2 gap-4">
         <div className="flex flex-col">
-          <label htmlFor="dong" className="block text-sm font-medium text-gray-700">
-            동
-          </label>
+          <label htmlFor="dong" className="block text-sm font-medium text-gray-700">동</label>
           <input
             type="text"
             id="dong"
@@ -50,9 +58,7 @@ const LocationCard = () => {
         </div>
 
         <div className="flex flex-col">
-          <label htmlFor="ho" className="block text-sm font-medium text-gray-700">
-            호
-          </label>
+          <label htmlFor="ho" className="block text-sm font-medium text-gray-700">호</label>
           <input
             type="text"
             id="ho"
@@ -65,9 +71,7 @@ const LocationCard = () => {
 
       {/* 기타사항 */}
       <div className="flex flex-col">
-        <label htmlFor="etc" className="block text-sm font-medium text-gray-700">
-          기타사항
-        </label>
+        <label htmlFor="etc" className="block text-sm font-medium text-gray-700">기타사항</label>
         <input
           type="text"
           id="etc"
@@ -78,13 +82,12 @@ const LocationCard = () => {
       </div>
 
       {/* 주소 공개 여부 */}
-      <AddressVisibility 
-        activeAddressPublic={activeAddressPublic}
-        handleRadioChange={handleRadioChange}
-        serverSync={false}
+      <AddressVisibility
+        activeAddressPublic={isAddressPublic ?? "public"}   // ✅ reset된 값 표시 (없으면 기본 'public')
+        handleRadioChange={handleRadioChange}              // ✅ 폼 값으로 즉시 반영
+        serverSync={false}                                 // 폼 내에서는 서버 호출 없이 제출 시 저장
         ArrayType={false}
       />
-
 
       {/* 지도 위치 */}
       <div className="flex flex-col">
@@ -98,6 +101,7 @@ const LocationCard = () => {
           placeholder="https://maps.google.com/..."
           className="mt-1 block w-full p-3 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
         />
+        {errors.mapLocation && <p className="text-red-500 text-xs">{errors.mapLocation.message as string}</p>}
       </div>
     </div>
   );

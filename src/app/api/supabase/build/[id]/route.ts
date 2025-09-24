@@ -5,7 +5,6 @@ import { cookies } from "next/headers";
 import { createClient } from "@/app/utils/supabase/server";
 import { z } from "zod";
 
-// 스키마에 맞게 조정하세요 (확실하지 않음: snake_case라면 'builds', 'updated_at' 등으로)
 const TABLE = "Build";
 const ID_COL = "id";
 const UPDATED_COL = "updatedAt";

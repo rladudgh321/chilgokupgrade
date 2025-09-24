@@ -211,7 +211,7 @@ export default function BuildForm({
         </Container>
 
         <Container title="상세 설명">
-          <Editor />
+          <Editor name="editorContent" />
         </Container>
 
         <Container title="사진 작업">
