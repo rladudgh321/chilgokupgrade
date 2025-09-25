@@ -22,8 +22,8 @@ const tabBtn = (active: boolean) =>
 const Selected = ({ totalCount, sortKey, onChangeSort }: SelectedProps) => {
   return (
     <>
-      {/* 네비게이션 */}
-      <div className="bg-slate-100 p-4">
+      {/* 네비게이션 - 추후 개발 예정*/}
+      {/* <div className="bg-slate-100 p-4">
         <div className="flex flex-wrap gap-x-2">
           <Select />
           <Select options="구 / 군" />
@@ -44,7 +44,7 @@ const Selected = ({ totalCount, sortKey, onChangeSort }: SelectedProps) => {
           <Select options="10개씩보기" />
           <Select options="거래구분" />
         </div>
-      </div>
+      </div> */}
 
       {/* 컨트롤 인풋창 */}
       <div className="flex justify-between items-center bg-slate-200 flex-wrap p-4 gap-3">

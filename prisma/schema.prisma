@@ -17,6 +17,7 @@ datasource db {
 model Build {
   id              Int            @id @default(autoincrement())
   views           Int? @default(0)
+  confirmDate     DateTime? //현장 확인일
 
   address         String? //주소
   dong            String? //동

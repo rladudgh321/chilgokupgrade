@@ -1,7 +1,7 @@
 "use client";
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import type { SortKey } from "./ListingsShell";
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { FormProvider, useForm } from "react-hook-form";
 import {
   keepPreviousData,
@@ -17,7 +17,7 @@ import ToggleSwitch from "@/app/components/admin/listings/ToggleSwitch";
 import AddressVisibility from "@/app/components/admin/listings/AddressVisibility ";
 import SearchIcon from "@svg/Search";
 
-import { BuildDeleteSome, BuildFindAll, toggleBuild } from "@/app/apis/build";
+import { BuildDeleteSome, BuildFindAll, toggleBuild, updateConfirmDate } from "@/app/apis/build";
 import { IBuild } from "@/app/interface/build";
 import formatFullKoreanMoney from "@/app/utility/NumberToKoreanMoney";
 import { formatYYYYMMDD } from "@/app/utility/koreaDateControl";
@@ -61,8 +61,7 @@ const ListingsMain = ({ ListingsData, sortKey }: ListingsMainProps) => {
   const [selectedIds, setSelectedIds] = useState<number[]>([]);
   const [isDeleting, setIsDeleting] = useState(false);
 
-  // 확인일 / 메뉴
-  const [confirmDates, setConfirmDates] = useState<Record<number, string | undefined>>({});
+  // 메뉴 상태
   const [menuRowId, setMenuRowId] = useState<number | null>(null); // 확인일 드롭다운
   const [printMenuRowId, setPrintMenuRowId] = useState<number | null>(null); // 프린트 드롭다운
   const today = useMemo(() => formatYYYYMMDD(new Date()), []);
@@ -196,14 +195,33 @@ const ListingsMain = ({ ListingsData, sortKey }: ListingsMainProps) => {
     }
   };
 
-  // 서버 확인일 초기화
-  useEffect(() => {
-    const init: Record<number, string | undefined> = {};
-    rows.forEach((item: any) => {
-      if (item.confirmDate) init[item.id] = item.confirmDate;
-    });
-    setConfirmDates((prev) => ({ ...init, ...prev }));
-  }, [rows]);
+  // confirmDate 뮤테이션 (낙관적 업데이트)
+  const confirmDateMutation = useMutation({
+    mutationFn: ({ id, confirmDate }: { id: number; confirmDate: string | null }) => 
+      updateConfirmDate(id, { confirmDate }),
+    onMutate: async ({ id, confirmDate }) => {
+      await queryClient.cancelQueries({ queryKey: qk });
+      const prev = queryClient.getQueryData<typeof ListingsData>(qk);
+      if (prev) {
+        const next = {
+          ...prev,
+          data: prev.data.map((item: any) =>
+            Number(item.id) === id
+              ? { ...item, confirmDate }
+              : item
+          ),
+        };
+        queryClient.setQueryData(qk, next);
+      }
+      return { prev };
+    },
+    onError: (_err, _variables, ctx) => {
+      if (ctx?.prev) queryClient.setQueryData(qk, ctx.prev);
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: ["builds"] });
+    },
+  });
 
   // 검색
   const onSubmit = handleSubmit((formData) => {
@@ -211,20 +229,21 @@ const ListingsMain = ({ ListingsData, sortKey }: ListingsMainProps) => {
     setPage(1);
   });
 
-  // 확인일 로컬 조작
-  const addConfirmDate = (id: number) => setConfirmDates((p) => ({ ...p, [id]: today }));
+  // 확인일 조작 (서버 동기화)
+  const addConfirmDate = (id: number) => {
+    confirmDateMutation.mutate({ id, confirmDate: today });
+  };
+  
   const updateConfirmDateToToday = (id: number) => {
-    setConfirmDates((p) => ({ ...p, [id]: today }));
+    confirmDateMutation.mutate({ id, confirmDate: today });
     setMenuRowId(null);
   };
+  
   const deleteConfirmDate = (id: number) => {
-    setConfirmDates((p) => {
-      const copy = { ...p };
-      delete copy[id];
-      return copy;
-    });
+    confirmDateMutation.mutate({ id, confirmDate: null });
     setMenuRowId(null);
   };
+  
   const editConfirmDate = (id: number) => {
     const input = window.prompt("2026-01-01 형식으로 작성해주세요");
     if (!input) return;
@@ -234,7 +253,7 @@ const ListingsMain = ({ ListingsData, sortKey }: ListingsMainProps) => {
     if (Number.isNaN(dt.getTime()) || formatYYYYMMDD(dt) !== input) {
       return alert("존재하지 않는 날짜입니다. 예: 2026-01-01");
     }
-    setConfirmDates((p) => ({ ...p, [id]: input }));
+    confirmDateMutation.mutate({ id, confirmDate: input });
     setMenuRowId(null);
   };
 
@@ -526,7 +545,7 @@ const ListingsMain = ({ ListingsData, sortKey }: ListingsMainProps) => {
           <tbody>
             {sortedRows.map((listing: IBuild, index: number) => {
               const id = Number(listing.id);
-              const confirmDate = confirmDates[id];
+              const confirmDate = (listing as any).confirmDate;
               const createdAtDate = new Date(String(listing.createdAt));
               const updatedAtDate = listing.updatedAt
                 ? new Date(String(listing.updatedAt))
@@ -644,7 +663,7 @@ const ListingsMain = ({ ListingsData, sortKey }: ListingsMainProps) => {
                     )}
 
                     <div className="mt-1 text-xs text-slate-600">
-                      현장 확인일: {confirmDates[id] ?? "—"}
+                      현장 확인일: {confirmDate ? formatYYYYMMDD(new Date(confirmDate)) : "—"}
                     </div>
                   </td>
 

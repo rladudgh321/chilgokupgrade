@@ -2,6 +2,7 @@ export interface IBuild {
   id?: number;
 
   views?: number;
+  confirmDate?: Date | string | null; // 현장 확인일
 
   // 주소 정보
   address?: string;

@@ -104,6 +104,7 @@ const UpdateBuildSchema = z
   .object({
     // 기본 정보
     views: zInt,
+    confirmDate: zDateISO,
 
     address: zStringNullable,
     dong: zStringNullable,

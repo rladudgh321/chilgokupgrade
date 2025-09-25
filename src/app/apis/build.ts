@@ -11,12 +11,6 @@ export interface Paginated<T> {
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export type Build = Record<string, any>;
 
-// export function BuildFindAll(page:number=1, limit:number=10, keyword?: string) {
-//   return fetch(`${baseURL}/api/supabase/build?page=${page}&limit=${limit}&keyword=${keyword ?? ""}`, {
-//     method: 'get',
-//   }).then((response) => response.json()).catch((err) => console.error(err));
-// }
-
 export async function BuildFindAll(
   page: number = 1,
   limit: number = 10,
@@ -46,7 +40,6 @@ export async function BuildCreate(data: object){
     method: "POST",
     headers: {"Content-Type": "application/json"},
 		body : JSON.stringify(data),
-    credentials: 'include',
   });
   if (res.status === 204) {
     console.log("body 없음")
@@ -180,4 +173,20 @@ export async function updateAddressVisibility(
   const json = await res.json().catch(() => ({}));
   if (!res.ok) throw new Error(json?.message ?? "주소 공개여부 업데이트 실패");
   return json as { message: string; id: number; isAddressPublic: "public" | "private" | "exclude" };
+}
+
+export async function updateConfirmDate(
+  id: number,
+  payload: { confirmDate: string | null },
+  opts?: { signal?: AbortSignal }
+) {
+  const res = await fetch(`${baseURL}/api/supabase/build/${id}/confirm-date`, {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    signal: opts?.signal,
+    body: JSON.stringify(payload),
+  });
+  const json = await res.json().catch(() => ({}));
+  if (!res.ok) throw new Error(json?.message ?? "현장 확인일 업데이트 실패");
+  return json as { message: string; id: number; confirmDate: string | null };
 }
