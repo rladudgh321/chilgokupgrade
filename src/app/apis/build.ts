@@ -190,3 +190,17 @@ export async function updateConfirmDate(
   if (!res.ok) throw new Error(json?.message ?? "현장 확인일 업데이트 실패");
   return json as { message: string; id: number; confirmDate: string | null };
 }
+
+export async function patchConfirmDateToToday(
+  id: number,
+  opts?: { signal?: AbortSignal }
+) {
+  const res = await fetch(`${baseURL}/api/supabase/build/${id}/confirm-date`, {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    signal: opts?.signal,
+  });
+  const json = await res.json().catch(() => ({}));
+  if (!res.ok) throw new Error(json?.message ?? "현장 확인일 갱신 실패");
+  return json as { message: string; id: number; confirmDate: string };
+}

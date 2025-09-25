@@ -17,7 +17,7 @@ import ToggleSwitch from "@/app/components/admin/listings/ToggleSwitch";
 import AddressVisibility from "@/app/components/admin/listings/AddressVisibility ";
 import SearchIcon from "@svg/Search";
 
-import { BuildDeleteSome, BuildFindAll, toggleBuild, updateConfirmDate } from "@/app/apis/build";
+import { BuildDeleteSome, BuildFindAll, toggleBuild, updateConfirmDate, patchConfirmDateToToday } from "@/app/apis/build";
 import { IBuild } from "@/app/interface/build";
 import formatFullKoreanMoney from "@/app/utility/NumberToKoreanMoney";
 import { formatYYYYMMDD } from "@/app/utility/koreaDateControl";
@@ -64,7 +64,12 @@ const ListingsMain = ({ ListingsData, sortKey }: ListingsMainProps) => {
   // 메뉴 상태
   const [menuRowId, setMenuRowId] = useState<number | null>(null); // 확인일 드롭다운
   const [printMenuRowId, setPrintMenuRowId] = useState<number | null>(null); // 프린트 드롭다운
-  const today = useMemo(() => formatYYYYMMDD(new Date()), []);
+  const today = useMemo(() => {
+    // 한국 시간대 기준으로 오늘 날짜를 YYYY-MM-DD 형식으로 생성
+    const now = new Date();
+    const koreanTime = new Date(now.toLocaleString("en-US", { timeZone: "Asia/Seoul" }));
+    return koreanTime.toISOString().split('T')[0];
+  }, []);
 
   // Query Key
   const qk = useMemo(
@@ -195,33 +200,6 @@ const ListingsMain = ({ ListingsData, sortKey }: ListingsMainProps) => {
     }
   };
 
-  // confirmDate 뮤테이션 (낙관적 업데이트)
-  const confirmDateMutation = useMutation({
-    mutationFn: ({ id, confirmDate }: { id: number; confirmDate: string | null }) => 
-      updateConfirmDate(id, { confirmDate }),
-    onMutate: async ({ id, confirmDate }) => {
-      await queryClient.cancelQueries({ queryKey: qk });
-      const prev = queryClient.getQueryData<typeof ListingsData>(qk);
-      if (prev) {
-        const next = {
-          ...prev,
-          data: prev.data.map((item: any) =>
-            Number(item.id) === id
-              ? { ...item, confirmDate }
-              : item
-          ),
-        };
-        queryClient.setQueryData(qk, next);
-      }
-      return { prev };
-    },
-    onError: (_err, _variables, ctx) => {
-      if (ctx?.prev) queryClient.setQueryData(qk, ctx.prev);
-    },
-    onSettled: () => {
-      queryClient.invalidateQueries({ queryKey: ["builds"] });
-    },
-  });
 
   // 검색
   const onSubmit = handleSubmit((formData) => {
@@ -231,17 +209,41 @@ const ListingsMain = ({ ListingsData, sortKey }: ListingsMainProps) => {
 
   // 확인일 조작 (서버 동기화)
   const addConfirmDate = (id: number) => {
-    confirmDateMutation.mutate({ id, confirmDate: today });
+    // PUT API를 사용하여 오늘 날짜로 추가
+    updateConfirmDate(id, { confirmDate: today })
+      .then(() => {
+        // 성공 시 쿼리 무효화하여 데이터 새로고침
+        queryClient.invalidateQueries({ queryKey: ["builds"] });
+      })
+      .catch((error: any) => {
+        alert(error.message || "확인일 추가 실패");
+      });
   };
   
   const updateConfirmDateToToday = (id: number) => {
-    confirmDateMutation.mutate({ id, confirmDate: today });
-    setMenuRowId(null);
+    // PATCH API를 사용하여 오늘 날짜로 갱신
+    patchConfirmDateToToday(id)
+      .then(() => {
+        // 성공 시 쿼리 무효화하여 데이터 새로고침
+        queryClient.invalidateQueries({ queryKey: ["builds"] });
+        setMenuRowId(null);
+      })
+      .catch((error: any) => {
+        alert(error.message || "확인일 갱신 실패");
+      });
   };
   
   const deleteConfirmDate = (id: number) => {
-    confirmDateMutation.mutate({ id, confirmDate: null });
-    setMenuRowId(null);
+    // PUT API를 사용하여 확인일 삭제
+    updateConfirmDate(id, { confirmDate: null })
+      .then(() => {
+        // 성공 시 쿼리 무효화하여 데이터 새로고침
+        queryClient.invalidateQueries({ queryKey: ["builds"] });
+        setMenuRowId(null);
+      })
+      .catch((error: any) => {
+        alert(error.message || "확인일 삭제 실패");
+      });
   };
   
   const editConfirmDate = (id: number) => {
@@ -249,12 +251,24 @@ const ListingsMain = ({ ListingsData, sortKey }: ListingsMainProps) => {
     if (!input) return;
     const valid = /^\d{4}-\d{2}-\d{2}$/.test(input);
     if (!valid) return alert("형식이 올바르지 않습니다. 예: 2026-01-01");
-    const dt = new Date(input);
-    if (Number.isNaN(dt.getTime()) || formatYYYYMMDD(dt) !== input) {
+    
+    // 간단한 날짜 검증
+    const [year, month, day] = input.split('-').map(Number);
+    const dt = new Date(year, month - 1, day);
+    if (dt.getFullYear() !== year || dt.getMonth() !== month - 1 || dt.getDate() !== day) {
       return alert("존재하지 않는 날짜입니다. 예: 2026-01-01");
     }
-    confirmDateMutation.mutate({ id, confirmDate: input });
-    setMenuRowId(null);
+    
+    // PUT API를 사용하여 사용자 입력 날짜로 수정
+    updateConfirmDate(id, { confirmDate: input })
+      .then(() => {
+        // 성공 시 쿼리 무효화하여 데이터 새로고침
+        queryClient.invalidateQueries({ queryKey: ["builds"] });
+        setMenuRowId(null);
+      })
+      .catch((error: any) => {
+        alert(error.message || "확인일 수정 실패");
+      });
   };
 
   // ✨ 프린트 빌더들
@@ -663,7 +677,7 @@ const ListingsMain = ({ ListingsData, sortKey }: ListingsMainProps) => {
                     )}
 
                     <div className="mt-1 text-xs text-slate-600">
-                      현장 확인일: {confirmDate ? formatYYYYMMDD(new Date(confirmDate)) : "—"}
+                      현장 확인일: {formatYYYYMMDD(confirmDate)}
                     </div>
                   </td>
 
