@@ -69,7 +69,59 @@ export async function POST(request: NextRequest) {
   try {
   const cookieStore = await cookies();
   const supabase = createClient(cookieStore);
-  const body = await request.json();
+  const raw = await request.json();
+
+  // 입력 정규화: 빈 문자열 날짜 → null, 숫자형 문자열 → number, 배열 필드 보정
+  const sanitize = (b: any) => {
+    const copy: Record<string, any> = { ...b };
+
+    const dateFields = [
+      "constructionYear",
+      "permitDate",
+      "approvalDate",
+      "moveInDate",
+      "contractEndDate",
+      "confirmDate",
+      "createdAt",
+      "updatedAt",
+      "deletedAt",
+    ];
+    for (const k of dateFields) {
+      const v = copy[k];
+      if (v === "") copy[k] = null;
+    }
+
+    const numberFields = [
+      "salePrice","actualEntryCost","rentalPrice","managementFee",
+      "currentFloor","totalFloors","basementFloors","rooms","bathrooms",
+      "actualArea","supplyArea","landArea","buildingArea","totalArea",
+      "elevatorCount","parkingPerUnit","totalParking","parkingFee",
+      "views",
+    ];
+    for (const k of numberFields) {
+      const v = copy[k];
+      if (typeof v === "string") {
+        const t = v.trim();
+        if (t === "") { /* leave as empty string for now; DB accepts null default */ }
+        else {
+          const n = Number(t);
+          if (!Number.isNaN(n)) copy[k] = n;
+        }
+      }
+    }
+
+    // 배열 필드 보정
+    const arrayFields = ["themes","buildingOptions","parking","subImage","adminImage"] as const;
+    for (const k of arrayFields) {
+      const v = copy[k];
+      if (v == null) continue;
+      if (!Array.isArray(v)) copy[k] = [];
+    }
+
+    return copy;
+  };
+
+  const body = sanitize(raw);
 
     const { data, error } = await supabase
       .from("Build")       // 테이블명: 대소문자 정확히!

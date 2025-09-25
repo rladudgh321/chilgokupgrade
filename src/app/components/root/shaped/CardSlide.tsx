@@ -13,12 +13,20 @@ import Smile from "../../svg/Smile";
 import { ICardSlideProps } from "./type";
 
 const CardSlide = ({properties}: {properties: ICardSlideProps[]}) => {
-  const [slidesPerView, setSlidesPerView] = useState(() =>
-    globalThis.innerWidth < 768 ? 2 : 4
-  );
+  const computeSlides = () => (globalThis.innerWidth < 768 ? 2 : 4);
+  const computeMaxItems = () => {
+    const w = globalThis.innerWidth;
+    if (w >= 1024) return 10; // PC
+    if (w >= 768) return 7;   // Tablet
+    return 5;                 // Mobile
+  };
+
+  const [slidesPerView, setSlidesPerView] = useState(computeSlides);
+  const [maxItems, setMaxItems] = useState(computeMaxItems);
   useEffect(() => {
     const handleResize = () => {
-      setSlidesPerView(globalThis.innerWidth < 768 ? 2 : 4);
+      setSlidesPerView(computeSlides());
+      setMaxItems(computeMaxItems());
     };
     window.addEventListener("resize", handleResize);
     return () => window.removeEventListener("resize", handleResize);
@@ -33,7 +41,7 @@ const CardSlide = ({properties}: {properties: ICardSlideProps[]}) => {
         scrollbar={{ draggable: true }}
         className="mt-6"
       >
-        {properties.map((property, index) => (
+        {properties.slice(0, maxItems).map((property, index) => (
           <SwiperSlide key={index}>
             <div className="border rounded-lg shadow-md overflow-hidden">
               <div

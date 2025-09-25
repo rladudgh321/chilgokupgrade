@@ -249,7 +249,7 @@ const BuildBasic = () => {
                 value={item}
                 className="hidden"
                 checked={watchedPopularity === item}
-                // onChange={() => handleRadioChange(item, "popularity")}
+                onChange={() => handleRadioChange(item, "popularity")}
               />
               <span style={getButtonStyle(watchedPopularity, item)}>{item}</span>
             </label>
