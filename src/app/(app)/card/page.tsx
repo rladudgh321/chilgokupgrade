@@ -1,7 +1,5 @@
-const CardPage = () => {
-  return (
-    <div>CardPage</div>
-  )
-}
+import CardList from "./CardList";
 
-export default CardPage
+export default function CardPage() {
+  return <CardList />;
+}
