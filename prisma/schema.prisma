@@ -119,3 +119,35 @@ model Contact {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt @default(now()) 
 }
+
+// 게시판 게시글
+model BoardPost {
+  id          Int     @id @default(autoincrement())
+  title       String
+  content     String? // 메인 내용
+  popupContent String? // 팝업 내용
+  
+  // 이미지
+  representativeImage String? // 대표 이미지
+  
+  // 외부 링크
+  externalLink String? // 외부 링크
+  
+  // 등록일과 담당자
+  registrationDate DateTime? // 등록일
+  manager         String? // 담당자
+  
+  // 공지 및 팝업 설정
+  isAnnouncement Boolean @default(false) // 공지여부
+  isPopup        Boolean @default(false) // 팝업여부
+  popupWidth     Int? // 팝업 가로 크기
+  popupHeight    Int? // 팝업 세로 크기
+  
+  // 상태
+  isPublished Boolean @default(true) // 게시 여부
+  views       Int     @default(0) // 조회수
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt @default(now())
+  deletedAt  DateTime?
+}

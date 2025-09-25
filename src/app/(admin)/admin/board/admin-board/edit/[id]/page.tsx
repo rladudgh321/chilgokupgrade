@@ -2,10 +2,12 @@
 import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 
-const AdminBoardCreate = () => {
+const AdminBoardEdit = ({ params }: {
+  params: Promise<{ id: string }>;
+}) => {
   const router = useRouter()
-  
-  // 폼 상태
+  const [loading, setLoading] = useState(true)
+  const [postId, setPostId] = useState<string>("")
   const [formData, setFormData] = useState({
     category: "",
     announcement: "",
@@ -21,30 +23,58 @@ const AdminBoardCreate = () => {
     popupWidth: "400",
     popupHeight: "400"
   })
+  const [existingImageUrl, setExistingImageUrl] = useState<string | undefined>(undefined)
+  // (삭제됨) 카테고리/공지 옵션 상태 제거
 
-  // 카테고리/공지 드롭다운용 옵션
-  const [categories, setCategories] = useState<Array<{ id: number; name: string }>>([])
-  const [announcements, setAnnouncements] = useState<Array<{ id: number; title: string }>>([])
-
+  // 데이터 로드
   useEffect(() => {
     let mounted = true
     ;(async () => {
-      try {
-        const [catRes, annRes] = await Promise.all([
-          fetch('/api/board/categories'),
-          fetch('/api/board/announcements')
-        ])
-        const catJson = await catRes.json().catch(() => ({ data: [] }))
-        const annJson = await annRes.json().catch(() => ({ data: [] }))
-        if (!mounted) return
-        setCategories(catJson.data || [])
-        setAnnouncements(annJson.data || [])
-      } catch {
-        // 무시: 옵션이 없어도 셀렉트는 표시됨
-      }
+      const { id } = await params
+      if (!mounted) return
+      // (삭제됨) 카테고리/공지 옵션 로드
+      setPostId(id)
+      await loadPost(id)
     })()
     return () => { mounted = false }
-  }, [])
+  }, [params])
+
+  const loadPost = async (id: string) => {
+    try {
+      const response = await fetch(`/api/board/posts/${id}`)
+      const result = await response.json()
+
+      if (!response.ok) {
+        throw new Error(result.message || '게시글을 불러오는데 실패했습니다')
+      }
+
+      const post = result.data
+      setFormData({
+        category: (post.categoryId ?? "").toString(),
+        announcement: (post.announcementId ?? "").toString(),
+        representativeImage: null,
+        externalLink: post.externalLink || "",
+        registrationDate: post.registrationDate 
+          ? new Date(post.registrationDate).toISOString().split('T')[0]
+          : new Date().toISOString().split('T')[0],
+        manager: post.manager || "데모",
+        title: post.title || "",
+        content: post.content || "",
+        popupContent: post.popupContent || "",
+        isAnnouncement: post.isAnnouncement ? "사용" : "미사용",
+        isPopup: post.isPopup ? "사용" : "미사용",
+        popupWidth: post.popupWidth?.toString() || "400",
+        popupHeight: post.popupHeight?.toString() || "400"
+      })
+      setExistingImageUrl(post.representativeImage || undefined)
+    } catch (error: unknown) {
+      console.error('Error loading post:', error)
+      const msg = error instanceof Error ? error.message : '게시글을 불러오는데 실패했습니다'
+      alert(msg)
+    } finally {
+      setLoading(false)
+    }
+  }
 
   // 파일 선택 핸들러
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -59,7 +89,7 @@ const AdminBoardCreate = () => {
     e.preventDefault()
     
     try {
-      // 1) 대표이미지 업로드가 있으면 먼저 업로드하여 URL 확보
+      // 대표이미지 변경 시 업로드
       let representativeImageUrl: string | undefined = undefined
       if (formData.representativeImage) {
         const fd = new FormData()
@@ -75,7 +105,7 @@ const AdminBoardCreate = () => {
         title: formData.title,
         content: formData.content,
         popupContent: formData.popupContent,
-        representativeImage: representativeImageUrl,
+        representativeImage: representativeImageUrl ?? existingImageUrl,
         externalLink: formData.externalLink || undefined,
         registrationDate: formData.registrationDate || undefined,
         manager: formData.manager,
@@ -84,12 +114,10 @@ const AdminBoardCreate = () => {
         popupWidth: formData.popupWidth ? parseInt(formData.popupWidth) : undefined,
         popupHeight: formData.popupHeight ? parseInt(formData.popupHeight) : undefined,
         isPublished: true,
-        // 임시: 선택값을 categoryId/announcementId로 매핑할 수 있게 숫자로 들어오면 저장
-        // 카테고리/공지사항 제거됨
       }
 
-      const response = await fetch('/api/board/posts', {
-        method: 'POST',
+      const response = await fetch(`/api/board/posts/${postId}`, {
+        method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
         },
@@ -99,22 +127,31 @@ const AdminBoardCreate = () => {
       const result = await response.json()
 
       if (!response.ok) {
-        throw new Error(result.message || '게시글 저장에 실패했습니다')
+        throw new Error(result.message || '게시글 수정에 실패했습니다')
       }
 
-      alert("게시글이 저장되었습니다.")
+      alert("게시글이 수정되었습니다.")
       router.push("/admin/board/admin-board")
-    } catch (error: any) {
-      console.error('Error creating post:', error)
-      alert(error.message || "게시글 저장에 실패했습니다.")
+    } catch (error: unknown) {
+      console.error('Error updating post:', error)
+      const msg = error instanceof Error ? error.message : '게시글 수정에 실패했습니다.'
+      alert(msg)
     }
+  }
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-lg">로딩 중...</div>
+      </div>
+    )
   }
 
   return (
     <div className="min-h-screen bg-gray-50">
       {/* 헤더 */}
       <div className="bg-purple-600 text-white py-4 px-6">
-        <h1 className="text-2xl font-bold">글쓰기</h1>
+        <h1 className="text-2xl font-bold">글 수정</h1>
       </div>
 
       {/* 메인 폼 */}
@@ -147,6 +184,11 @@ const AdminBoardCreate = () => {
               <span className="text-gray-600">
                 {formData.representativeImage ? formData.representativeImage.name : "선택된 파일 없음"}
               </span>
+              {(!formData.representativeImage && existingImageUrl) && (
+                <div className="ml-4">
+                  <img src={existingImageUrl} alt="대표 이미지" className="h-16 w-28 object-cover rounded border" />
+                </div>
+              )}
             </div>
           </div>
 
@@ -362,7 +404,7 @@ const AdminBoardCreate = () => {
               type="submit"
               className="px-6 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700"
             >
-              저장
+              수정
             </button>
           </div>
         </form>
@@ -371,4 +413,4 @@ const AdminBoardCreate = () => {
   )
 }
 
-export default AdminBoardCreate
+export default AdminBoardEdit
