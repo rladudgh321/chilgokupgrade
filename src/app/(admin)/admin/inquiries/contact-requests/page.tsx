@@ -1,14 +1,12 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import ToggleSwitch from '@/app/components/admin/listings/ToggleSwitch';
 
 type Request = {
   id: number;
   confirm: boolean;
-  listingNumber: string;  // 매물번호 추가
   author: string;
-  manager: string;        // 담당자 추가
   contact: string;
   ipAddress: string;
   description: string;
@@ -17,69 +15,59 @@ type Request = {
 };
 
 const ContactRequest = () => {
-  const [requests, setRequests] = useState<Request[]>([
-    {
-      id: 1,
-      confirm: false,
-      listingNumber: 'LN1234',
-      author: '홍길동',
-      manager: '김민수',
-      contact: '010-1234-5678',
-      ipAddress: '192.168.0.1',
-      description: '빠른 시일 내에 아파트를 구하고 있습니다.',
-      note: '',
-      date: '2023-03-29',
-    },
-    {
-      id: 2,
-      confirm: true,
-      listingNumber: 'LN5678',
-      author: '김영희',
-      manager: '이하늘',
-      contact: '010-9876-5432',
-      ipAddress: '192.168.0.2',
-      description: '단독주택을 팔고 있습니다. 관심있으신 분 연락주세요.',
-      note: '',
-      date: '2023-03-30',
-    },
-    {
-      id: 3,
-      confirm: false,
-      listingNumber: 'LN9101',
-      author: '박수정',
-      manager: '박영철',
-      contact: '010-4567-1234',
-      ipAddress: '192.168.0.3',
-      description: '인천에 위치한 땅을 판매합니다.',
-      note: '',
-      date: '2023-03-31',
-    },
-    {
-      id: 4,
-      confirm: true,
-      listingNumber: 'LN1123',
-      author: '이민수',
-      manager: '김지은',
-      contact: '010-2222-3333',
-      ipAddress: '192.168.0.4',
-      description: '경기도에서 아파트를 구하고 있습니다.',
-      note: '',
-      date: '2023-04-01',
-    },
-  ]);
+  const [requests, setRequests] = useState<Request[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const fetchList = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      const res = await fetch('/api/supabase/contact-requests?limit=100', { cache: 'no-store' });
+      const json = await res.json();
+      if (!json?.ok) throw new Error(json?.error?.message ?? '목록 불러오기 실패');
+      const rows = (json.data as {
+        id: number; confirm?: boolean; author?: string; contact?: string; ipAddress?: string; description?: string; note?: string | null; date?: string;
+      }[]).map((r) => ({
+        id: r.id,
+        confirm: !!r.confirm,
+        author: r.author ?? '',
+        contact: r.contact ?? '',
+        ipAddress: r.ipAddress ?? '',
+        description: r.description ?? '',
+        note: r.note ?? '',
+        date: r.date ? String(r.date).slice(0, 10) : '',
+      })) as Request[];
+      setRequests(rows);
+    } catch (e) {
+      setError((e as Error)?.message ?? '에러 발생');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchList();
+  }, []);
   
   const [searchQuery, setSearchQuery] = useState('');
   const [notes, setNotes] = useState<{ [key: number]: string }>({});
-  const [userTitles, setUserTitles] = useState<{ [key: number]: string }>({});
+  
 
-  const handleToggleChange = (id: string, value: boolean) => {
-    setRequests((prev) =>
-      prev.map((request) =>
-        request.id === parseInt(id)
-          ? { ...request, confirm: value }
-          : request
-      )
-    );
+  const handleToggleChange = async (id: string, value: boolean) => {
+    const numericId = parseInt(id, 10);
+    setRequests((prev) => prev.map((r) => (r.id === numericId ? { ...r, confirm: value } : r)));
+    try {
+      await fetch('/api/supabase/contact-requests', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id: numericId, confirm: value }),
+      });
+    } catch {
+      // 실패 시 롤백
+      setRequests((prev) => prev.map((r) => (r.id === numericId ? { ...r, confirm: !value } : r)));
+      alert('확인여부 변경 실패');
+    }
   };
 
   const handleNoteChange = (id: number, note: string) => {
@@ -89,32 +77,41 @@ const ContactRequest = () => {
     }));
   };
 
-  const handleSaveNote = (id: number) => {
-    alert(`메모가 저장되었습니다: ${notes[id]}`);
-  };
-
-  const handleDelete = (id: number) => {
-    const confirmDelete = window.confirm('정말로 삭제하시겠습니까?');
-    
-    if (confirmDelete) {
-      setRequests((prev) =>
-        prev.map((request) =>
-          request.id === id
-            ? { ...request, confirm: false } // 삭제할 때 confirm을 false로 설정
-            : request
-        )
-      );
-      alert('삭제되었습니다.');
+  const handleSaveNote = async (id: number) => {
+    const note = notes[id] ?? '';
+    try {
+      const res = await fetch('/api/supabase/contact-requests', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id, note }),
+      });
+      if (!res.ok) throw new Error('메모 저장 실패');
+      alert('메모가 저장되었습니다');
+      // 목록 갱신
+      fetchList();
+    } catch (e) {
+      alert((e as Error)?.message ?? '메모 저장 실패');
     }
   };
 
-  const filteredRequests = requests.filter((request) => {
-    return (
-      request.listingNumber.includes(searchQuery) ||
-      request.contact.includes(searchQuery) ||
-      request.description.includes(searchQuery)
-    );
-  });
+  const handleDelete = async (id: number) => {
+    const confirmDelete = window.confirm('정말로 삭제하시겠습니까?');
+    if (!confirmDelete) return;
+    try {
+      const res = await fetch(`/api/supabase/contact-requests?id=${id}`, { method: 'DELETE' });
+      if (!res.ok) throw new Error('삭제 실패');
+      alert('삭제되었습니다.');
+      setRequests((prev) => prev.filter((r) => r.id !== id));
+    } catch (e) {
+      alert((e as Error)?.message ?? '삭제 실패');
+    }
+  };
+
+  const filteredRequests = useMemo(() => {
+    const q = searchQuery.trim();
+    if (!q) return requests;
+    return requests.filter((request) => request.contact.includes(q) || request.description.includes(q));
+  }, [requests, searchQuery]);
 
   return (
     <div className="p-6">
@@ -125,7 +122,7 @@ const ContactRequest = () => {
         <div className="flex space-x-2">
           <input
             type="text"
-            placeholder="매물번호, 연락처, 상세내용 검색"
+            placeholder="연락처, 상세내용 검색"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             className="p-2 border rounded"
@@ -139,14 +136,14 @@ const ContactRequest = () => {
         </div>
       </div>
 
+      {error && <div className="text-red-500 mb-2">{error}</div>}
+      {loading && <div className="mb-2">불러오는 중...</div>}
       <table className="min-w-full table-auto border-collapse">
         <thead className="bg-gray-100">
           <tr>
             <th className="p-2">번호</th>
             <th className="p-2">확인여부</th>
-            <th className="p-2">매물번호</th>
             <th className="p-2">이름</th>
-            <th className="p-2">담당자</th>
             <th className="p-2">연락처</th>
             <th className="p-2">IP</th>
             <th className="p-2">상세내용</th>
@@ -163,12 +160,10 @@ const ContactRequest = () => {
                 <ToggleSwitch
                   toggle={request.confirm}
                   id={`confirm${request.id}`}
-                  onChange={handleToggleChange}
+                  onToggle={(checked) => handleToggleChange(String(request.id), checked)}
                 />
               </td>
-              <td className="p-2">{request.listingNumber}</td>
               <td className="p-2">{request.author}</td>
-              <td className="p-2">{request.manager}</td>
               <td className="p-2">{request.contact}</td>
               <td className="p-2">{request.ipAddress}</td>
               <td className="p-2">{request.description}</td>
