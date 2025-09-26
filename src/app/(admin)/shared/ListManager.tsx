@@ -12,7 +12,7 @@ type ListManagerProps = {
   enableImageUpload?: boolean; // 이미지 업로드 기능 활성화
 };
 
-const ListManager = ({ title, placeholder, buttonText, apiEndpoint = '/api/labels', enableImageUpload = false }: ListManagerProps) => {
+const ListManager = ({ title, placeholder, buttonText, apiEndpoint='', enableImageUpload = false }: ListManagerProps) => {
   const [items, setItems] = useState<{ id: number; name: string; imageUrl?: string; imageName?: string }[]>([]);
   const [newItem, setNewItem] = useState('');
   const [loading, setLoading] = useState(false);

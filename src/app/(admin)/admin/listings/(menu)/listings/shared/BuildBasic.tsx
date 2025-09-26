@@ -181,6 +181,7 @@ const BuildBasic = () => {
   const [selectedBuilding, setSelectedBuildingOptions] = useState<string[]>([]);
   const [selectedParking, setSelectedParkingOptions] = useState<string[]>([]);
   const [themeOptions, setThemeOptions] = useState<string[]>([]);
+  const [buildingOptionItems, setBuildingOptionItems] = useState<string[]>([]);
 
   // ✅ 테마 옵션을 서버에서 로드 (ThemeImage.label 사용)
   useEffect(() => {
@@ -219,6 +220,26 @@ const BuildBasic = () => {
       Array.isArray(watchedParking) ? watchedParking : []
     );
   }, [watchedParking]);
+
+  // 옵션(빌딩 옵션) 목록 로드
+  useEffect(() => {
+    let isMounted = true;
+    (async () => {
+      try {
+        const res = await fetch('/api/building-options', { cache: 'no-store' });
+        if (!res.ok) return;
+        const json: { ok?: boolean; data?: Array<{ id: number; name: string }> } = await res.json();
+        const names = (json?.data ?? [])
+          .map((r) => r?.name)
+          .filter((v): v is string => typeof v === 'string' && v.length > 0);
+        const uniq = Array.from(new Set<string>(names));
+        if (isMounted) setBuildingOptionItems(uniq);
+      } catch {
+        // ignore
+      }
+    })();
+    return () => { isMounted = false; };
+  }, []);
 
   // ✅ 라디오(단일 선택) → 폼 값 갱신
   const handleRadioChange = (
@@ -342,11 +363,7 @@ const BuildBasic = () => {
       <div className="flex flex-col">
         <label>옵션</label>
         <div className="flex space-x-2 mt-2 flex-wrap gap-y-4">
-          {[
-            "에어컨", "세탁기", "침대", "책상", "옷장", "TV", "신발장", "냉장고",
-            "가스레인지", "오븐", "인덕션", "전자레인지", "식탁", "싱크대",
-            "비데", "엘리베이터", "도어락", "CCTV", "무인택배함", "인터폰",
-          ].map((opt) => {
+          {(buildingOptionItems.length > 0 && buildingOptionItems || []).map((opt) => {
             const checked = selectedBuilding.includes(opt);
             return (
               <label key={opt} className="cursor-pointer">
