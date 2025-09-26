@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import { PrismaClient } from "@prisma/client";
-
-const prisma = new PrismaClient();
+import { createClient } from "@/app/utils/supabase/server";
+import { cookies } from "next/headers";
 
 export async function GET(req: NextRequest) {
   try {
@@ -16,48 +15,65 @@ export async function GET(req: NextRequest) {
     const theme = searchParams.get("theme")?.trim();
     const propertyType = searchParams.get("propertyType")?.trim();
 
-    const where: any = {
-      deletedAt: null,
-    };
+    const from = (page - 1) * limit;
+    const to = from + limit - 1;
+
+    const cookieStore = await cookies();
+    const supabase = createClient(cookieStore);
+
+    let q = supabase
+      .from("Build")
+      .select(
+        `
+        *,
+        label:Label(name),
+        buildingOptions:BuildingOption(id, name),
+        listingType:ListingType(name)
+      `,
+        { count: "exact" }
+      )
+      .is("deletedAt", null)
+      .order("createdAt", { ascending: false })
+      .range(from, to);
+
     if (keyword) {
       if (/^\d+$/.test(keyword)) {
-        where.id = Number(keyword);
+        q = q.eq("id", Number(keyword));
       } else {
-        where.address = { contains: keyword, mode: "insensitive" };
+        q = q.ilike("address", `%${keyword}%`);
       }
     }
     if (theme) {
-      where.themes = { has: theme };
+      q = q.contains("themes", [theme]);
     }
     if (propertyType) {
-      where.propertyType = propertyType;
+      const { data: typeRec } = await supabase.from("ListingType").select("id").eq("name", propertyType).single();
+      if (typeRec) {
+          q = q.eq("listingTypeId", typeRec.id);
+      } else {
+          q = q.eq("listingTypeId", -1); // Return no results if propertyType doesn't exist
+      }
     }
 
-    const [data, count] = await prisma.$transaction([
-      prisma.build.findMany({
-        where,
-        include: {
-          label: true,
-          buildingOptions: true,
-        },
-        orderBy: [{ createdAt: "desc" }, { id: "desc" }],
-        skip: (page - 1) * limit,
-        take: limit,
-      }),
-      prisma.build.count({ where }),
-    ]);
+    const { data, error, count } = await q;
+
+    if (error) {
+      return NextResponse.json({ ok: false, error }, { status: 400 });
+    }
+
+    const processedData = data.map((d: any) => ({
+      ...d,
+      label: d.label?.name,
+      buildingOptions: d.buildingOptions.map((o: any) => o.name),
+      propertyType: d.listingType?.name,
+    }));
 
     return NextResponse.json({
       ok: true,
-      totalItems: count,
-      totalPages: Math.ceil(count / limit),
+      totalItems: count ?? 0,
+      totalPages: Math.ceil((count ?? 0) / limit),
       currentPage: page,
-      data:
-        data.map((d) => ({
-          ...d,
-          label: d.label?.name ?? null,
-          buildingOptions: d.buildingOptions.map((o) => o.name),
-        })) ?? [],
+      data: processedData ?? [],
     });
   } catch (e: any) {
     return NextResponse.json(
@@ -70,41 +86,80 @@ export async function GET(req: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const raw = await request.json();
-
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const { label, buildingOptions, id, ...restOfBody } = raw as any;
+    const { label, buildingOptions, propertyType, id, ...restOfBody } = raw as any;
 
-    const dataToInsert: any = { ...restOfBody };
+    const cookieStore = await cookies();
+    const supabase = createClient(cookieStore);
 
+    let labelId: number | null = null;
     if (label) {
-      let labelRecord = await prisma.label.findUnique({ where: { name: label } });
-      if (!labelRecord) {
-        labelRecord = await prisma.label.create({ data: { name: label } });
+      let { data: labelRec } = await supabase.from("Label").select("id").eq("name", label).single();
+      if (!labelRec) {
+        const { data: newLabel } = await supabase.from("Label").insert({ name: label }).select("id").single();
+        if (newLabel) labelId = newLabel.id;
+      } else {
+        labelId = labelRec.id;
       }
-      dataToInsert.labelId = labelRecord.id;
+    }
+
+    let listingTypeId: number | null = null;
+    if (propertyType) {
+        let { data: typeRec } = await supabase.from("ListingType").select("id").eq("name", propertyType).single();
+        if (!typeRec) {
+            const { data: newType } = await supabase.from("ListingType").insert({ name: propertyType }).select("id").single();
+            if (newType) listingTypeId = newType.id;
+        } else {
+            listingTypeId = typeRec.id;
+        }
+    }
+
+    const dataToInsert = {
+        ...restOfBody,
+        labelId,
+        listingTypeId,
+    };
+    
+    const { data: newBuild, error: buildError } = await supabase
+        .from("Build")
+        .insert(dataToInsert)
+        .select()
+        .single();
+
+    if (buildError) {
+        return NextResponse.json({ ok: false, error: buildError }, { status: 400 });
+    }
+    if (!newBuild) {
+        return NextResponse.json({ ok: false, error: { message: "Failed to create build" } }, { status: 500 });
     }
 
     if (buildingOptions && Array.isArray(buildingOptions)) {
-      const optionIds = [];
-      for (const optionName of buildingOptions) {
-        let option = await prisma.buildingOption.findUnique({
-          where: { name: optionName },
-        });
-        if (!option) {
-          option = await prisma.buildingOption.create({ data: { name: optionName } });
+        const optionIds = [];
+        for (const optionName of buildingOptions) {
+            let { data: optionRec } = await supabase.from("BuildingOption").select("id").eq("name", optionName).single();
+            if (!optionRec) {
+                const { data: newOption } = await supabase.from("BuildingOption").insert({ name: optionName }).select("id").single();
+                if (newOption) optionIds.push(newOption.id);
+            } else {
+                optionIds.push(optionRec.id);
+            }
         }
-        optionIds.push({ id: option.id });
-      }
-      dataToInsert.buildingOptions = {
-        connect: optionIds,
-      };
+
+        const joinTableData = optionIds.map(optionId => ({
+            A: newBuild.id,
+            B: optionId,
+        }));
+
+        if (joinTableData.length > 0) {
+            const { error: joinError } = await supabase.from("_BuildToBuildingOption").insert(joinTableData);
+            if (joinError) {
+                console.error("Error inserting into join table:", joinError);
+            }
+        }
     }
 
-    const result = await prisma.build.create({
-      data: dataToInsert,
-    });
+    return NextResponse.json({ ok: true, data: [newBuild] }, { status: 201 });
 
-    return NextResponse.json({ ok: true, data: [result] }, { status: 201 });
   } catch (e: any) {
     console.error(e);
     return NextResponse.json(

@@ -17,6 +17,8 @@ model Build {
   isAddressPublic  AddressPublic? @default(public)
   mapLocation      String?
   propertyType     String?
+  listingType      ListingType?   @relation(fields: [listingTypeId], references: [id], onDelete: SetNull)
+  listingTypeId    Int?
   dealType         String?
   dealScope        String?
   visibility       Boolean?       @default(true)
@@ -131,6 +133,7 @@ model ListingType {
   name      String   @unique
   imageUrl  String?
   imageName String?
+  builds    Build[]
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }

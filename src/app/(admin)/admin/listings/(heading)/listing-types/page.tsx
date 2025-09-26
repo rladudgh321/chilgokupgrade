@@ -1,15 +1,17 @@
+'use client';
+
 import ListManager from "@adminShared/ListManager";
 
-const ListingTypes = () => {
+const ListingTypePage = () => {
   return (
     <ListManager
-      title="매물 종류 설정"
-      placeholder="새로운 매물 종류"
-      buttonText="매물 종류 등록"
-      apiEndpoint="/api/property-types"
+      title="매물 유형 설정"
+      placeholder="새로운 매물 유형"
+      buttonText="유형 등록"
+      apiEndpoint="/api/listing-type"
       enableImageUpload={true}
     />
   );
 };
 
-export default ListingTypes;
+export default ListingTypePage;

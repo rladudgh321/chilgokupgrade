@@ -45,7 +45,7 @@ const SearchBar = () => {
     let isMounted = true
     ;(async () => {
       try {
-        const res = await fetch("/api/property-types", { cache: "no-store" })
+        const res = await fetch("/api/listing-type", { cache: "no-store" })
         if (!res.ok) return
         const json = await res.json()
         const items: Array<{ name?: string }> = json?.data ?? []
@@ -133,8 +133,7 @@ const SearchBar = () => {
         >
           <option value="">매물 종류</option>
           {(propertyTypeOptions && propertyTypeOptions.length > 0
-            ? propertyTypeOptions
-            : ["아파트","신축빌라","원룸","투룸","쓰리룸","사무실","상가","오피스텔"]
+            && propertyTypeOptions || []
           ).map((opt) => (
             <option key={opt} value={opt}>{opt}</option>
           ))}

@@ -178,6 +178,27 @@ const BuildBasic = () => {
   const [selectedParking, setSelectedParkingOptions] = useState<string[]>([]);
   const [themeOptions, setThemeOptions] = useState<string[]>([]);
   const [buildingOptionItems, setBuildingOptionItems] = useState<string[]>([]);
+  const [labelOptions, setLabelOptions] = useState<string[]>([]);
+
+  // 라벨 옵션 로드
+  useEffect(() => {
+    let isMounted = true;
+    (async () => {
+      try {
+        const res = await fetch("/api/labels", { cache: "no-store" });
+        if (!res.ok) return;
+        const json = await res.json();
+        const items: Array<{ name?: string }> = json?.data ?? [];
+        const names = items.map((x) => x.name).filter((v): v is string => !!v);
+        if (isMounted) setLabelOptions(names);
+      } catch {
+        // ignore
+      }
+    })();
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 
   // ✅ 테마 옵션을 서버에서 로드 (ThemeImage.label 사용)
   useEffect(() => {
@@ -298,7 +319,7 @@ const BuildBasic = () => {
         <SelectField
           label="라벨선택"
           name="label"
-          options={["저보증금", "전세자금", "반려동물", "신축", "풀옵션", "인증매물", "신혼부부"]}
+          options={labelOptions}
         />
       </div>
 

@@ -29,3 +29,6 @@ select Element에는 기본값설정을 컴포넌트 인자로 설정해두었�
 
 ### 기술스택
 1. node v22.14.0
+
+### 제마나이 계정변경
+rm -f ~/.gemini/settings.json

@@ -51,7 +51,7 @@ const LandInfo = () => {
     let cancelled = false;
     (async () => {
       try {
-        const res = await fetch("/api/property-types");
+        const res = await fetch("/api/listing-type");
         const json = await res.json();
         if (!cancelled && json?.ok && Array.isArray(json.data)) {
           const names = (json.data as Array<{ name?: string }>)

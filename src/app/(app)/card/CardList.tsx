@@ -50,7 +50,7 @@ const CardList = () => {
     let isMounted = true
     ;(async () => {
       try {
-        const res = await fetch("/api/property-types", { cache: "no-store" })
+        const res = await fetch("/api/listing-type", { cache: "no-store" })
         if (!res.ok) return
         const json = await res.json()
         const items: Array<{ name?: string }> = json?.data ?? []
