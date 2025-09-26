@@ -2,6 +2,7 @@
 "use client";
 
 import { useFormContext, useWatch } from "react-hook-form";
+import { useEffect, useState } from "react";
 
 const LandInfo = () => {
   const { register, setValue, control } = useFormContext<{
@@ -44,13 +45,37 @@ const LandInfo = () => {
       transition: "all .2s ease",
     } as React.CSSProperties);
 
+  // 매물종류 옵션 동적 로드
+  const [propertyTypeOptions, setPropertyTypeOptions] = useState<string[]>([]);
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const res = await fetch("/api/property-types");
+        const json = await res.json();
+        if (!cancelled && json?.ok && Array.isArray(json.data)) {
+          const names = (json.data as Array<{ name?: string }>)
+            .map((r) => r?.name)
+            .filter((v): v is string => typeof v === 'string' && v.length > 0);
+          const uniq = Array.from(new Set<string>(names));
+          setPropertyTypeOptions(uniq);
+        }
+      } catch {
+        // ignore; keep defaults empty
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
   return (
     <div className="p-4 space-y-6 bg-slate-100">
       {/* 매물종류 */}
       <div className="flex flex-col">
         <label className="block text-sm font-medium text-gray-700">매물종류</label>
         <div className="flex space-x-0 mt-2 flex-wrap gap-y-4 gap-x-2">
-          {["아파트","신축빌라","원룸","투룸","쓰리룸","사무실","상가","오피스텔"].map((item) => (
+          {(propertyTypeOptions.length > 0 ? propertyTypeOptions : ["아파트","신축빌라","원룸","투룸","쓰리룸","사무실","상가","오피스텔"]).map((item) => (
             <label key={item} className="cursor-pointer">
               <input
                 type="radio"

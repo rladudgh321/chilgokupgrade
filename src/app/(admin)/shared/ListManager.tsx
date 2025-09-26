@@ -34,8 +34,8 @@ const ListManager = ({ title, placeholder, buttonText, apiEndpoint = '/api/label
           if (r && typeof r === 'object' && 'label' in r) {
             return { id: r.id, name: r.label as string, imageUrl: r.imageUrl, imageName: r.imageName };
           }
-        	// labels API 형태 호환
-          return { id: r.id, name: (r.name as string) };
+          // name 기반 응답에서도 이미지 정보를 보존
+          return { id: r.id, name: (r.name as string), imageUrl: r.imageUrl, imageName: r.imageName };
         });
         setItems(normalized);
         setError(null);
@@ -65,8 +65,9 @@ const ListManager = ({ title, placeholder, buttonText, apiEndpoint = '/api/label
         const formData = new FormData();
         formData.append('file', selectedFile);
         formData.append('label', newItem.trim());
-
-        const response = await fetch('/api/theme-images/upload', {
+        // 업로드 엔드포인트는 apiEndpoint 기준으로 동작
+        const uploadUrl = `${apiEndpoint}/upload`;
+        const response = await fetch(uploadUrl, {
           method: 'POST',
           body: formData,
         });
@@ -74,8 +75,8 @@ const ListManager = ({ title, placeholder, buttonText, apiEndpoint = '/api/label
         const result = await response.json();
         
         if (result.ok) {
-          // 업로드 성공 시 ThemeImage 레코드 생성
-          const saveRes = await fetch('/api/theme-images', {
+          // 업로드 성공 시 항목 생성 (apiEndpoint에 저장)
+          const saveRes = await fetch(apiEndpoint, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
@@ -189,7 +190,7 @@ const ListManager = ({ title, placeholder, buttonText, apiEndpoint = '/api/label
   const handleImageEdit = async (id: number, newImageUrl: string, newImageName: string) => {
     try {
       setLoading(true);
-      const response = await fetch('/api/theme-images', {
+      const response = await fetch(apiEndpoint, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -281,6 +282,7 @@ const ListManager = ({ title, placeholder, buttonText, apiEndpoint = '/api/label
             onEdit={handleEditItem}
             onDelete={handleDeleteItem}
             onImageEdit={enableImageUpload ? handleImageEdit : undefined}
+            uploadEndpoint={enableImageUpload ? `${apiEndpoint}/upload` : undefined}
             disabled={loading}
           />
         ))}

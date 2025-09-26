@@ -18,9 +18,15 @@ export async function GET() {
       return NextResponse.json({ ok: false, error }, { status: 400 });
     }
 
+    // theme-settings 전용: theme-images prefix로 업로드된 항목만 노출
+    const filtered = (data || []).filter((row: any) => {
+      const name = row?.imageName ?? '';
+      return typeof name === 'string' && name.startsWith('theme-images');
+    });
+
     return new NextResponse(JSON.stringify({
       ok: true,
-      data: data || []
+      data: filtered
     }), {
       status: 200,
       headers: {

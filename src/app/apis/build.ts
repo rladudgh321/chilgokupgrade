@@ -15,12 +15,15 @@ export async function BuildFindAll(
   page: number = 1,
   limit: number = 10,
   keyword?: string,
+  filters?: { theme?: string; propertyType?: string },
   opts?: { signal?: AbortSignal }
 ) {
   const qs = new URLSearchParams({
     page: String(page),
     limit: String(limit),
     ...(keyword?.trim() ? { keyword: keyword.trim() } : {}),
+    ...(filters?.theme ? { theme: filters.theme } : {}),
+    ...(filters?.propertyType ? { propertyType: filters.propertyType } : {}),
   });
 
   const res = await fetch(`${baseURL}/api/supabase/build?${qs.toString()}`, {

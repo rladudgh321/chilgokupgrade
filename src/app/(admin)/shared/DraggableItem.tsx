@@ -13,9 +13,10 @@ type DraggableItemProps = {
   onDelete?: (name: string) => void;
   onImageEdit?: (id: number, newImageUrl: string, newImageName: string) => void;
   disabled?: boolean;
+  uploadEndpoint?: string;
 };
 
-const DraggableItem = ({ id, name, imageUrl, imageName, moveItem, onEdit, onDelete, onImageEdit, disabled = false }: DraggableItemProps) => {
+const DraggableItem = ({ id, name, imageUrl, imageName, moveItem, onEdit, onDelete, onImageEdit, disabled = false, uploadEndpoint }: DraggableItemProps) => {
   const ref = useRef<HTMLDivElement>(null);
   const [isEditing, setIsEditing] = useState(false);
   const [editValue, setEditValue] = useState(name);
@@ -72,20 +73,14 @@ const DraggableItem = ({ id, name, imageUrl, imageName, moveItem, onEdit, onDele
   };
 
   const handleImageEdit = async () => {
-    if (!selectedImageFile || !onImageEdit) return;
+    if (!selectedImageFile || !onImageEdit || !uploadEndpoint) return;
 
     try {
       const formData = new FormData();
       formData.append('file', selectedImageFile);
       formData.append('label', name);
-
-      const response = await fetch('/api/theme-images/upload', {
-        method: 'POST',
-        body: formData,
-      });
-
+      const response = await fetch(uploadEndpoint, { method: 'POST', body: formData });
       const result = await response.json();
-      
       if (result.ok) {
         onImageEdit(id, result.data.imageUrl, result.data.imageName);
         setIsImageEditing(false);
@@ -195,13 +190,13 @@ const DraggableItem = ({ id, name, imageUrl, imageName, moveItem, onEdit, onDele
               >
                 수정
               </button>
-              {imageUrl && (
+              {onImageEdit && (
                 <button
                   onClick={() => setIsImageEditing(!isImageEditing)}
                   disabled={disabled}
                   className="px-3 py-1 bg-purple-500 text-white rounded text-sm hover:bg-purple-600 disabled:opacity-50"
                 >
-                  이미지 {isImageEditing ? '취소' : '변경'}
+                  이미지 {isImageEditing ? '취소' : (imageUrl ? '변경' : '추가')}
                 </button>
               )}
               {onDelete && (

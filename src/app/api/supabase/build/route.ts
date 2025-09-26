@@ -12,6 +12,7 @@ export async function GET(req: NextRequest) {
     const keywordRaw = searchParams.get("keyword")?.trim() ?? "";
     const keyword = keywordRaw.length ? keywordRaw : undefined;
     const theme = searchParams.get("theme")?.trim();
+    const propertyType = searchParams.get("propertyType")?.trim();
 
     const from = (page - 1) * limit;
     const to = from + limit - 1;
@@ -46,6 +47,11 @@ export async function GET(req: NextRequest) {
     // 테마 필터링: themes 배열에 해당 테마가 포함된 경우
     if (theme) {
       q = q.contains("themes", [theme]);
+    }
+
+    // 매물종류 필터링
+    if (propertyType) {
+      q = q.eq("propertyType", propertyType);
     }
 
     const { data, error, count } = await q;

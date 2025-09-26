@@ -13,6 +13,7 @@ export default async function Page({ searchParams }: { searchParams: Promise<{ [
   const params = await searchParams;
   const keyword = typeof params.keyword === 'string' ? params.keyword : undefined;
   const theme = typeof params.theme === 'string' ? params.theme : undefined;
+  const propertyType = typeof params.propertyType === 'string' ? params.propertyType : undefined;
   const page = parseInt(typeof params.page === 'string' ? params.page : '1', 10) || 1;
   const limit = 10; // 페이지당 아이템 수
   const from = (page - 1) * limit;
@@ -33,6 +34,11 @@ export default async function Page({ searchParams }: { searchParams: Promise<{ [
   // 테마 필터링
   if (theme) {
     query = query.contains("themes", [theme]);
+  }
+
+  // 매물종류 필터링
+  if (propertyType) {
+    query = query.eq("propertyType", propertyType);
   }
 
   const { data: listings, count } = await query;

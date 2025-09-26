@@ -22,6 +22,7 @@ const CardList = () => {
   })
 
   const [themeOptions, setThemeOptions] = useState<string[]>([])
+  const [propertyTypeOptions, setPropertyTypeOptions] = useState<string[]>([])
 
   useEffect(() => {
     let isMounted = true
@@ -44,6 +45,25 @@ const CardList = () => {
     }
   }, [])
 
+  // 매물종류 옵션 로드
+  useEffect(() => {
+    let isMounted = true
+    ;(async () => {
+      try {
+        const res = await fetch("/api/property-types", { cache: "no-store" })
+        if (!res.ok) return
+        const json = await res.json()
+        const items: Array<{ name?: string }> = json?.data ?? []
+        const names = items.map(x => x?.name).filter((v): v is string => typeof v === 'string' && v.length > 0)
+        const uniq = Array.from(new Set<string>(names))
+        if (isMounted) setPropertyTypeOptions(uniq)
+      } catch {
+        // ignore
+      }
+    })()
+    return () => { isMounted = false }
+  }, [])
+
   // 무한 스크롤 쿼리
   const {
     data,
@@ -55,7 +75,7 @@ const CardList = () => {
   } = useInfiniteQuery({
     queryKey: ["builds", "card", searchTerm, sortBy, filters],
     queryFn: ({ pageParam = 1 }) => 
-      BuildFindAll(pageParam, LIMIT, searchTerm),
+      BuildFindAll(pageParam, LIMIT, searchTerm, { theme: filters.theme, propertyType: filters.propertyType }),
     getNextPageParam: (lastPage, pages) => {
       if (lastPage.data.length < LIMIT) return undefined
       return pages.length + 1
@@ -165,11 +185,12 @@ const CardList = () => {
               className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
             >
               <option value="">매물 종류</option>
-              <option value="apartment">아파트</option>
-              <option value="villa">빌라</option>
-              <option value="officetel">오피스텔</option>
-              <option value="house">단독주택</option>
-              <option value="commercial">상가</option>
+              {(propertyTypeOptions && propertyTypeOptions.length > 0
+                ? propertyTypeOptions
+                : ["아파트","신축빌라","원룸","투룸","쓰리룸","사무실","상가","오피스텔"]
+              ).map((opt) => (
+                <option key={opt} value={opt}>{opt}</option>
+              ))}
             </select>
 
             <select 
