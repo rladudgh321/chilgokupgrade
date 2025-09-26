@@ -1,17 +1,41 @@
 "use client"
 import { useState } from "react"
+import { useRouter, useSearchParams } from "next/navigation"
 
 const SearchBar = () => {
-  const [searchTerm, setSearchTerm] = useState("")
-  const [propertyType, setPropertyType] = useState("")
-  const [dealType, setDealType] = useState("")
-  const [priceRange, setPriceRange] = useState("")
-  const [areaRange, setAreaRange] = useState("")
-  const [theme, setTheme] = useState("")
-  const [rooms, setRooms] = useState("")
-  const [floor, setFloor] = useState("")
-  const [bathrooms, setBathrooms] = useState("")
-  const [subwayLine, setSubwayLine] = useState("")
+  const router = useRouter()
+  const searchParams = useSearchParams()
+  
+  const [searchTerm, setSearchTerm] = useState(searchParams.get("keyword") || "")
+  const [propertyType, setPropertyType] = useState(searchParams.get("propertyType") || "")
+  const [dealType, setDealType] = useState(searchParams.get("dealType") || "")
+  const [priceRange, setPriceRange] = useState(searchParams.get("priceRange") || "")
+  const [areaRange, setAreaRange] = useState(searchParams.get("areaRange") || "")
+  const [theme, setTheme] = useState(searchParams.get("theme") || "")
+  const [rooms, setRooms] = useState(searchParams.get("rooms") || "")
+  const [floor, setFloor] = useState(searchParams.get("floor") || "")
+  const [bathrooms, setBathrooms] = useState(searchParams.get("bathrooms") || "")
+  const [subwayLine, setSubwayLine] = useState(searchParams.get("subwayLine") || "")
+
+  const handleSearch = () => {
+    const params = new URLSearchParams()
+    
+    if (searchTerm) params.set("keyword", searchTerm)
+    if (propertyType) params.set("propertyType", propertyType)
+    if (dealType) params.set("dealType", dealType)
+    if (priceRange) params.set("priceRange", priceRange)
+    if (areaRange) params.set("areaRange", areaRange)
+    if (theme) params.set("theme", theme)
+    if (rooms) params.set("rooms", rooms)
+    if (floor) params.set("floor", floor)
+    if (bathrooms) params.set("bathrooms", bathrooms)
+    if (subwayLine) params.set("subwayLine", subwayLine)
+    
+    // 검색 시 페이지를 1로 리셋
+    params.set("page", "1")
+    
+    router.push(`/landSearch?${params.toString()}`)
+  }
 
   const handleReset = () => {
     setSearchTerm("")
@@ -24,6 +48,7 @@ const SearchBar = () => {
     setFloor("")
     setBathrooms("")
     setSubwayLine("")
+    router.push("/landSearch")
   }
 
   return (
@@ -39,6 +64,14 @@ const SearchBar = () => {
             className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
         </div>
+        
+        {/* 검색 버튼 */}
+        <button
+          onClick={handleSearch}
+          className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
+        >
+          검색
+        </button>
         
         {/* 초기화 버튼 */}
         <button
@@ -108,11 +141,14 @@ const SearchBar = () => {
           className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
         >
           <option value="">테마</option>
-          <option value="new">신축</option>
-          <option value="urgent">급매</option>
-          <option value="recommended">추천</option>
-          <option value="parking">주차가능</option>
-          <option value="subway">역세권</option>
+          <option value="반려동물">반려동물</option>
+          <option value="저보증금 원룸">저보증금 원룸</option>
+          <option value="전세자금대출">전세 자금 대출</option>
+          <option value="복층">복층</option>
+          <option value="주차가능">주차가능</option>
+          <option value="옥탑">옥탑</option>
+          <option value="역세권">역세권</option>
+          <option value="신축">신축</option>
         </select>
 
         <select

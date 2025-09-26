@@ -21,7 +21,7 @@ const ListingList = ({ listings }: Props) => {
   return (
     <div className="h-full flex flex-col">
       {/* 정렬 탭 */}
-      <div className="flex border-b bg-white">
+      <div className="flex border-b bg-white flex-shrink-0">
         {sortOptions.map((option) => (
           <button
             key={option.key}
@@ -38,7 +38,7 @@ const ListingList = ({ listings }: Props) => {
       </div>
 
       {/* 매물 리스트 */}
-      <div className="flex-1 overflow-y-auto">
+      <div className="flex-1 overflow-y-auto scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100">
         {listings.length === 0 ? (
           <div className="flex items-center justify-center h-full text-gray-500">
             <p>표시할 매물이 없습니다.</p>
