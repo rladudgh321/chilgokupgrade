@@ -172,10 +172,6 @@ const BuildBasic = () => {
   const watchedDirection = watch("direction") ?? "";
   const watchedDirectionBase = watch("directionBase") ?? "";
 
-  const watchedThemes = watch("themes") ?? [];
-  const watchedBuildingOptions = watch("buildingOptions") ?? [];
-  const watchedParking = watch("parking") ?? [];
-
   // ✅ 체크박스 UI용 로컬 상태 (폼 값과 항상 동기화)
   const [selectedThemes, setSelectedThemes] = useState<string[]>([]);
   const [selectedBuilding, setSelectedBuildingOptions] = useState<string[]>([]);
@@ -206,20 +202,23 @@ const BuildBasic = () => {
   }, []);
 
   useEffect(() => {
+    const watchedThemes = watch("themes") ?? [];
     setSelectedThemes(Array.isArray(watchedThemes) ? watchedThemes : []);
-  }, [watchedThemes]);
+  }, [watch]);
 
   useEffect(() => {
+    const watchedBuildingOptions = watch("buildingOptions") ?? [];
     setSelectedBuildingOptions(
       Array.isArray(watchedBuildingOptions) ? watchedBuildingOptions : []
     );
-  }, [watchedBuildingOptions]);
+  }, [watch]);
 
   useEffect(() => {
+    const watchedParking = watch("parking") ?? [];
     setSelectedParkingOptions(
       Array.isArray(watchedParking) ? watchedParking : []
     );
-  }, [watchedParking]);
+  }, [watch]);
 
   // 옵션(빌딩 옵션) 목록 로드
   useEffect(() => {
