@@ -4,6 +4,7 @@ type InputWithButtonProps = {
   onAdd: () => void;
   placeholder: string;
   buttonText: string;
+  disabled?: boolean;
 };
 
 const InputWithButton = ({
@@ -12,6 +13,7 @@ const InputWithButton = ({
   onAdd,
   placeholder,
   buttonText,
+  disabled = false,
 }: InputWithButtonProps) => {
   return (
     <div className="flex space-x-2 mb-4">
@@ -20,11 +22,17 @@ const InputWithButton = ({
         value={value}
         onChange={(e) => onChange(e.target.value)}
         placeholder={placeholder}
-        className="p-2 border border-gray-300 rounded-lg w-full"
+        disabled={disabled}
+        className={`p-2 border border-gray-300 rounded-lg w-full ${
+          disabled ? 'bg-gray-100 opacity-50' : ''
+        }`}
       />
       <button
         onClick={onAdd}
-        className="p-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600"
+        disabled={disabled}
+        className={`p-2 bg-blue-500 text-white rounded-lg ${
+          disabled ? 'opacity-50 cursor-not-allowed' : 'hover:bg-blue-600'
+        }`}
       >
         {buttonText}
       </button>

@@ -1,9 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -15,139 +9,140 @@ datasource db {
 }
 
 model Build {
-  id              Int            @id @default(autoincrement())
-  views           Int? @default(0)
-  confirmDate     DateTime? //현장 확인일
+  id               Int            @id @default(autoincrement())
+  address          String?
+  dong             String?
+  ho               String?
+  etc              String?
+  isAddressPublic  AddressPublic? @default(public)
+  mapLocation      String?
+  propertyType     String?
+  dealType         String?
+  dealScope        String?
+  visibility       Boolean?       @default(true)
+  priceDisplay     String?
+  salePrice        Int?
+  actualEntryCost  Int?
+  rentalPrice      Int?
+  managementFee    Int?
+  managementEtc    String?
+  popularity       String?
+  label            String?
+  floorType        String?
+  currentFloor     Int?
+  totalFloors      Int?
+  basementFloors   Int?
+  floorDescription String?
+  rooms            Int?
+  bathrooms        Int?
+  actualArea       Float?
+  supplyArea       Float?
+  landArea         Float?
+  buildingArea     Float?
+  totalArea        Float?
+  themes           String[]       @default([])
+  buildingOptions  String[]       @default([])
+  constructionYear DateTime?
+  permitDate       DateTime?
+  approvalDate     DateTime?
+  parkingPerUnit   Int?
+  totalParking     Int?
+  parkingFee       Int?
+  parking          String[]       @default([])
+  direction        String?
+  directionBase    String?
+  landUse          String?
+  landType         String?
+  buildingUse      String?
+  staff            String?
+  customerType     String?
+  customerName     String?
+  elevatorType     String?
+  elevatorCount    Int?
+  moveInType       String?
+  moveInDate       DateTime?
+  heatingType      String?
+  yieldType        String?
+  otherYield       String?
+  contractEndDate  DateTime?
+  buildingName     String?
+  floorAreaRatio   String?
+  otherUse         String?
+  mainStructure    String?
+  height           String?
+  roofStructure    String?
+  title            String?
+  editorContent    String?
+  secretNote       String?
+  secretContact    String?
+  mainImage        String?
+  subImage         Json?
+  adminImage       Json?
+  createdAt        DateTime       @default(now())
+  updatedAt        DateTime       @default(now()) @updatedAt
+  deletedAt        DateTime?
+  views            Int?           @default(0)
+  confirmDate      DateTime?
+}
 
-  address         String? //주소
-  dong            String? //동
-  ho              String? //호
-  etc             String? //기타사항 - 주소관련
-  isAddressPublic AddressPublic? @default(public) //주소 공개여부 - 공개 비공개, 지번 제외 공개
-  mapLocation     String? //지도 위치
+model Contact {
+  id                  Int      @id @default(autoincrement())
+  customerText        String
+  customerPhoneNumber String
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @default(now()) @updatedAt
+}
 
-  // LandInfo
-  propertyType  String? //매물종류
-  dealType      String? //거래유형
-  dealScope     String? //거래범위
-  visibility    Boolean? @default(true)//공개여부 - 매물을 공개할지?: 공개, 비공개
-  priceDisplay  String? //금액 표기 방법 - 가격을 공개할지?: 공개, 비공개, 협의가능
-  salePrice     Int? //분양가
-  actualEntryCost     Int? //실입주금
-  rentalPrice     Int? //전세가
-  managementFee     Int? //관리비
-  managementEtc String? //기타사항
+model BoardPost {
+  id                  Int       @id @default(autoincrement())
+  title               String
+  content             String?
+  popupContent        String?
+  representativeImage String?
+  externalLink        String?
+  registrationDate    DateTime?
+  manager             String?
+  isAnnouncement      Boolean   @default(false)
+  isPopup             Boolean   @default(false)
+  popupWidth          Int?
+  popupHeight         Int?
+  isPublished         Boolean   @default(true)
+  views               Int       @default(0)
+  createdAt           DateTime  @default(now())
+  updatedAt           DateTime  @default(now()) @updatedAt
+  deletedAt           DateTime?
+}
 
-  // BuildBasic
-  popularity       String? //인기/급매
-  label            String? //라벨 선택 - 저보증금, 전세자금, 반려동물, 신축, 풀옵션, 인증매물, 신혼부부
-  floorType        String? //층수 - 층타입: 지상, 지하, 반지하, 옥탑
-  currentFloor     Int? //현재층
-  totalFloors      Int? //전체층
-  basementFloors   Int? //지하층
-  floorDescription String? //층수 설명
-  rooms            Int? // 방 수
-  bathrooms        Int? //화장실 수
-  actualArea       Float? //실면적
-  supplyArea       Float? //공급면적
-  landArea         Float? //대지면적
-  buildingArea     Float? //건축면적
-  totalArea        Float? //연면적
-  themes           String[] @default([]) //테마 - 반려동물, 저보증금 원룸, 전세자금대출, 복층, 주차가능, 옥탑, 역세권, 신축 
-  buildingOptions  String[] @default([]) //옵션 - 빌딩옵션: 에어컨, 세탁기, ...
-  constructionYear DateTime? //착공일자
-  permitDate       DateTime? //허가일자
-  approvalDate     DateTime? //사용승인일자
-  parkingPerUnit   Int? //세대당 주차수
-  totalParking     Int? //전체주차수
-  parkingFee       Int? //주차비
-  parking          String[] @default([]) //주차옵션 - 주차가능, 주차불가, 주차협의, 자주식주차, 기계식주차
-  direction        String? //방향 - 햇빛방향: 남향, 북향, ...
-  directionBase    String? //방향기준 - 햇빛방향기준: 거실, 안방, 주된출입구
-  landUse          String? //용도지역 - 상업지구, 주거지구
-  landType         String? //지목 - 대지, 전
-  buildingUse      String? //건축물용도
-  staff            String? //담당자 - 권오길, 다른사람A, ...
-  customerType     String? //고객 종류 - 매도자, 매수자, 임대인
-  customerName     String? // 고객 이름
-  
-
-  // BuildInfo
-  elevatorType    String? //엘레베이터 - 타입: 유,무
-  elevatorCount   Int?  //엘리베이터 갯수
-  moveInType      String? //입주 가능일
-  moveInDate      DateTime? //입주 가능일 선택
-  heatingType     String? //난방 - 지역난방, 개별난방, 중앙난방
-  yieldType       String? //수익률 사용 - 미사용, 상가수익률, 건물수익률, 기타수익률
-  otherYield      String? //기타수익률 입력
-  contractEndDate DateTime? //계약만료일
-  buildingName    String? //건물명
-  floorAreaRatio  String? //용적률 산정 면적
-  otherUse        String? //기타용도
-  mainStructure   String? //주구조
-  height          String? //높이
-  roofStructure   String? //지붕구조
-
-  // DetailDescription 에디터
-  title         String? //제목
-  editorContent String? //상세설명
-  secretNote    String? //비밀메모 (관리자만 보이도록)
-  secretContact String? //비밀 고객연락처 (관리자만 보이도록)
-
-  // SaveImage
-  mainImage  String? //매물 대표 사진 업로드
-  subImage   Json? //매물 사진들 업로드
-  adminImage Json? //관리자만 볼 수 있는 사진들 업로드
-
+// 테마 이미지 관리
+model ThemeImage {
+  id        Int      @id @default(autoincrement())
+  label     String
+  imageUrl  String
+  imageName String?
+  isActive  Boolean  @default(true)
   createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt @default(now())  
-  deletedAt  DateTime?
-  
+  updatedAt DateTime @default(now()) @updatedAt
+  deletedAt DateTime?
+}
+
+model ContactRequest {
+  id          Int      @id @default(autoincrement())
+  confirm     Boolean  @default(false)
+  author      String
+  contact     String
+  ipAddress   String
+  description String
+  note        String?
+  date        DateTime
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime
+
+  @@index([contact])
+  @@index([date])
 }
 
 enum AddressPublic {
   public
   private
   exclude
-}
-
-model Contact {
-  id                  Int    @id @default(autoincrement())
-  customerText        String
-  customerPhoneNumber String
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt @default(now()) 
-}
-
-// 게시판 게시글
-model BoardPost {
-  id          Int     @id @default(autoincrement())
-  title       String
-  content     String? // 메인 내용
-  popupContent String? // 팝업 내용
-  
-  // 이미지
-  representativeImage String? // 대표 이미지
-  
-  // 외부 링크
-  externalLink String? // 외부 링크
-  
-  // 등록일과 담당자
-  registrationDate DateTime? // 등록일
-  manager         String? // 담당자
-  
-  // 공지 및 팝업 설정
-  isAnnouncement Boolean @default(false) // 공지여부
-  isPopup        Boolean @default(false) // 팝업여부
-  popupWidth     Int? // 팝업 가로 크기
-  popupHeight    Int? // 팝업 세로 크기
-  
-  // 상태
-  isPublished Boolean @default(true) // 게시 여부
-  views       Int     @default(0) // 조회수
-  
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt @default(now())
-  deletedAt  DateTime?
 }

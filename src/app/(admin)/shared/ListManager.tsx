@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import DraggableItem from './DraggableItem';
 import InputWithButton from './InputWithButton';
 
@@ -8,20 +8,118 @@ type ListManagerProps = {
   title: string;
   placeholder: string;
   buttonText: string;
+  apiEndpoint?: string; // API 엔드포인트 추가
+  enableImageUpload?: boolean; // 이미지 업로드 기능 활성화
 };
 
-const ListManager = ({ title, placeholder, buttonText }: ListManagerProps) => {
-  const [items, setItems] = useState<{ id: number; name: string }[]>([]);
+const ListManager = ({ title, placeholder, buttonText, apiEndpoint = '/api/labels', enableImageUpload = false }: ListManagerProps) => {
+  const [items, setItems] = useState<{ id: number; name: string; imageUrl?: string; imageName?: string }[]>([]);
   const [newItem, setNewItem] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
 
-  const handleAddItem = () => {
-    if (newItem.trim()) {
-      const newItemObj = {
-        id: items.length + 1,
-        name: newItem,
-      };
-      setItems([...items, newItemObj]);
-      setNewItem('');
+  // 데이터 로드
+  const loadItems = async () => {
+    try {
+      setLoading(true);
+      const response = await fetch(apiEndpoint);
+      const result = await response.json();
+      
+      if (result.ok) {
+        // labels API: {id,name} / theme-images API: {id,label,imageUrl,imageName}
+        type Row = { id: number; name?: string; label?: string; imageUrl?: string; imageName?: string };
+        const rows: Row[] = Array.isArray(result.data) ? result.data : [];
+        const normalized = rows.map((r: Row) => {
+          if (r && typeof r === 'object' && 'label' in r) {
+            return { id: r.id, name: r.label as string, imageUrl: r.imageUrl, imageName: r.imageName };
+          }
+        	// labels API 형태 호환
+          return { id: r.id, name: (r.name as string) };
+        });
+        setItems(normalized);
+        setError(null);
+      } else {
+        setError(result.error?.message || '데이터를 불러오는데 실패했습니다.');
+      }
+    } catch {
+      setError('네트워크 오류가 발생했습니다.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // 컴포넌트 마운트 시 데이터 로드
+  useEffect(() => {
+    loadItems();
+  }, [apiEndpoint]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const handleAddItem = async () => {
+    if (!newItem.trim()) return;
+
+    try {
+      setLoading(true);
+      
+      if (enableImageUpload && selectedFile) {
+        // 이미지와 함께 업로드
+        const formData = new FormData();
+        formData.append('file', selectedFile);
+        formData.append('label', newItem.trim());
+
+        const response = await fetch('/api/theme-images/upload', {
+          method: 'POST',
+          body: formData,
+        });
+
+        const result = await response.json();
+        
+        if (result.ok) {
+          // 업로드 성공 시 ThemeImage 레코드 생성
+          const saveRes = await fetch('/api/theme-images', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              label: newItem.trim(),
+              imageUrl: result.data.imageUrl,
+              imageName: result.data.imageName,
+            }),
+          });
+          const saveJson = await saveRes.json();
+          if (saveJson.ok) {
+            setNewItem('');
+            setSelectedFile(null);
+            await loadItems();
+            setError(null);
+          } else {
+            setError(saveJson.error?.message || '이미지 정보 저장에 실패했습니다.');
+          }
+        } else {
+          setError(result.error?.message || '추가에 실패했습니다.');
+        }
+      } else {
+        // 일반 라벨 추가
+        const response = await fetch(apiEndpoint, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ label: newItem.trim() }),
+        });
+
+        const result = await response.json();
+        
+        if (result.ok) {
+          setNewItem('');
+          await loadItems();
+          setError(null);
+        } else {
+          setError(result.error?.message || '추가에 실패했습니다.');
+        }
+      }
+    } catch {
+      setError('네트워크 오류가 발생했습니다.');
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -38,13 +136,96 @@ const ListManager = ({ title, placeholder, buttonText }: ListManagerProps) => {
     setItems(updatedItems);
   };
 
-  const handleSave = () => {
-    console.log(`${title} saved:`, items);
+  const handleEditItem = async (oldName: string, newName: string) => {
+    try {
+      setLoading(true);
+      const response = await fetch(apiEndpoint, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ oldLabel: oldName, newLabel: newName }),
+      });
+
+      const result = await response.json();
+      
+      if (result.ok) {
+        await loadItems(); // 데이터 다시 로드
+        setError(null);
+      } else {
+        setError(result.error?.message || '수정에 실패했습니다.');
+      }
+    } catch {
+      setError('네트워크 오류가 발생했습니다.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleDeleteItem = async (name: string) => {
+    if (!confirm(`"${name}"을(를) 삭제하시겠습니까?`)) return;
+
+    try {
+      setLoading(true);
+      const response = await fetch(`${apiEndpoint}?label=${encodeURIComponent(name)}`, {
+        method: 'DELETE',
+      });
+
+      const result = await response.json();
+      
+      if (result.ok) {
+        await loadItems(); // 데이터 다시 로드
+        setError(null);
+      } else {
+        setError(result.error?.message || '삭제에 실패했습니다.');
+      }
+    } catch {
+      setError('네트워크 오류가 발생했습니다.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleImageEdit = async (id: number, newImageUrl: string, newImageName: string) => {
+    try {
+      setLoading(true);
+      const response = await fetch('/api/theme-images', {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ 
+          id, 
+          imageUrl: newImageUrl, 
+          imageName: newImageName 
+        }),
+      });
+
+      const result = await response.json();
+      
+      if (result.ok) {
+        await loadItems(); // 데이터 다시 로드
+        setError(null);
+      } else {
+        setError(result.error?.message || '이미지 수정에 실패했습니다.');
+      }
+    } catch {
+      setError('네트워크 오류가 발생했습니다.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
     <div className="max-w-4xl mx-auto p-4">
       <h1 className="text-3xl font-bold mb-4">{title}</h1>
+
+      {/* Error message */}
+      {error && (
+        <div className="mb-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded">
+          {error}
+        </div>
+      )}
 
       {/* Add new item */}
       <InputWithButton
@@ -53,7 +234,39 @@ const ListManager = ({ title, placeholder, buttonText }: ListManagerProps) => {
         onAdd={handleAddItem}
         placeholder={placeholder}
         buttonText={buttonText}
+        disabled={loading}
       />
+
+      {/* Image upload section */}
+      {enableImageUpload && (
+        <div className="mb-4">
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            이미지 업로드
+          </label>
+          <div className="flex items-center space-x-4">
+            <input
+              type="file"
+              accept="image/*"
+              onChange={(e) => setSelectedFile(e.target.files?.[0] || null)}
+              className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
+              disabled={loading}
+            />
+            {selectedFile && (
+              <span className="text-sm text-gray-600">
+                선택됨: {selectedFile.name}
+              </span>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* Loading indicator */}
+      {loading && (
+        <div className="text-center py-4">
+          <div className="inline-block animate-spin rounded-full h-6 w-6 border-b-2 border-blue-500"></div>
+          <span className="ml-2">처리 중...</span>
+        </div>
+      )}
 
       {/* Item list */}
       <div className="space-y-2">
@@ -62,20 +275,23 @@ const ListManager = ({ title, placeholder, buttonText }: ListManagerProps) => {
             key={item.id}
             id={item.id}
             name={item.name}
+            imageUrl={item.imageUrl}
+            imageName={item.imageName}
             moveItem={moveItem}
+            onEdit={handleEditItem}
+            onDelete={handleDeleteItem}
+            onImageEdit={enableImageUpload ? handleImageEdit : undefined}
+            disabled={loading}
           />
         ))}
       </div>
 
-      {/* Save button */}
-      <div className="flex space-x-4 mt-4">
-        <button
-          onClick={handleSave}
-          className="p-2 bg-green-500 text-white rounded-lg hover:bg-green-600 w-full"
-        >
-          저장
-        </button>
-      </div>
+      {/* Empty state */}
+      {!loading && items.length === 0 && (
+        <div className="text-center py-8 text-gray-500">
+          등록된 항목이 없습니다.
+        </div>
+      )}
     </div>
   );
 };
