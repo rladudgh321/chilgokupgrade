@@ -3,7 +3,7 @@ import Image from "next/image"; // Next.js의 최적화된 이미지 로딩
 
 const Footer = () => {
   return (
-    <footer className="mt-4 bg-gray-700 text-white text-sm p-4">
+    <footer className="bg-gray-700 text-white text-sm p-4">
       <div className="flex items-center gap-6">
         {/* 로고 이미지 */}
         <div>
