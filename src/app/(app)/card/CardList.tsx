@@ -21,6 +21,29 @@ const CardList = () => {
     subwayLine: "",
   })
 
+  const [themeOptions, setThemeOptions] = useState<string[]>([])
+
+  useEffect(() => {
+    let isMounted = true
+    ;(async () => {
+      try {
+        const res = await fetch("/api/theme-images", { cache: "no-store" })
+        if (!res.ok) return
+        const json = await res.json()
+        const items: Array<{ label?: string; isActive?: boolean }> = json?.data ?? []
+        const labels = items
+          .filter((x) => x && x.label && (x.isActive === undefined || x.isActive === true))
+          .map((x) => String(x.label))
+        if (isMounted) setThemeOptions(labels)
+      } catch {
+        // ignore
+      }
+    })()
+    return () => {
+      isMounted = false
+    }
+  }, [])
+
   // 무한 스크롤 쿼리
   const {
     data,
@@ -193,11 +216,9 @@ const CardList = () => {
               className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
             >
               <option value="">테마</option>
-              <option value="new">신축</option>
-              <option value="urgent">급매</option>
-              <option value="recommended">추천</option>
-              <option value="parking">주차가능</option>
-              <option value="subway">역세권</option>
+              {themeOptions.map((label) => (
+                <option key={label} value={label}>{label}</option>
+              ))}
             </select>
 
             <select 

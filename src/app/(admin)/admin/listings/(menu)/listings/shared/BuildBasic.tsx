@@ -1,7 +1,7 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
+ 
 "use client";
 
-import React, { MouseEventHandler, useEffect, useMemo, useState } from "react";
+import React, { MouseEventHandler, useEffect, useState } from "react";
 import { useFormContext, Controller } from "react-hook-form";
 import DatePicker from "react-datepicker";
 import { ko } from "date-fns/locale";
@@ -180,6 +180,29 @@ const BuildBasic = () => {
   const [selectedThemes, setSelectedThemes] = useState<string[]>([]);
   const [selectedBuilding, setSelectedBuildingOptions] = useState<string[]>([]);
   const [selectedParking, setSelectedParkingOptions] = useState<string[]>([]);
+  const [themeOptions, setThemeOptions] = useState<string[]>([]);
+
+  // ✅ 테마 옵션을 서버에서 로드 (ThemeImage.label 사용)
+  useEffect(() => {
+    let isMounted = true;
+    (async () => {
+      try {
+        const res = await fetch("/api/theme-images", { cache: "no-store" });
+        if (!res.ok) return;
+        const json = await res.json();
+        const items: Array<{ label?: string; isActive?: boolean }> = json?.data ?? [];
+        const labels = items
+          .filter((x) => x && x.label && (x.isActive === undefined || x.isActive === true))
+          .map((x) => x.label as string);
+        if (isMounted) setThemeOptions(labels);
+  } catch {
+        // ignore
+      }
+    })();
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 
   useEffect(() => {
     setSelectedThemes(Array.isArray(watchedThemes) ? watchedThemes : []);
@@ -206,13 +229,6 @@ const BuildBasic = () => {
   };
 
   // ✅ 체크박스(다중 선택) → 폼/로컬 동시 갱신
-  const handleThemesButtonClick = (v: string) => {
-    setSelectedThemes((prev) => {
-      const next = prev.includes(v) ? prev.filter((x) => x !== v) : [...prev, v];
-      setValue("themes", next, { shouldDirty: true, shouldTouch: true });
-      return next;
-    });
-  };
   const handleBuildingOptionsButtonClick = (v: string) => {
     setSelectedBuildingOptions((prev) => {
       const next = prev.includes(v) ? prev.filter((x) => x !== v) : [...prev, v];
@@ -294,7 +310,7 @@ const BuildBasic = () => {
       <div className="flex flex-col">
         <label>테마</label>
         <div className="flex space-x-2 mt-2 flex-wrap gap-y-4">
-          {["반려동물", "저보증금 원룸", "전세자금대출", "복층", "주차가능", "옥탑", "역세권", "신축"].map(
+          {(themeOptions || []).map(
             (theme) => {
               const checked = selectedThemes.includes(theme);
               return (

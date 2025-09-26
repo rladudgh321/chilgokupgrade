@@ -1,5 +1,5 @@
 "use client"
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
 
 const SearchBar = () => {
@@ -16,6 +16,28 @@ const SearchBar = () => {
   const [floor, setFloor] = useState(searchParams.get("floor") || "")
   const [bathrooms, setBathrooms] = useState(searchParams.get("bathrooms") || "")
   const [subwayLine, setSubwayLine] = useState(searchParams.get("subwayLine") || "")
+  const [themeOptions, setThemeOptions] = useState<string[]>([])
+
+  useEffect(() => {
+    let isMounted = true
+    ;(async () => {
+      try {
+        const res = await fetch("/api/theme-images", { cache: "no-store" })
+        if (!res.ok) return
+        const json = await res.json()
+        const items: Array<{ label?: string; isActive?: boolean }> = json?.data ?? []
+        const labels = items
+          .filter((x) => x && x.label && (x.isActive === undefined || x.isActive === true))
+          .map((x) => String(x.label))
+        if (isMounted) setThemeOptions(labels)
+      } catch {
+        // ignore
+      }
+    })()
+    return () => {
+      isMounted = false
+    }
+  }, [])
 
   const handleSearch = () => {
     const params = new URLSearchParams()
@@ -141,14 +163,9 @@ const SearchBar = () => {
           className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
         >
           <option value="">테마</option>
-          <option value="반려동물">반려동물</option>
-          <option value="저보증금 원룸">저보증금 원룸</option>
-          <option value="전세자금대출">전세 자금 대출</option>
-          <option value="복층">복층</option>
-          <option value="주차가능">주차가능</option>
-          <option value="옥탑">옥탑</option>
-          <option value="역세권">역세권</option>
-          <option value="신축">신축</option>
+          {themeOptions.map((label) => (
+            <option key={label} value={label}>{label}</option>
+          ))}
         </select>
 
         <select
