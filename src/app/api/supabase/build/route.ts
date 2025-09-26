@@ -1,72 +1,63 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-import { createClient } from "@/app/utils/supabase/server";
-import { cookies } from 'next/headers'
 import { NextRequest, NextResponse } from "next/server";
+import { PrismaClient } from "@prisma/client";
+
+const prisma = new PrismaClient();
 
 export async function GET(req: NextRequest) {
   try {
     const { searchParams } = new URL(req.url);
     const page = Math.max(1, parseInt(searchParams.get("page") ?? "1", 10) || 1);
-    const limitIn = parseInt(searchParams.get("limit") ?? "10", 10);
-    const limit = Math.min(100, Math.max(1, limitIn || 10));
+    const limit = Math.min(
+      100,
+      Math.max(1, parseInt(searchParams.get("limit") ?? "10", 10) || 10)
+    );
     const keywordRaw = searchParams.get("keyword")?.trim() ?? "";
     const keyword = keywordRaw.length ? keywordRaw : undefined;
     const theme = searchParams.get("theme")?.trim();
     const propertyType = searchParams.get("propertyType")?.trim();
 
-    const from = (page - 1) * limit;
-    const to = from + limit - 1;
-
-    // Supabase 클라이언트 (Next 15: cookies()는 async)
-    const cookieStore = await cookies();
-    const supabase = createClient(cookieStore);
-
-    // ⚙️ 스키마에 맞게 조정하세요.
-    const table = "Build";
-    const deletedCol = "deletedAt";
-    const createdCol = "createdAt";
-
-    // 기본 필터: 소프트 삭제 제외
-    let q = supabase
-      .from(table)
-      .select("*", { count: "exact" })
-      .is(deletedCol, null)                        // ✅ deletedAt IS NULL
-      .order(createdCol, { ascending: false })
-      .order("id", { ascending: false })  
-      .range(from, to);
-
-    // 키워드: 숫자면 id 정확히, 문자열이면 address ILIKE
+    const where: any = {
+      deletedAt: null,
+    };
     if (keyword) {
       if (/^\d+$/.test(keyword)) {
-        q = q.eq("id", Number(keyword));           // 여전히 deletedAt IS NULL이 함께 적용됨
+        where.id = Number(keyword);
       } else {
-        q = q.ilike("address", `%${keyword}%`);
+        where.address = { contains: keyword, mode: "insensitive" };
       }
     }
-
-    // 테마 필터링: themes 배열에 해당 테마가 포함된 경우
     if (theme) {
-      q = q.contains("themes", [theme]);
+      where.themes = { has: theme };
     }
-
-    // 매물종류 필터링
     if (propertyType) {
-      q = q.eq("propertyType", propertyType);
+      where.propertyType = propertyType;
     }
 
-    const { data, error, count } = await q;
-
-    if (error) {
-      // 에러를 그대로 노출하면 디버그가 쉬움
-      return NextResponse.json({ ok: false, error }, { status: 400 });
-    }
+    const [data, count] = await prisma.$transaction([
+      prisma.build.findMany({
+        where,
+        include: {
+          label: true,
+          buildingOptions: true,
+        },
+        orderBy: [{ createdAt: "desc" }, { id: "desc" }],
+        skip: (page - 1) * limit,
+        take: limit,
+      }),
+      prisma.build.count({ where }),
+    ]);
 
     return NextResponse.json({
       ok: true,
-      totalItems: count ?? 0,
-      totalPages: Math.ceil((count ?? 0) / limit),
+      totalItems: count,
+      totalPages: Math.ceil(count / limit),
       currentPage: page,
-      data: data ?? [],
+      data:
+        data.map((d) => ({
+          ...d,
+          label: d.label?.name ?? null,
+          buildingOptions: d.buildingOptions.map((o) => o.name),
+        })) ?? [],
     });
   } catch (e: any) {
     return NextResponse.json(
@@ -76,94 +67,49 @@ export async function GET(req: NextRequest) {
   }
 }
 
-
 export async function POST(request: NextRequest) {
   try {
-  const cookieStore = await cookies();
-  const supabase = createClient(cookieStore);
-  const raw = await request.json();
+    const raw = await request.json();
 
-  // 입력 정규화: 빈 문자열 날짜 → null, 숫자형 문자열 → number, 배열 필드 보정
-  const sanitize = (b: any) => {
-    const copy: Record<string, any> = { ...b };
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const { label, buildingOptions, id, ...restOfBody } = raw as any;
 
-    const dateFields = [
-      "constructionYear",
-      "permitDate",
-      "approvalDate",
-      "moveInDate",
-      "contractEndDate",
-      "confirmDate",
-      "createdAt",
-      "updatedAt",
-      "deletedAt",
-    ];
-    for (const k of dateFields) {
-      const v = copy[k];
-      if (v === "") copy[k] = null;
-    }
+    const dataToInsert: any = { ...restOfBody };
 
-    const numberFields = [
-      "salePrice","actualEntryCost","rentalPrice","managementFee",
-      "currentFloor","totalFloors","basementFloors","rooms","bathrooms",
-      "actualArea","supplyArea","landArea","buildingArea","totalArea",
-      "elevatorCount","parkingPerUnit","totalParking","parkingFee",
-      "views",
-    ];
-    for (const k of numberFields) {
-      const v = copy[k];
-      if (typeof v === "string") {
-        const t = v.trim();
-        if (t === "") { /* leave as empty string for now; DB accepts null default */ }
-        else {
-          const n = Number(t);
-          if (!Number.isNaN(n)) copy[k] = n;
-        }
+    if (label) {
+      let labelRecord = await prisma.label.findUnique({ where: { name: label } });
+      if (!labelRecord) {
+        labelRecord = await prisma.label.create({ data: { name: label } });
       }
+      dataToInsert.labelId = labelRecord.id;
     }
 
-    // 배열 필드 보정
-    const arrayFields = ["themes","buildingOptions","parking","subImage","adminImage"] as const;
-    for (const k of arrayFields) {
-      const v = copy[k];
-      if (v == null) continue;
-      if (!Array.isArray(v)) copy[k] = [];
+    if (buildingOptions && Array.isArray(buildingOptions)) {
+      const optionIds = [];
+      for (const optionName of buildingOptions) {
+        let option = await prisma.buildingOption.findUnique({
+          where: { name: optionName },
+        });
+        if (!option) {
+          option = await prisma.buildingOption.create({ data: { name: optionName } });
+        }
+        optionIds.push({ id: option.id });
+      }
+      dataToInsert.buildingOptions = {
+        connect: optionIds,
+      };
     }
 
-    return copy;
-  };
+    const result = await prisma.build.create({
+      data: dataToInsert,
+    });
 
-  const body = sanitize(raw);
-
-    const { data, error } = await supabase
-      .from("Build")       // 테이블명: 대소문자 정확히!
-      .insert([body])      // 여러 건이면 배열에 더 넣으면 됨
-      .select();           // 방금 삽입된 행을 함께 반환
-
-    if (error) {
-      // RLS 정책 위반/필드 오류 등
-      return NextResponse.json(
-        { ok: false, error },
-        { status: 400 }
-      );
-    }
-
-    // 3) 캐시 무효화(방문자에게 동일 화면 유지하다가, 쓰기 시 즉시 갱신)
-    //    읽기 fetch에서 next:{tags:['builds']} 를 썼다는 가정
-    // revalidateTag("builds");
-    // 필요 시 특정 경로 HTML ISR도 동시 무효화
-    // revalidatePath("/builds");
-    // revalidatePath("/");
-
-       return NextResponse.json(
-        { ok: true, data },
-        { status: 201 }
-      );
-    } catch (e: any) {
+    return NextResponse.json({ ok: true, data: [result] }, { status: 201 });
+  } catch (e: any) {
+    console.error(e);
     return NextResponse.json(
       { ok: false, error: { message: e?.message ?? "Unknown error" } },
       { status: 500 }
     );
   }
 }
-

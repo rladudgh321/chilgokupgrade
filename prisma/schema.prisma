@@ -27,7 +27,8 @@ model Build {
   managementFee    Int?
   managementEtc    String?
   popularity       String?
-  label            String?
+  labelId          Int?
+  label            Label?         @relation(fields: [labelId], references: [id], onDelete: SetNull)
   floorType        String?
   currentFloor     Int?
   totalFloors      Int?
@@ -41,7 +42,7 @@ model Build {
   buildingArea     Float?
   totalArea        Float?
   themes           String[]       @default([])
-  buildingOptions  String[]       @default([])
+  buildingOptions  BuildingOption[]
   constructionYear DateTime?
   permitDate       DateTime?
   approvalDate     DateTime?
@@ -123,6 +124,31 @@ model ThemeImage {
   createdAt DateTime @default(now())
   updatedAt DateTime @default(now()) @updatedAt
   deletedAt DateTime?
+}
+
+model ListingType {
+  id        Int      @id @default(autoincrement())
+  name      String   @unique
+  imageUrl  String?
+  imageName String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model BuildingOption {
+  id        Int      @id @default(autoincrement())
+  name      String   @unique
+  builds    Build[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Label {
+  id        Int      @id @default(autoincrement())
+  name      String   @unique
+  builds    Build[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
 model ContactRequest {

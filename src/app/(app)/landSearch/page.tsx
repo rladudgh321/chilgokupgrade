@@ -20,7 +20,11 @@ export default async function Page({ searchParams }: { searchParams: Promise<{ [
   const to = from + limit - 1;
 
   // 기본 쿼리 (카운트 포함)
-  let query = supabase.from("Build").select("*", { count: "exact" }).is("deletedAt", null).order("createdAt", { ascending: false }).range(from, to);
+  let query = supabase.from("Build").select(`
+    id, address, dong, ho, etc, isAddressPublic, mapLocation, propertyType, dealType, dealScope, visibility, priceDisplay, salePrice, actualEntryCost, rentalPrice, managementFee, managementEtc, popularity, floorType, currentFloor, totalFloors, basementFloors, floorDescription, rooms, bathrooms, actualArea, supplyArea, landArea, buildingArea, totalArea, themes, constructionYear, permitDate, approvalDate, parkingPerUnit, totalParking, parkingFee, parking, direction, directionBase, landUse, landType, buildingUse, staff, customerType, customerName, elevatorType, elevatorCount, moveInType, moveInDate, heatingType, yieldType, otherYield, contractEndDate, buildingName, floorAreaRatio, otherUse, mainStructure, height, roofStructure, title, editorContent, secretNote, secretContact, mainImage, subImage, adminImage, createdAt, updatedAt, deletedAt, views, confirmDate, labelId,
+    label:Label(name),
+    buildingOptions:BuildingOption(id, name)
+  `, { count: "exact" }).is("deletedAt", null).order("createdAt", { ascending: false }).range(from, to);
 
   // 키워드 필터링
   if (keyword) {
