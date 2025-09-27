@@ -22,7 +22,8 @@ export async function GET(
         *,
         label:Label(name),
         buildingOptions:BuildingOption(id, name),
-        listingType:ListingType(name)
+        listingType:ListingType(name),
+        buyType:BuyType(name)
       `)
       .eq("id", idNum)
       .single();
@@ -39,6 +40,7 @@ export async function GET(
       label: (data.label as any)?.name,
       buildingOptions: (data.buildingOptions as any[]).map((o: any) => o.name),
       propertyType: (data.listingType as any)?.name,
+      dealType: (data.buyType as any)?.name,
     };
 
     return NextResponse.json(result);
@@ -67,7 +69,7 @@ export async function PATCH(
     const supabase = createClient(cookieStore);
 
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const { label, buildingOptions, propertyType, id: rawId, ...restOfBody } = raw as any;
+    const { label, buildingOptions, propertyType, dealType, id: rawId, ...restOfBody } = raw as any;
 
     let labelId: number | null = null;
     if (label) {
@@ -91,11 +93,39 @@ export async function PATCH(
         }
     }
 
+    let buyTypeId: number | null = null;
+    if (dealType) {
+        let { data: typeRec } = await supabase.from("BuyType").select("id").eq("name", dealType).single();
+        if (!typeRec) {
+            const { data: newType } = await supabase.from("BuyType").insert({ name: dealType }).select("id").single();
+            if (newType) buyTypeId = newType.id;
+        } else {
+            buyTypeId = typeRec.id;
+        }
+    }
+
     const dataToUpdate: any = {
         ...restOfBody,
     };
     if (label !== undefined) dataToUpdate.labelId = labelId;
     if (propertyType !== undefined) dataToUpdate.listingTypeId = listingTypeId;
+    if (dealType !== undefined) dataToUpdate.buyTypeId = buyTypeId;
+
+    // 날짜 필드 "" -> null 변환
+    const dateFields = [
+      'constructionYear',
+      'permitDate',
+      'approvalDate',
+      'moveInDate',
+      'contractEndDate',
+      'confirmDate'
+    ];
+
+    for (const field of dateFields) {
+      if (dataToUpdate[field] === '') {
+        dataToUpdate[field] = null;
+      }
+    }
 
     const { error: updateError } = await supabase
         .from("Build")
@@ -135,7 +165,7 @@ export async function PATCH(
 
     const { data: finalData } = await supabase
         .from("Build")
-        .select(`*, label:Label(name), buildingOptions:BuildingOption(id, name), listingType:ListingType(name)`)
+        .select(`*, label:Label(name), buildingOptions:BuildingOption(id, name), listingType:ListingType(name), buyType:BuyType(name)`)
         .eq("id", idNum)
         .single();
     
@@ -144,6 +174,7 @@ export async function PATCH(
         label: (finalData as any).label?.name,
         buildingOptions: (finalData as any).buildingOptions.map((o: any) => o.name),
         propertyType: (finalData as any).listingType?.name,
+        dealType: (finalData as any).buyType?.name,
     };
 
     return NextResponse.json({ message: "수정 완료", data: result });
