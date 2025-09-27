@@ -104,7 +104,7 @@ const ListManager = ({ title, placeholder, buttonText, apiEndpoint='', enableIma
           headers: {
             'Content-Type': 'application/json',
           },
-          body: JSON.stringify({ label: newItem.trim() }),
+          body: JSON.stringify(apiEndpoint === '/api/buy-types' ? { name: newItem.trim() } : { label: newItem.trim() }),
         });
 
         const result = await response.json();
@@ -145,7 +145,7 @@ const ListManager = ({ title, placeholder, buttonText, apiEndpoint='', enableIma
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ oldLabel: oldName, newLabel: newName }),
+        body: JSON.stringify(apiEndpoint === '/api/buy-types' ? { oldName: oldName, newName: newName } : { oldLabel: oldName, newLabel: newName }),
       });
 
       const result = await response.json();
@@ -168,7 +168,8 @@ const ListManager = ({ title, placeholder, buttonText, apiEndpoint='', enableIma
 
     try {
       setLoading(true);
-      const response = await fetch(`${apiEndpoint}?label=${encodeURIComponent(name)}`, {
+      const queryParam = apiEndpoint === '/api/buy-types' ? 'name' : 'label';
+      const response = await fetch(`${apiEndpoint}?${queryParam}=${encodeURIComponent(name)}`, {
         method: 'DELETE',
       });
 

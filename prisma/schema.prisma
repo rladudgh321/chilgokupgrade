@@ -19,7 +19,8 @@ model Build {
   propertyType     String?
   listingType      ListingType?   @relation(fields: [listingTypeId], references: [id], onDelete: SetNull)
   listingTypeId    Int?
-  dealType         String?
+  buyType          BuyType?       @relation(fields: [buyTypeId], references: [id], onDelete: SetNull)
+  buyTypeId        Int?
   dealScope        String?
   visibility       Boolean?       @default(true)
   priceDisplay     String?
@@ -135,7 +136,7 @@ model ListingType {
   imageName String?
   builds    Build[]
   createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  updatedAt DateTime @default(now()) @updatedAt
 }
 
 model BuildingOption {
@@ -143,7 +144,7 @@ model BuildingOption {
   name      String   @unique
   builds    Build[]
   createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  updatedAt DateTime @default(now()) @updatedAt
 }
 
 model Label {
@@ -151,7 +152,15 @@ model Label {
   name      String   @unique
   builds    Build[]
   createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  updatedAt DateTime @default(now()) @updatedAt
+}
+
+model BuyType {
+  id        Int      @id @default(autoincrement())
+  name      String   @unique
+  builds    Build[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now()) @updatedAt
 }
 
 model ContactRequest {

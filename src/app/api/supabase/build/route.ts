@@ -14,6 +14,7 @@ export async function GET(req: NextRequest) {
     const keyword = keywordRaw.length ? keywordRaw : undefined;
     const theme = searchParams.get("theme")?.trim();
     const propertyType = searchParams.get("propertyType")?.trim();
+    const dealType = searchParams.get("dealType")?.trim();
 
     const from = (page - 1) * limit;
     const to = from + limit - 1;
@@ -28,7 +29,8 @@ export async function GET(req: NextRequest) {
         *,
         label:Label(name),
         buildingOptions:BuildingOption(id, name),
-        listingType:ListingType(name)
+        listingType:ListingType(name),
+        buyType:BuyType(name)
       `,
         { count: "exact" }
       )
@@ -55,6 +57,15 @@ export async function GET(req: NextRequest) {
       }
     }
 
+    if (dealType) {
+      const { data: typeRec } = await supabase.from("BuyType").select("id").eq("name", dealType).single();
+      if (typeRec) {
+          q = q.eq("buyTypeId", typeRec.id);
+      } else {
+          q = q.eq("buyTypeId", -1); // Return no results if dealType doesn't exist
+      }
+    }
+
     const { data, error, count } = await q;
 
     if (error) {
@@ -66,6 +77,7 @@ export async function GET(req: NextRequest) {
       label: d.label?.name,
       buildingOptions: d.buildingOptions.map((o: any) => o.name),
       propertyType: d.listingType?.name,
+      dealType: d.buyType?.name,
     }));
 
     return NextResponse.json({
@@ -87,7 +99,7 @@ export async function POST(request: NextRequest) {
   try {
     const raw = await request.json();
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const { label, buildingOptions, propertyType, id, ...restOfBody } = raw as any;
+    const { label, buildingOptions, propertyType, dealType, id, ...restOfBody } = raw as any;
 
     const cookieStore = await cookies();
     const supabase = createClient(cookieStore);
@@ -114,10 +126,22 @@ export async function POST(request: NextRequest) {
         }
     }
 
+    let buyTypeId: number | null = null;
+    if (dealType) {
+        let { data: typeRec } = await supabase.from("BuyType").select("id").eq("name", dealType).single();
+        if (!typeRec) {
+            const { data: newType } = await supabase.from("BuyType").insert({ name: dealType }).select("id").single();
+            if (newType) buyTypeId = newType.id;
+        } else {
+            buyTypeId = typeRec.id;
+        }
+    }
+
     const dataToInsert = {
         ...restOfBody,
         labelId,
         listingTypeId,
+        buyTypeId,
     };
     
     const { data: newBuild, error: buildError } = await supabase

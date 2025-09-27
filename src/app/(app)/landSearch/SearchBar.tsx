@@ -18,6 +18,7 @@ const SearchBar = () => {
   const [subwayLine, setSubwayLine] = useState(searchParams.get("subwayLine") || "")
   const [themeOptions, setThemeOptions] = useState<string[]>([])
   const [propertyTypeOptions, setPropertyTypeOptions] = useState<string[]>([])
+  const [buyTypeOptions, setBuyTypeOptions] = useState<string[]>([])
 
   useEffect(() => {
     let isMounted = true
@@ -52,6 +53,25 @@ const SearchBar = () => {
         const names = items.map(x => x?.name).filter((v): v is string => typeof v === 'string' && v.length > 0)
         const uniq = Array.from(new Set<string>(names))
         if (isMounted) setPropertyTypeOptions(uniq)
+      } catch {
+        // ignore
+      }
+    })()
+    return () => { isMounted = false }
+  }, [])
+
+  // 거래유형 옵션 로드
+  useEffect(() => {
+    let isMounted = true
+    ;(async () => {
+      try {
+        const res = await fetch("/api/buy-types", { cache: "no-store" })
+        if (!res.ok) return
+        const json = await res.json()
+        const items: Array<{ name?: string }> = json?.data ?? []
+        const names = items.map(x => x?.name).filter((v): v is string => typeof v === 'string' && v.length > 0)
+        const uniq = Array.from(new Set<string>(names))
+        if (isMounted) setBuyTypeOptions(uniq)
       } catch {
         // ignore
       }
@@ -145,9 +165,9 @@ const SearchBar = () => {
           className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
         >
           <option value="">거래유형</option>
-          <option value="sale">매매</option>
-          <option value="jeonse">전세</option>
-          <option value="monthly">월세</option>
+          {buyTypeOptions.map((opt) => (
+            <option key={opt} value={opt}>{opt}</option>
+          ))}
         </select>
 
         <select

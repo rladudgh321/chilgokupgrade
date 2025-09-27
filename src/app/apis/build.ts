@@ -15,7 +15,7 @@ export async function BuildFindAll(
   page: number = 1,
   limit: number = 10,
   keyword?: string,
-  filters?: { theme?: string; propertyType?: string },
+  filters?: { theme?: string; propertyType?: string; dealType?: string },
   opts?: { signal?: AbortSignal }
 ) {
   const qs = new URLSearchParams({
@@ -24,6 +24,7 @@ export async function BuildFindAll(
     ...(keyword?.trim() ? { keyword: keyword.trim() } : {}),
     ...(filters?.theme ? { theme: filters.theme } : {}),
     ...(filters?.propertyType ? { propertyType: filters.propertyType } : {}),
+    ...(filters?.dealType ? { dealType: filters.dealType } : {}),
   });
 
   const res = await fetch(`${baseURL}/api/supabase/build?${qs.toString()}`, {

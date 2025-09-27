@@ -47,6 +47,7 @@ const LandInfo = () => {
 
   // 매물종류 옵션 동적 로드
   const [propertyTypeOptions, setPropertyTypeOptions] = useState<string[]>([]);
+  const [buyTypeOptions, setBuyTypeOptions] = useState<string[]>([]);
   useEffect(() => {
     let cancelled = false;
     (async () => {
@@ -59,6 +60,28 @@ const LandInfo = () => {
             .filter((v): v is string => typeof v === 'string' && v.length > 0);
           const uniq = Array.from(new Set<string>(names));
           setPropertyTypeOptions(uniq);
+        }
+      } catch {
+        // ignore; keep defaults empty
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const res = await fetch("/api/buy-types");
+        const json = await res.json();
+        if (!cancelled && json?.ok && Array.isArray(json.data)) {
+          const names = (json.data as Array<{ name?: string }>)
+            .map((r) => r?.name)
+            .filter((v): v is string => typeof v === 'string' && v.length > 0);
+          const uniq = Array.from(new Set<string>(names));
+          setBuyTypeOptions(uniq);
         }
       } catch {
         // ignore; keep defaults empty
@@ -95,7 +118,7 @@ const LandInfo = () => {
       <div className="flex flex-col">
         <label className="block text-sm font-medium text-gray-700">거래유형</label>
         <div className="flex space-x-0 mt-2 flex-wrap gap-y-4 gap-x-2">
-          {["분양","매매","전세","월세","전월세"].map((item) => (
+          {(buyTypeOptions.length > 0 && buyTypeOptions || []).map((item) => (
             <label key={item} className="cursor-pointer">
               <input
                 type="radio"

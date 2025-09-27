@@ -18,6 +18,7 @@ const listingsData = [
   { title: "테마 관리", url: "theme-settings" },
   { title: "옵션 관리", url: "options-settings" },
   { title: "라벨 관리", url: "labels" },
+  { title: "거래유형 관리", url: "buy-types" },
   { title: "단지 관리", url: "complex-settings" },
   { title: "단지 추가", url: "complex-add" },
   { title: "카테고리 관리", url: "category-settings" },
