@@ -1,0 +1,269 @@
+'use client';
+
+import { useEffect, useState } from 'react';
+import ToggleSwitch from '@/app/components/admin/listings/ToggleSwitch';
+
+type Order = {
+  id: number;
+  confirm: boolean;
+  category: string;
+  transactionType: string;
+  author: string;
+  propertyType: string;
+  estimatedAmount: string;
+  contact: string;
+  ipAddress: string;
+  region: string;
+  title: string;
+  description: string;
+  note: string | null;
+  createdAt: string;
+  updatedAt: string;
+};
+
+const OrderList = () => {
+  const [orders, setOrders] = useState<Order[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [categoryFilter, setCategoryFilter] = useState<'전체' | '구해요' | '팔아요' | '기타'>('전체');
+  const [searchQuery, setSearchQuery] = useState('');
+  const [notes, setNotes] = useState<{ [key: number]: string }>({});
+  const [userTitles, setUserTitles] = useState<{ [key: number]: string }>({});
+
+  useEffect(() => {
+    const fetchOrders = async () => {
+      try {
+        const response = await fetch('/api/inquiries/orders');
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        const data: Order[] = await response.json();
+        setOrders(data);
+        const initialNotes: { [key: number]: string } = {};
+        data.forEach(order => {
+          if (order.note) {
+            initialNotes[order.id] = order.note;
+          }
+        });
+        setNotes(initialNotes);
+      } catch (e: any) {
+        setError(e.message);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchOrders();
+  }, []);
+
+  const handleToggleChange = async (id: number, value: boolean) => {
+    try {
+      const response = await fetch(`/api/inquiries/orders/${id}`,
+        {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ confirm: value }),
+        });
+
+      if (!response.ok) {
+        throw new Error('Failed to update confirm status');
+      }
+
+      setOrders((prev) =>
+        prev.map((order) =>
+          order.id === parseInt(id)
+            ? { ...order, confirm: value }
+            : order
+        )
+      );
+    } catch (err) {
+      setError((err as Error).message);
+    }
+  };
+
+  const handleNoteChange = (id: number, note: string) => {
+    setNotes((prev) => ({
+      ...prev,
+      [id]: note,
+    }));
+  };
+
+  const handleUserTitleChange = (id: number, title: string) => {
+    setUserTitles((prev) => ({
+      ...prev,
+      [id]: title,
+    }));
+  };
+
+  const handleSaveNote = async (id: number) => {
+    try {
+      const response = await fetch(`/api/inquiries/orders/${id}`,
+        {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ note: notes[id] || '' }),
+        });
+
+      if (!response.ok) {
+        throw new Error('Failed to save note');
+      }
+
+      // Optimistically update UI, or refetch data
+      alert(`메모가 저장되었습니다.`);
+
+    } catch (err) {
+      setError((err as Error).message);
+      alert('메모 저장에 실패했습니다.');
+    }
+  };
+
+  const handleDelete = async (id: number) => {
+    if (!window.confirm('정말로 이 의뢰를 삭제하시겠습니까?')) {
+      return;
+    }
+
+    try {
+      const response = await fetch(`/api/inquiries/orders/${id}`, { method: 'DELETE' });
+
+      if (!response.ok) {
+        throw new Error('Failed to delete order');
+      }
+
+      setOrders((prev) => prev.filter((order) => order.id !== id));
+      alert('삭제되었습니다.');
+
+    } catch (err) {
+      setError((err as Error).message);
+      alert('삭제에 실패했습니다.');
+    }
+  };
+
+  const filteredOrders = orders.filter((order) => {
+    if (categoryFilter === '전체') {
+      return (
+        (order.contact.includes(searchQuery) || order.title.includes(searchQuery))
+      );
+    }
+    return (
+      order.category === categoryFilter &&
+      (order.contact.includes(searchQuery) || order.title.includes(searchQuery))
+    );
+  });
+
+  if (loading) return <div>Loading orders...</div>;
+  if (error) return <div>Error: {error}</div>;
+
+  return (
+    <div className="p-6">
+      <div className="flex justify-between items-center mb-4">
+        <div className="text-xl font-semibold">
+          의뢰수: {filteredOrders.length}건
+        </div>
+        <div>
+          <select
+            value={categoryFilter}
+            onChange={(e) => setCategoryFilter(e.target.value as '전체' | '구해요' | '팔아요' | '기타')}
+            className="p-2 border rounded"
+          >
+            <option value="전체">전체</option>
+            <option value="구해요">구해요</option>
+            <option value="팔아요">팔아요</option>
+          </select>
+        </div>
+        <div className="flex space-x-2">
+          <input
+            type="text"
+            placeholder="연락처 또는 제목 검색"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="p-2 border rounded"
+          />
+          <button
+            onClick={() => {}}
+            className="p-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+          >
+            검색
+          </button>
+        </div>
+      </div>
+
+      <table className="min-w-full table-auto border-collapse">
+        <thead className="bg-gray-100">
+          <tr>
+            <th className="p-2">번호</th>
+            <th className="p-2">확인여부</th>
+            <th className="p-2">구분</th>
+            <th className="p-2">거래유형</th>
+            <th className="p-2">작성자</th>
+            <th className="p-2">매물종류</th>
+            <th className="p-2">견적금액</th>
+            <th className="p-2">연락처</th>
+            <th className="p-2">IP주소</th>
+            <th className="p-2">의뢰지역</th>
+            <th className="p-2">제목</th>
+            <th className="p-2">상세내용</th>
+            <th className="p-2">등록일</th>
+            <th className="p-2">비고</th>
+          </tr>
+        </thead>
+        <tbody>
+          {filteredOrders.map((order, index) => (
+            <tr key={order.id} className={index % 2 === 0 ? 'bg-slate-200' : 'bg-slate-300'}>
+              <td className="p-2">{order.id}</td>
+              <td className="p-2">
+                <ToggleSwitch
+                  toggle={order.confirm}
+                  id={String(order.id)}
+                  onToggle={(value) => handleToggleChange(order.id, value)}
+                />
+              </td>
+              <td className="p-2">{order.category}</td>
+              <td className="p-2">{order.transactionType}</td>
+              <td className="p-2">{order.author}</td>
+              <td className="p-2">{order.propertyType}</td>
+              <td className="p-2">{order.estimatedAmount}</td>
+              <td className="p-2">{order.contact}</td>
+              <td className="p-2">{order.ipAddress}</td>
+              <td className="p-2">{order.region}</td>
+              <td className="p-2">
+                {/* 사용자가 입력한 제목을 읽기 전용 텍스트로 표시 */}
+                <p className="border p-2">{userTitles[order.id] || order.title}</p>
+                <textarea
+                  value={notes[order.id] || ''}
+                  onChange={(e) => handleNoteChange(order.id, e.target.value)}
+                  placeholder="관리용메모"
+                  className="p-2 border rounded w-full mt-2"
+                />
+                <button
+                  onClick={() => handleSaveNote(order.id)}
+                  className="mt-2 p-2 bg-green-500 text-white rounded hover:bg-green-600"
+                >
+                  메모저장
+                </button>
+              </td>
+              <td className="p-2">
+                <button
+                  className="p-2 bg-blue-500 text-white rounded"
+                  onClick={() => alert(`내용 보기: ${order.description}`)}
+                >
+                  내용보기
+                </button>
+              </td>
+              <td className="p-2">{new Date(order.createdAt).toLocaleDateString()}</td>
+              <td className="p-2">
+                <button
+                  className="p-2 bg-red-500 text-white rounded"
+                  onClick={() => handleDelete(order.id)}
+                >
+                  삭제
+                </button>
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
+};
+
+export default OrderList;

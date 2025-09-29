@@ -179,6 +179,24 @@ model ContactRequest {
   @@index([date])
 }
 
+model Order {
+  id              Int      @id @default(autoincrement())
+  confirm         Boolean  @default(false)
+  category        String
+  transactionType String
+  author          String
+  propertyType    String
+  estimatedAmount String
+  contact         String
+  ipAddress       String
+  region          String
+  title           String
+  description     String
+  note            String?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+}
+
 enum AddressPublic {
   public
   private

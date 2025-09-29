@@ -1,1 +1,1 @@
-`/admin/inquiries/contact-requests` 페이지에서 관리용 메모에서 메모 저장이 DB에 저장이 안되고 있어
+`/admin/inquiries/orders`페이지에서의 내용에서 메모저장이 안되고 확인여부도 DB에 저장이 안되는 문제가 있어. 나는 SUPABASE API를 사용하고 API문제인거 같아 삭제는 잘되는데 그러네
