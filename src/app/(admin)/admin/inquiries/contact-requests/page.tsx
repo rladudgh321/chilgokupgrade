@@ -18,6 +18,8 @@ const ContactRequest = () => {
   const [requests, setRequests] = useState<Request[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [notes, setNotes] = useState<{ [key: number]: string }>({});
 
   const fetchList = async () => {
     try {
@@ -39,6 +41,13 @@ const ContactRequest = () => {
         date: r.date ? String(r.date).slice(0, 10) : '',
       })) as Request[];
       setRequests(rows);
+
+      const initialNotes = rows.reduce((acc, r) => {
+        acc[r.id] = r.note;
+        return acc;
+      }, {} as { [key:number]: string });
+      setNotes(initialNotes);
+
     } catch (e) {
       setError((e as Error)?.message ?? '에러 발생');
     } finally {
@@ -49,10 +58,6 @@ const ContactRequest = () => {
   useEffect(() => {
     fetchList();
   }, []);
-  
-  const [searchQuery, setSearchQuery] = useState('');
-  const [notes, setNotes] = useState<{ [key: number]: string }>({});
-  
 
   const handleToggleChange = async (id: string, value: boolean) => {
     const numericId = parseInt(id, 10);
@@ -127,12 +132,6 @@ const ContactRequest = () => {
             onChange={(e) => setSearchQuery(e.target.value)}
             className="p-2 border rounded"
           />
-          <button
-            onClick={() => {}}
-            className="p-2 bg-blue-500 text-white rounded hover:bg-blue-600"
-          >
-            검색
-          </button>
         </div>
       </div>
 
@@ -169,7 +168,7 @@ const ContactRequest = () => {
               <td className="p-2">{request.description}</td>
               <td className="p-2">
                 <textarea
-                  value={notes[request.id] || ''}
+                  value={notes[request.id] ?? ''}
                   onChange={(e) => handleNoteChange(request.id, e.target.value)}
                   placeholder="관리용메모"
                   className="p-2 border rounded w-full mt-2"

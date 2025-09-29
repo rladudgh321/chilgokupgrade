@@ -1,13 +1,1 @@
-model Build {
-  ....
-  salePrice        Int?
-  actualEntryCost  Int?
-  rentalPrice      Int?
-  managementFee    Int?
-  ...
-}
-
-
--------------
-나는 Build 테이블의 4가지 컬럼에 대하여 코드를 작성하고자해.
-
+`/admin/inquiries/contact-requests` 페이지에서 관리용 메모에서 메모 저장이 DB에 저장이 안되고 있어
