@@ -1,2 +1,7 @@
-`/admin/board/admin-board` 에 대해서
-SSR/ISR에서 initialViews를 내려주고, 클라이언트는 첫 마운트 시 UI만 즉시 +1(낙관적 업데이트)한다. 동시에 sendBeacon(fallback: fetch keepalive)으로 /api/views/[id]에 1회 기록을 보내 DB에 영구 반영한다. 중복 증가는 sessionStorage(+ 선택: BroadcastChannel)로 세션/탭당 1회로 제한한다. 서버는 서비스 롤 키로 Supabase RPC(예: increment_views)를 호출해 원자적으로 views = views + 1만 수행한다. Hydration 차이는 suppressHydrationWarning으로 완화하고, ISR은 주기적으로 최신값을 포함한다.
+`/admin/board/admin-board/create`에서 나온 생겨진 대표이미지를 루트 페이지에서 팝업 형식으로 띄워지게끔 만들어줘. 그리고 close버튼을 눌렀을 때는 다음에 루트페이지에 방문하면 또 생기고, `24시간 이 창을 열지 않겠습니다`를 클릭하고 close버튼을 눌러지게 되면 24시간 후에 다시 생기도록 해줘. 24시간 시간을 재는 것은 쿠키를 사용해줘.
+디자인을 좋게 해줘. 게시글에 여러개 팝업이 있을 때를 고려하여 루트 페이지에서 팝업을 보여주게 해줘.
+물론 create에 팝업 `isPopup`에 의해서 생길지말지 정하는거야.
+`popupWidth`와 `popupHeight`를 참고하여 팝업창을 띄워줘
+`isPublished`과는 상관없이 팝업창을 띄워줘
+----------------
+위와 같이 내가 말했지만 모달이 중복이 되면 창을 움직여서 독립되도록 볼 수 있게 해주고, 루트 페이지는 검은 화면이 되지 않도록 해줘
