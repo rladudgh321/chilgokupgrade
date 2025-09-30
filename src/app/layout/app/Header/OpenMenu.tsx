@@ -10,7 +10,7 @@ const OpenMenu = ({ onClose }: { onClose?: () => void }) => {
         <Link href="/landSearch" onClick={() => onClose?.()}>매물검색</Link>
       </li>
       <li className="border-b pb-2">
-        <Link href="/landRequest" onClick={() => onClose?.()}>매물 의뢰</Link>
+        <Link href="/orders" onClick={() => onClose?.()}>매물 의뢰</Link>
       </li>
       <li className="border-b pb-2">
         <Link href="/notice" onClick={() => onClose?.()}>공지사항</Link>

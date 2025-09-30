@@ -1,5 +1,4 @@
 "use client";
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import type { SortKey } from "./ListingsShell";
 import { useMemo, useState } from "react";
 import { FormProvider, useForm } from "react-hook-form";

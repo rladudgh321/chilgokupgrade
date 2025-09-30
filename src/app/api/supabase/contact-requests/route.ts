@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import { NextRequest, NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import { createClient } from "@/app/utils/supabase/server";
@@ -10,16 +9,19 @@ export async function GET(req: NextRequest) {
     const cookieStore = await cookies();
     const supabase = createClient(cookieStore);
     const { searchParams } = new URL(req.url);
-    const limit = Math.min(100, Math.max(1, parseInt(searchParams.get("limit") ?? "50", 10) || 50));
+    const page = parseInt(searchParams.get("page") ?? "1", 10);
+    const limit = parseInt(searchParams.get("limit") ?? "10", 10);
+    const from = (page - 1) * limit;
+    const to = from + limit - 1;
 
-    const { data, error } = await supabase
+    const { data, error, count } = await supabase
       .from(TABLE)
-      .select("*")
+      .select("*", { count: "exact" })
       .order("createdAt", { ascending: false })
-      .limit(limit);
+      .range(from, to);
 
     if (error) return NextResponse.json({ ok: false, error }, { status: 400 });
-    return NextResponse.json({ ok: true, data: data ?? [] });
+    return NextResponse.json({ ok: true, data: data ?? [], count });
   } catch (e: any) {
     return NextResponse.json({ ok: false, error: { message: e?.message ?? "Unknown error" } }, { status: 500 });
   }

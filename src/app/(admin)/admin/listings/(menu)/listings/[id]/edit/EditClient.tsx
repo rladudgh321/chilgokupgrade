@@ -1,5 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-// app/(admin)/listings/[id]/edit/EditClient.tsx
 "use client";
 
 import { useEffect } from "react";

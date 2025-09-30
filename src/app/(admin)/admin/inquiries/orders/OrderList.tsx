@@ -1,7 +1,9 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import ToggleSwitch from '@/app/components/admin/listings/ToggleSwitch';
+import Pagination from '@/app/components/shared/Pagination';
 
 type Order = {
   id: number;
@@ -21,40 +23,29 @@ type Order = {
   updatedAt: string;
 };
 
-const OrderList = () => {
-  const [orders, setOrders] = useState<Order[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+interface OrderListProps {
+  initialOrders: Order[];
+  totalPages: number;
+  currentPage: number;
+}
+
+const OrderList = ({ initialOrders, totalPages, currentPage }: OrderListProps) => {
+  const router = useRouter();
+  const [orders, setOrders] = useState<Order[]>(initialOrders);
   const [categoryFilter, setCategoryFilter] = useState<'전체' | '구해요' | '팔아요' | '기타'>('전체');
   const [searchQuery, setSearchQuery] = useState('');
   const [notes, setNotes] = useState<{ [key: number]: string }>({});
-  const [userTitles, setUserTitles] = useState<{ [key: number]: string }>({});
 
   useEffect(() => {
-    const fetchOrders = async () => {
-      try {
-        const response = await fetch('/api/inquiries/orders');
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
-        }
-        const data: Order[] = await response.json();
-        setOrders(data);
-        const initialNotes: { [key: number]: string } = {};
-        data.forEach(order => {
-          if (order.note) {
-            initialNotes[order.id] = order.note;
-          }
-        });
-        setNotes(initialNotes);
-      } catch (e: any) {
-        setError(e.message);
-      } finally {
-        setLoading(false);
+    setOrders(initialOrders);
+    const initialNotes: { [key: number]: string } = {};
+    initialOrders.forEach(order => {
+      if (order.note) {
+        initialNotes[order.id] = order.note;
       }
-    };
-
-    fetchOrders();
-  }, []);
+    });
+    setNotes(initialNotes);
+  }, [initialOrders]);
 
   const handleToggleChange = async (id: number, value: boolean) => {
     try {
@@ -71,13 +62,13 @@ const OrderList = () => {
 
       setOrders((prev) =>
         prev.map((order) =>
-          order.id === parseInt(id)
+          order.id === id
             ? { ...order, confirm: value }
             : order
         )
       );
     } catch (err) {
-      setError((err as Error).message);
+      alert((err as Error).message);
     }
   };
 
@@ -85,13 +76,6 @@ const OrderList = () => {
     setNotes((prev) => ({
       ...prev,
       [id]: note,
-    }));
-  };
-
-  const handleUserTitleChange = (id: number, title: string) => {
-    setUserTitles((prev) => ({
-      ...prev,
-      [id]: title,
     }));
   };
 
@@ -108,11 +92,9 @@ const OrderList = () => {
         throw new Error('Failed to save note');
       }
 
-      // Optimistically update UI, or refetch data
       alert(`메모가 저장되었습니다.`);
 
     } catch (err) {
-      setError((err as Error).message);
       alert('메모 저장에 실패했습니다.');
     }
   };
@@ -133,9 +115,12 @@ const OrderList = () => {
       alert('삭제되었습니다.');
 
     } catch (err) {
-      setError((err as Error).message);
       alert('삭제에 실패했습니다.');
     }
+  };
+
+  const onPageChange = (page: number) => {
+    router.push(`/admin/inquiries/orders?page=${page}`);
   };
 
   const filteredOrders = orders.filter((order) => {
@@ -149,9 +134,6 @@ const OrderList = () => {
       (order.contact.includes(searchQuery) || order.title.includes(searchQuery))
     );
   });
-
-  if (loading) return <div>Loading orders...</div>;
-  if (error) return <div>Error: {error}</div>;
 
   return (
     <div className="p-6">
@@ -226,8 +208,7 @@ const OrderList = () => {
               <td className="p-2">{order.ipAddress}</td>
               <td className="p-2">{order.region}</td>
               <td className="p-2">
-                {/* 사용자가 입력한 제목을 읽기 전용 텍스트로 표시 */}
-                <p className="border p-2">{userTitles[order.id] || order.title}</p>
+                <p className="border p-2">{order.title}</p>
                 <textarea
                   value={notes[order.id] || ''}
                   onChange={(e) => handleNoteChange(order.id, e.target.value)}
@@ -262,6 +243,11 @@ const OrderList = () => {
           ))}
         </tbody>
       </table>
+      <Pagination 
+        totalPages={totalPages} 
+        currentPage={currentPage} 
+        onPageChange={onPageChange} 
+      />
     </div>
   );
 };

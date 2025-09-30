@@ -15,7 +15,7 @@ const Pagination = ({
   const endPage = Math.min(startPage + pageGroupSize - 1, totalPages);
 
   return (
-    <div className="flex gap-2 mt-4">
+    <div className="flex gap-2 mt-4 justify-center">
       {/* 이전 그룹 버튼 */}
       {currentGroup > 0 && (
         <button

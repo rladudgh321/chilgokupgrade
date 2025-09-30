@@ -97,6 +97,7 @@ model Contact {
   updatedAt           DateTime @default(now()) @updatedAt
 }
 
+// /admin/board/admin-board/ 게시판관리
 model BoardPost {
   id                  Int       @id @default(autoincrement())
   title               String

@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
-import { prisma } from '@/lib/prisma';
+import { createClient } from "@/app/utils/supabase/server";
+import { cookies } from "next/headers";
 
 export async function PUT(request: Request, { params }: { params: { id: string } }) {
   try {
@@ -21,12 +22,21 @@ export async function PUT(request: Request, { params }: { params: { id: string }
         return NextResponse.json({ error: 'No fields to update' }, { status: 400 });
     }
 
-    const updatedOrder = await prisma.order.update({
-      where: { id: parseInt(id, 10) },
-      data: updateData,
-    });
+    const cookieStore = cookies();
+    const supabase = createClient(cookieStore);
 
-    return NextResponse.json(updatedOrder, { status: 200 });
+    const { data, error } = await supabase
+      .from('Order')
+      .update(updateData)
+      .eq('id', parseInt(id, 10))
+      .select();
+
+    if (error) {
+      console.error(`Error updating order ${id}:`, error);
+      return NextResponse.json({ error: `Error updating order ${id}` }, { status: 500 });
+    }
+
+    return NextResponse.json(data, { status: 200 });
   } catch (error) {
     console.error(`Error updating order ${params.id}:`, error);
     return NextResponse.json({ error: `Error updating order ${params.id}` }, { status: 500 });
@@ -37,9 +47,18 @@ export async function DELETE(request: Request, { params }: { params: { id: strin
   try {
     const { id } = params;
 
-    await prisma.order.delete({
-      where: { id: parseInt(id, 10) },
-    });
+    const cookieStore = cookies();
+    const supabase = createClient(cookieStore);
+
+    const { error } = await supabase
+      .from('Order')
+      .delete()
+      .eq('id', parseInt(id, 10));
+
+    if (error) {
+      console.error(`Error deleting order ${id}:`, error);
+      return NextResponse.json({ error: `Error deleting order ${id}` }, { status: 500 });
+    }
 
     return new NextResponse(null, { status: 204 }); // No Content
   } catch (error) {

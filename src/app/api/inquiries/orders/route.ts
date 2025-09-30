@@ -44,14 +44,32 @@ export async function POST(request: Request) {
   }
 }
 
-export async function GET() {
+import { createClient } from "@/app/utils/supabase/server";
+import { cookies } from "next/headers";
+
+export async function GET(request: Request) {
   try {
-    const orders = await prisma.order.findMany({
-      orderBy: {
-        createdAt: 'desc',
-      },
-    });
-    return NextResponse.json(orders);
+    const cookieStore = cookies();
+    const supabase = createClient(cookieStore);
+    const { searchParams } = new URL(request.url);
+    const page = parseInt(searchParams.get("page") ?? "1", 10);
+    const limit = parseInt(searchParams.get("limit") ?? "10", 10);
+    const from = (page - 1) * limit;
+    const to = from + limit - 1;
+
+    const { data, error, count } = await supabase
+      .from("Order")
+      .select("*", { count: "exact" })
+      .order("createdAt", { ascending: false })
+      .range(from, to);
+
+    if (error) {
+      console.error('Error fetching orders:', error);
+      return NextResponse.json({ error: 'Error fetching orders' }, { status: 500 });
+    }
+    
+    return NextResponse.json({ data, count });
+
   } catch (error) {
     console.error('Error fetching orders:', error);
     return NextResponse.json({ error: 'Error fetching orders' }, { status: 500 });
