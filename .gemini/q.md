@@ -1,24 +1,2 @@
-`/admin/inquiries/contact-requests` 페이지와 `/admin/inquiries/orders` 페이지에서 최대 10건만 볼 수 있도록 해주고 넘어가면 페이지네이션으로 하게 해줘 기존에 있는 페이지네이션 컴포넌트를 재사용하여 코드를 수정해줘
----------
-Unhandled Runtime Error
-Server
-
-
-TypeError: Failed to parse URL from undefined/api/inquiries/orders?page=1&limit=10
-
-Call Stack
-6
-
-Hide 6 ignore-listed frame(s)
-resolveErrorDev
-.next\static\chunks\node_modules_next_dist_compiled_2ce9398a._.js (17512:48)
-processFullStringRow
-.next\static\chunks\node_modules_next_dist_compiled_2ce9398a._.js (17728:23)
-processFullBinaryRow
-.next\static\chunks\node_modules_next_dist_compiled_2ce9398a._.js (17716:9)
-progress
-.next\static\chunks\node_modules_next_dist_compiled_2ce9398a._.js (17862:102)
-InnerLayoutRouter
-.next\static\chunks\node_modules_next_dist_1a6ee436._.js (351:55)
-OuterLayoutRouter
-.next\static\chunks\node_modules_next_dist_1a6ee436._.js (498:73)
+`/admin/board/admin-board` 에 대해서
+SSR/ISR에서 initialViews를 내려주고, 클라이언트는 첫 마운트 시 UI만 즉시 +1(낙관적 업데이트)한다. 동시에 sendBeacon(fallback: fetch keepalive)으로 /api/views/[id]에 1회 기록을 보내 DB에 영구 반영한다. 중복 증가는 sessionStorage(+ 선택: BroadcastChannel)로 세션/탭당 1회로 제한한다. 서버는 서비스 롤 키로 Supabase RPC(예: increment_views)를 호출해 원자적으로 views = views + 1만 수행한다. Hydration 차이는 suppressHydrationWarning으로 완화하고, ISR은 주기적으로 최신값을 포함한다.

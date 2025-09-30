@@ -55,21 +55,35 @@ export async function POST(req: NextRequest) {
   }
 }
 
-export async function GET() {
+export async function GET(req: NextRequest) {
   try {
     const cookieStore = await cookies();
     const supabase = createClient(cookieStore);
+    const { searchParams } = new URL(req.url);
+    const page = parseInt(searchParams.get("page") ?? "1", 10);
+    const limit = parseInt(searchParams.get("limit") ?? "10", 10);
+    const publishedOnly = searchParams.get("publishedOnly") === "true";
 
-    const { data, error } = await supabase
+    const from = (page - 1) * limit;
+    const to = from + limit - 1;
+
+    let query = supabase
       .from("BoardPost")
-      .select(`*`)
-      .order('createdAt', { ascending: false });
+      .select("*", { count: "exact" });
+
+    if (publishedOnly) {
+      query = query.eq("isPublished", true);
+    }
+
+    const { data, error, count } = await query
+      .order('createdAt', { ascending: false })
+      .range(from, to);
 
     if (error) {
       return NextResponse.json({ message: error.message }, { status: 500 });
     }
 
-    return NextResponse.json({ data });
+    return NextResponse.json({ data, count });
   } catch (e: any) {
     return NextResponse.json({ message: e?.message ?? "서버 오류" }, { status: 500 });
   }
