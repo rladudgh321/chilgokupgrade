@@ -21,9 +21,15 @@ type Props = {
   listings: Listing[];
   width?: number | string;
   height?: number | string;
+  onClusterClick?: (listingIds: number[]) => void;
 };
 
-const MapView = ({ listings, width = "100%", height = 680 }: Props) => {
+const MapView = ({
+  listings,
+  width = "100%",
+  height = 680,
+  onClusterClick,
+}: Props) => {
   const KAKAO_KEY = process.env.NEXT_PUBLIC_KAKAO_MAP_KEY;
   const containerRef = useRef<HTMLDivElement | null>(null);
   const mapRef = useRef<any>(null);
@@ -72,6 +78,7 @@ const MapView = ({ listings, width = "100%", height = 680 }: Props) => {
               position: pos,
               title: it.title ?? "",
             });
+            marker.listingId = it.id; // 마커에 매물 ID 저장
             resolve(marker);
             return;
           }
@@ -85,6 +92,7 @@ const MapView = ({ listings, width = "100%", height = 680 }: Props) => {
                 position: pos,
                 title: it.title ?? "",
               });
+              marker.listingId = it.id; // 마커에 매물 ID 저장
               resolve(marker);
             } else {
               resolve(null);
@@ -97,6 +105,15 @@ const MapView = ({ listings, width = "100%", height = 680 }: Props) => {
 
     const markers = (await Promise.all(items.map(toMarker))).filter(Boolean);
     if (!markers.length) return;
+
+    // 개별 마커 클릭 이벤트
+    markers.forEach((marker) => {
+      kakao.maps.event.addListener(marker, "click", () => {
+        if (onClusterClick && marker.listingId) {
+          onClusterClick([marker.listingId]);
+        }
+      });
+    });
 
     clusterer.addMarkers(markers);
     map.panTo(markers[0].getPosition());
@@ -138,29 +155,14 @@ const MapView = ({ listings, width = "100%", height = 680 }: Props) => {
     });
     clustererRef.current = clusterer;
 
-    // 클러스터 클릭 시 줌인
+    // 클러스터 클릭 시 ID 목록 전달
     kakao.maps.event.addListener(clusterer, "clusterclick", (cluster: any) => {
-      if (autoZoomingRef.current) return;
-      autoZoomingRef.current = true;
-
-      const anchor = cluster.getCenter();
-
-      const step = () => {
-        const level = map.getLevel();
-        if (level <= 1) {
-          autoZoomingRef.current = false;
-          return;
-        }
-        map.setLevel(level - 1, { anchor });
-
-        const onIdle = () => {
-          kakao.maps.event.removeListener(map, "idle", onIdle);
-          step();
-        };
-        kakao.maps.event.addListener(map, "idle", onIdle);
-      };
-
-      step();
+      if (!onClusterClick) return;
+      const markersInCluster = cluster.getMarkers();
+      const listingIds = markersInCluster.map((m: any) => m.listingId).filter(Boolean);
+      if (listingIds.length > 0) {
+        onClusterClick(listingIds);
+      }
     });
 
     // 최초 마커 세팅

@@ -1,8 +1,5 @@
-import MapView from "./MapView";
-import ListingList from "./ListingList";
-import SearchBar from "./SearchBar";
-import LandSearchPagination from "./LandSearchPagination";
 import { BuildFindAll } from "@/app/apis/build";
+import LandSearchClient from "./LandSearchClient";
 
 export default async function Page({ searchParams }: { searchParams: { [key: string]: string | string[] | undefined } }) {
   const page = parseInt(typeof searchParams.page === 'string' ? searchParams.page : '1', 10) || 1;
@@ -19,38 +16,11 @@ export default async function Page({ searchParams }: { searchParams: { [key: str
   });
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* 검색 바 */}
-      <div className="bg-white shadow-sm border-b">
-        <SearchBar />
-      </div>
-      
-      {/* 메인 콘텐츠 */}
-      <div className="flex h-[calc(100vh-120px)]">
-        {/* 지도 영역 */}
-        <div className="w-1/2">
-          <MapView listings={processedListings ?? []} />
-        </div>
-        
-        {/* 매물 리스트 영역 */}
-        <div className="w-1/2 bg-white border-l flex flex-col h-full">
-          {/* 매물 리스트 (스크롤 가능) */}
-          <div className="flex-1 overflow-hidden">
-            <ListingList listings={processedListings ?? []} />
-          </div>
-          
-          {/* 페이지네이션 (하단 고정) */}
-          {totalPages > 1 && (
-            <div className="border-t bg-white p-4 flex-shrink-0">
-              <LandSearchPagination 
-                currentPage={page} 
-                totalPages={totalPages}
-                searchParams={searchParams}
-              />
-            </div>
-          )}
-        </div>
-      </div>
-    </div>
+    <LandSearchClient 
+      initialListings={processedListings ?? []}
+      totalPages={totalPages}
+      currentPage={page}
+      searchParams={searchParams}
+    />
   )
 }
