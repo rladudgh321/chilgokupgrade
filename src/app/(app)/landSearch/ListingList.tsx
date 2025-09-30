@@ -3,18 +3,18 @@ import { useState } from "react"
 import ListingCard from "./ListingCard"
 
 type Props = {
-  listings: any[]
+  listings: any[];
+  sortBy: string;
+  onSortChange: (sortBy: string) => void;
 }
 
-const ListingList = ({ listings }: Props) => {
-  const [sortBy, setSortBy] = useState("recommended")
+const ListingList = ({ listings, sortBy, onSortChange }: Props) => {
 
   const sortOptions = [
     { key: "latest", label: "최신순" },
     { key: "popular", label: "인기순" },
-    { key: "recommended", label: "추천순" },
-    { key: "price-asc", label: "금액순↑" },
-    { key: "area-asc", label: "면적순↑" },
+    { key: "price", label: "금액순" },
+    { key: "area", label: "면적순" },
   ]
 
   return (
@@ -24,7 +24,7 @@ const ListingList = ({ listings }: Props) => {
         {sortOptions.map((option) => (
           <button
             key={option.key}
-            onClick={() => setSortBy(option.key)}
+            onClick={() => onSortChange(option.key)}
             className={`px-4 py-3 text-sm font-medium border-b-2 transition-colors ${
               sortBy === option.key
                 ? "border-blue-500 text-blue-600"

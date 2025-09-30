@@ -7,13 +7,14 @@ export default async function Page({ searchParams }: { searchParams: { [key: str
   const theme = typeof searchParams.theme === 'string' ? searchParams.theme : undefined;
   const propertyType = typeof searchParams.propertyType === 'string' ? searchParams.propertyType : undefined;
   const dealType = typeof searchParams.dealType === 'string' ? searchParams.dealType : undefined;
+  const sortBy = typeof searchParams.sortBy === 'string' ? searchParams.sortBy : 'latest';
 
   // API를 통해 데이터 가져오기
   const { data: processedListings, totalPages } = await BuildFindAll(page, 10, keyword, {
     theme,
     propertyType,
     dealType,
-  });
+  }, sortBy);
 
   return (
     <LandSearchClient 

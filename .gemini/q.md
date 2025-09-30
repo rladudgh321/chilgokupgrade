@@ -1,3 +1,5 @@
-app/components/MapView.tsx
+ListingList.tsx
 
-이 컴포넌트에서 숫자 마커를 누를 때 그 마커에 해당되는 매물만 ListingCard에 보이도록 해줄래? 나는 수퍼베이스 데이터베이스를 사용하길 원해
+이 컴포넌트에서 최신순은 createdAt 순서대로 하고, 인기순은 views가 많은 순서로 하고, 금액순은 `salePrice`, `actualEntryCost`, `rentalPrice`,  `managementFee`  중에 가장 큰 수로 하고, 면적순은 `totalArea`로 가장 큰수대로 해줘.
+api를 nextjs15 app router대로 해주고, 내림차순으로 해줘. 기본은 최신순으로 설정해주고 최신순이 active한 상태로 되게 해줘.
+api에서 만들어 놓은것이 있을 수 있으니까 내가 만든  api를 검색해줘

@@ -15,6 +15,7 @@ export async function GET(req: NextRequest) {
     const theme = searchParams.get("theme")?.trim();
     const propertyType = searchParams.get("propertyType")?.trim();
     const dealType = searchParams.get("dealType")?.trim();
+    const sortBy = searchParams.get("sortBy")?.trim() ?? "latest";
 
     const from = (page - 1) * limit;
     const to = from + limit - 1;
@@ -35,8 +36,27 @@ export async function GET(req: NextRequest) {
         { count: "exact" }
       )
       .is("deletedAt", null)
-      .order("createdAt", { ascending: false })
-      .range(from, to);
+      
+    // Sorting logic
+    switch (sortBy) {
+      case 'popular':
+        q = q.order('views', { ascending: false, nullsFirst: true });
+        break;
+      case 'price':
+        // This uses the custom `max_price` function which needs to be created via a migration.
+        q = q.order('max_price', { ascending: false } as any);
+        break;
+      case 'area':
+        q = q.order('totalArea', { ascending: false, nullsFirst: true });
+        break;
+      case 'latest':
+      default:
+        q = q.order("createdAt", { ascending: false });
+        break;
+    }
+
+    q = q.range(from, to);
+
 
     if (keyword) {
       if (/^\d+$/.test(keyword)) {

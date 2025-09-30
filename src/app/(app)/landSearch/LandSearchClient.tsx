@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useRouter, useSearchParams } from 'next/navigation';
 import MapView from "./MapView";
 import ListingList from "./ListingList";
 import LandSearchPagination from "./LandSearchPagination";
@@ -22,10 +23,19 @@ type Props = {
 
 export default function LandSearchClient({ initialListings, totalPages, currentPage, searchParams }: Props) {
   const [displayListings, setDisplayListings] = useState(initialListings);
+  const router = useRouter();
+  const currentSearchParams = useSearchParams();
+  const sortBy = currentSearchParams.get('sortBy') ?? 'latest';
 
   useEffect(() => {
     setDisplayListings(initialListings);
   }, [initialListings]);
+
+  const handleSortChange = (newSortBy: string) => {
+    const params = new URLSearchParams(currentSearchParams.toString());
+    params.set('sortBy', newSortBy);
+    router.push(`?${params.toString()}`);
+  };
 
   const handleClusterClick = (listingIds: number[]) => {
     const filtered = initialListings.filter(listing => listingIds.includes(listing.id));
@@ -59,7 +69,7 @@ export default function LandSearchClient({ initialListings, totalPages, currentP
             </div>
           )}
           <div className="flex-1 overflow-hidden">
-            <ListingList listings={displayListings} />
+            <ListingList listings={displayListings} sortBy={sortBy} onSortChange={handleSortChange} />
           </div>
           
           {totalPages > 1 && (
