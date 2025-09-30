@@ -1,7 +1,7 @@
 // app/components/MapView.tsx
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import Script from "next/script";
 
 declare global {
@@ -13,8 +13,8 @@ declare global {
 type Listing = {
   id: number;
   title?: string;
-  address?: string;       // 옵션: 주소가 있으면 지오코딩
-  mapLocation?: string;   // "lat,lng" (좌표가 있으면 이 값을 우선 사용)
+  address?: string; // 옵션: 주소가 있으면 지오코딩
+  mapLocation?: string; // "lat,lng" (좌표가 있으면 이 값을 우선 사용)
 };
 
 type Props = {
@@ -29,6 +29,9 @@ const MapView = ({ listings, width = "100%", height = 680 }: Props) => {
   const mapRef = useRef<any>(null);
   const clustererRef = useRef<any>(null);
   const autoZoomingRef = useRef(false);
+
+  const [scriptLoaded, setScriptLoaded] = useState(false);
+  const [scriptError, setScriptError] = useState(false);
 
   // 원형 숫자 뱃지 스타일
   const circleStyle = (size: number, bg: string) => ({
@@ -65,7 +68,10 @@ const MapView = ({ listings, width = "100%", height = 680 }: Props) => {
           const [lat, lng] = it.mapLocation.split(",").map(Number);
           if (Number.isFinite(lat) && Number.isFinite(lng)) {
             const pos = new kakao.maps.LatLng(lat, lng);
-            const marker = new kakao.maps.Marker({ position: pos, title: it.title ?? "" });
+            const marker = new kakao.maps.Marker({
+              position: pos,
+              title: it.title ?? "",
+            });
             resolve(marker);
             return;
           }
@@ -75,7 +81,10 @@ const MapView = ({ listings, width = "100%", height = 680 }: Props) => {
           geocoder.addressSearch(it.address, (result: any[], status: any) => {
             if (status === kakao.maps.services.Status.OK && result?.[0]) {
               const pos = new kakao.maps.LatLng(result[0].y, result[0].x);
-              const marker = new kakao.maps.Marker({ position: pos, title: it.title ?? "" });
+              const marker = new kakao.maps.Marker({
+                position: pos,
+                title: it.title ?? "",
+              });
               resolve(marker);
             } else {
               resolve(null);
@@ -96,10 +105,10 @@ const MapView = ({ listings, width = "100%", height = 680 }: Props) => {
   // 지도/클러스터 초기화
   const initMap = () => {
     const kakao = window.kakao;
-    if (!kakao?.maps || !containerRef.current) return;
+    if (!kakao?.maps || !containerRef.current || mapRef.current) return; // Prevent re-initialization
 
     const map = new kakao.maps.Map(containerRef.current, {
-      center: new kakao.maps.LatLng(37.5665, 126.9780), // 서울시청
+      center: new kakao.maps.LatLng(37.5665, 126.978), // 서울시청
       level: 8,
     });
     mapRef.current = map;
@@ -110,26 +119,26 @@ const MapView = ({ listings, width = "100%", height = 680 }: Props) => {
     const zoomControl = new kakao.maps.ZoomControl();
     map.addControl(zoomControl, kakao.maps.ControlPosition.RIGHT);
 
-    // 클러스터러: 숫자를 오래 유지하고, 클릭 시 끝까지 확대되도록 구성
+    // 클러스터러
     const clusterer = new kakao.maps.MarkerClusterer({
       map,
       averageCenter: true,
-      minLevel: 1,        // 확대해도 최대한 군집 유지
-      gridSize: 70,       // 같은 클러스터로 묶는 픽셀 거리
-      disableClickZoom: true, // 클릭 시 우리가 직접 확대
-      calculator: [10, 30, 50, 100, 200], // 단계 임계치
+      minLevel: 1,
+      gridSize: 70,
+      disableClickZoom: true,
+      calculator: [10, 30, 50, 100, 200],
       styles: [
-        circleStyle(36, "#7F56D9"), // 0~9
-        circleStyle(42, "#6E59A5"), // 10~29
-        circleStyle(48, "#5B4A8A"), // 30~49
-        circleStyle(56, "#4B3B76"), // 50~99
-        circleStyle(64, "#3A2C62"), // 100~199
-        circleStyle(76, "#2A1E4E"), // 200+
+        circleStyle(36, "#7F56D9"),
+        circleStyle(42, "#6E59A5"),
+        circleStyle(48, "#5B4A8A"),
+        circleStyle(56, "#4B3B76"),
+        circleStyle(64, "#3A2C62"),
+        circleStyle(76, "#2A1E4E"),
       ],
     });
     clustererRef.current = clusterer;
 
-    // 클러스터 클릭 시: 레벨 1까지 자동 줌인 반복
+    // 클러스터 클릭 시 줌인
     kakao.maps.event.addListener(clusterer, "clusterclick", (cluster: any) => {
       if (autoZoomingRef.current) return;
       autoZoomingRef.current = true;
@@ -158,34 +167,11 @@ const MapView = ({ listings, width = "100%", height = 680 }: Props) => {
     void refreshMarkers(listings);
   };
 
-  // SDK 로드 → kakao.maps.load 후 init
   useEffect(() => {
-    if (!KAKAO_KEY || !containerRef.current) return;
-
-    const scriptId = "kakao-maps-sdk";
-    const exists = document.getElementById(scriptId) as HTMLScriptElement | null;
-
-    const onReady = () => window.kakao?.maps?.load?.(initMap);
-
-    if (exists) {
-      // 이미 로드됨
-      onReady();
-      return;
+    if (scriptLoaded && !scriptError) {
+      window.kakao.maps.load(initMap);
     }
-
-    const s = document.createElement("script");
-    s.id = scriptId;
-    s.async = true;
-    s.src = `https://dapi.kakao.com/v2/maps/sdk.js?appkey=${KAKAO_KEY}&libraries=services,clusterer&autoload=false`;
-    s.onload = onReady;
-    s.onerror = () => console.error("Kakao SDK load error");
-    document.head.appendChild(s);
-
-    return () => {
-      // 개발 중 핫리로드 시 누수 방지 목적의 클린업(필수는 아님)
-    };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [KAKAO_KEY]);
+  }, [scriptLoaded, scriptError, initMap]);
 
   // 목록이 바뀌면 마커 갱신
   useEffect(() => {
@@ -201,7 +187,45 @@ const MapView = ({ listings, width = "100%", height = 680 }: Props) => {
     );
   }
 
-  return <div ref={containerRef} style={{ width, height }} />;
+  return (
+    <>
+      <Script
+        id="kakao-maps-sdk"
+        src={`https://dapi.kakao.com/v2/maps/sdk.js?appkey=${KAKAO_KEY}&libraries=services,clusterer&autoload=false`}
+        strategy="afterInteractive"
+        onLoad={() => setScriptLoaded(true)}
+        onError={() => {
+          console.error("Kakao SDK load error");
+          setScriptError(true);
+        }}
+      />
+      <div ref={containerRef} style={{ width, height }}>
+        {scriptError && (
+          <div
+            style={{
+              width: "100%",
+              height: "100%",
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+              justifyContent: "center",
+              background: "#f8f8f8",
+              color: "#666",
+              textAlign: "center",
+              padding: "20px",
+            }}
+          >
+            <h3 style={{ color: "#e53e3e", marginBottom: "1rem" }}>
+              카카오 지도를 불러오는데 실패했습니다.
+            </h3>
+            <p style={{ fontSize: "0.875rem", lineHeight: "1.5" }}>
+              네트워크 연결을 확인하거나 API 키가 정확한지 확인해주세요.
+            </p>
+          </div>
+        )}
+      </div>
+    </>
+  );
 };
 
 export default MapView;
