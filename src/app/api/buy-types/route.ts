@@ -11,7 +11,7 @@ export async function GET() {
     const { data, error } = await supabase
       .from("BuyType")
       .select("*")
-      .order("name", { ascending: true });
+      .order("order", { ascending: true, nullsLast: true });
 
     if (error) {
       return NextResponse.json({ ok: false, error }, { status: 400 });

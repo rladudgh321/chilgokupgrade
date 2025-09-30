@@ -125,6 +125,7 @@ model ThemeImage {
   imageUrl  String
   imageName String?
   isActive  Boolean  @default(true)
+  order     Int?     @default(0)
   createdAt DateTime @default(now())
   updatedAt DateTime @default(now()) @updatedAt
   deletedAt DateTime?
@@ -135,6 +136,7 @@ model ListingType {
   name      String   @unique
   imageUrl  String?
   imageName String?
+  order     Int?     @default(0)
   builds    Build[]
   createdAt DateTime @default(now())
   updatedAt DateTime @default(now()) @updatedAt
@@ -143,6 +145,7 @@ model ListingType {
 model BuildingOption {
   id        Int      @id @default(autoincrement())
   name      String   @unique
+  order     Int?     @default(0)
   builds    Build[]
   createdAt DateTime @default(now())
   updatedAt DateTime @default(now()) @updatedAt
@@ -151,6 +154,7 @@ model BuildingOption {
 model Label {
   id        Int      @id @default(autoincrement())
   name      String   @unique
+  order     Int?     @default(0)
   builds    Build[]
   createdAt DateTime @default(now())
   updatedAt DateTime @default(now()) @updatedAt
@@ -159,6 +163,7 @@ model Label {
 model BuyType {
   id        Int      @id @default(autoincrement())
   name      String   @unique
+  order     Int?     @default(0)
   builds    Build[]
   createdAt DateTime @default(now())
   updatedAt DateTime @default(now()) @updatedAt

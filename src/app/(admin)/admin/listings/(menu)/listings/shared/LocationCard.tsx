@@ -1,7 +1,7 @@
 "use client";
 
 import { useFormContext, useWatch } from "react-hook-form";
-import AddressVisibility from "@/app/components/admin/listings/AddressVisibility ";
+import AddressVisibility from "@/app/components/admin/listings/AddressVisibility";
 
 type AddressState = "public" | "private" | "exclude";
 

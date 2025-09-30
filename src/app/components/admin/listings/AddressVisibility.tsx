@@ -1,6 +1,6 @@
 "use client";
 
-import { FC } from "react";
+import { FC, useId } from "react";
 import { useMutation } from "@tanstack/react-query";
 import { updateAddressVisibility } from "@/app/apis/build";
 import { clsx } from "clsx";
@@ -25,8 +25,8 @@ const AddressVisibility: FC<AddressVisibilityProps> = ({
   ArrayType = true,
   disabled = false,
 }) => {
-  // 행마다 고유 그룹/아이디
-  const uid = String(listingId ?? Math.random().toString(36).slice(2));
+  const reactId = useId();
+  const uid = String(listingId ?? reactId);
   const group = `addr-public-${uid}`;
   const idPublic  = `${group}-public`;
   const idPrivate = `${group}-private`;

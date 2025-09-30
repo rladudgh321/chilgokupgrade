@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import DraggableItem from './DraggableItem';
 import InputWithButton from './InputWithButton';
 
@@ -18,6 +18,47 @@ const ListManager = ({ title, placeholder, buttonText, apiEndpoint='', enableIma
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const debounceTimer = useRef<NodeJS.Timeout | null>(null);
+
+  const handleSaveOrder = async (orderedItems: typeof items) => {
+    try {
+      // setLoading(true); // Optional: show loading indicator during save
+      const orderedIds = orderedItems.map(item => item.id);
+      const response = await fetch(`${apiEndpoint}/reorder`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ orderedIds }),
+      });
+
+      const result = await response.json();
+
+      if (result.ok) {
+        setError(null);
+      } else {
+        setError(result.error?.message || '순서 저장에 실패했습니다.');
+        // Optionally revert to previous order
+        // loadItems(); 
+      }
+    } catch {
+      setError('네트워크 오류가 발생했습니다.');
+      // Optionally revert to previous order
+      // loadItems();
+    } finally {
+      // setLoading(false);
+    }
+  };
+
+  const debouncedSaveOrder = useCallback((orderedItems: typeof items) => {
+    if (debounceTimer.current) {
+      clearTimeout(debounceTimer.current);
+    }
+    debounceTimer.current = setTimeout(() => {
+      handleSaveOrder(orderedItems);
+    }, 500); // 500ms delay
+  }, [apiEndpoint]);
+
 
   // 데이터 로드
   const loadItems = async () => {
@@ -135,6 +176,7 @@ const ListManager = ({ title, placeholder, buttonText, apiEndpoint='', enableIma
       updatedItems[draggedIndex],
     ];
     setItems(updatedItems);
+    debouncedSaveOrder(updatedItems);
   };
 
   const handleEditItem = async (oldName: string, newName: string) => {

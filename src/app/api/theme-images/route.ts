@@ -12,7 +12,7 @@ export async function GET() {
       .from("ThemeImage")
       .select("*")
       .is("deletedAt", null)
-      .order("createdAt", { ascending: false });
+      .order("order", { ascending: true, nullsLast: true });
 
     if (error) {
       return NextResponse.json({ ok: false, error }, { status: 400 });

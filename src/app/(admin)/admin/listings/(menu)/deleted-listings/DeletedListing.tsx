@@ -11,7 +11,7 @@ import { IBuild } from "@/app/interface/build";
 import formatFullKoreanMoney from "@/app/utility/NumberToKoreanMoney";
 import CopyText from "@/app/utility/Copy";
 import SearchIcon from "@svg/Search";
-import AddressVisibility from "@/app/components/admin/listings/AddressVisibility ";
+import AddressVisibility from "@/app/components/admin/listings/AddressVisibility";
 
 // 🔹 추가: 정렬 키 타입
 export type SortKey = "recent" | "views" | "price" | "totalArea";

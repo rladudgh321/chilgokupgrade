@@ -13,7 +13,7 @@ import { clsx } from "clsx";
 
 import Pagination from "@/app/components/shared/Pagination";
 import ToggleSwitch from "@/app/components/admin/listings/ToggleSwitch";
-import AddressVisibility from "@/app/components/admin/listings/AddressVisibility ";
+import AddressVisibility from "@/app/components/admin/listings/AddressVisibility";
 import SearchIcon from "@svg/Search";
 
 import { BuildDeleteSome, BuildFindAll, toggleBuild, updateConfirmDate, patchConfirmDateToToday } from "@/app/apis/build";
