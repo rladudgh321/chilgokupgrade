@@ -34,3 +34,13 @@ select Element에는 기본값설정을 컴포넌트 인자로 설정해두었�
 rm -f ~/.gemini/settings.json
 
 ##api/inquiries/orders/route.ts에서는 post 요청이 prisma 방식으로 api작성됨 rls할때 참고.
+
+------
+
+. Installed Dependencies: Added
+      @tanstack/react-virtual for list
+      virtualization and axios for data        
+      fetching.
+  This new implementation provides a more 
+  modern, performant, and user-friendly 
+  experience for browsing listings.

@@ -1,11 +1,13 @@
+
 "use client";
 
-import { useState, useEffect } from "react";
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useState, useMemo } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { useInfiniteQuery, QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import MapView from "./MapView";
 import ListingList from "./ListingList";
-import LandSearchPagination from "./LandSearchPagination";
 import SearchBar from "./SearchBar";
+import axios from "axios";
 
 // Assuming the type for a listing is similar to what's in MapView and ListingCard
 type Listing = {
@@ -16,73 +18,128 @@ type Listing = {
 
 type Props = {
   initialListings: Listing[];
-  totalPages: number;
-  currentPage: number;
   searchParams: { [key: string]: string | string[] | undefined };
 };
 
-export default function LandSearchClient({ initialListings, totalPages, currentPage, searchParams }: Props) {
-  const [displayListings, setDisplayListings] = useState(initialListings);
+const fetchListings = async ({ pageParam = 1, queryKey }: any) => {
+  const [_, searchParams] = queryKey;
+  const params = new URLSearchParams();
+
+  Object.entries(searchParams).forEach(([key, value]) => {
+    if (value && typeof value === "string") {
+      params.set(key, value);
+    }
+  });
+  params.set("page", pageParam.toString());
+
+  const { data } = await axios.get(`/api/listings?${params.toString()}`);
+  return data;
+};
+
+function LandSearchClientContent({ initialListings, searchParams }: Props) {
   const router = useRouter();
   const currentSearchParams = useSearchParams();
-  const sortBy = currentSearchParams.get('sortBy') ?? 'latest';
+  const sortBy = currentSearchParams.get("sortBy") ?? "latest";
 
-  useEffect(() => {
-    setDisplayListings(initialListings);
-  }, [initialListings]);
+  const {
+    data,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+  } = useInfiniteQuery({
+    queryKey: ["listings", searchParams],
+    queryFn: fetchListings,
+    getNextPageParam: (lastPage) => {
+      if (lastPage.currentPage < lastPage.totalPages) {
+        return lastPage.currentPage + 1;
+      }
+      return undefined;
+    },
+    initialData: () => {
+        return {
+          pageParams: [1],
+          pages: [{
+            listings: initialListings,
+            totalPages: 1, // We don't know total pages on client, so we start with 1
+            currentPage: 1
+          }]
+        }
+    },
+    initialPageParam: 1,
+  });
+
+  const allListings = useMemo(() => (data ? data.pages.flatMap((page) => page.listings) : []), [data]);
+  const [filteredIds, setFilteredIds] = useState<number[] | null>(null);
+
+  const displayListings = useMemo(() => {
+    if (filteredIds === null) {
+      return allListings;
+    }
+    return allListings.filter((listing) => filteredIds.includes(listing.id));
+  }, [allListings, filteredIds]);
+
 
   const handleSortChange = (newSortBy: string) => {
     const params = new URLSearchParams(currentSearchParams.toString());
-    params.set('sortBy', newSortBy);
+    params.set("sortBy", newSortBy);
+    // Reset pagination when sorting changes
+    params.delete("page");
     router.push(`?${params.toString()}`);
   };
 
   const handleClusterClick = (listingIds: number[]) => {
-    const filtered = initialListings.filter(listing => listingIds.includes(listing.id));
-    setDisplayListings(filtered);
+    setFilteredIds(listingIds);
   };
 
   const handleResetFilter = () => {
-    setDisplayListings(initialListings);
-  }
+    setFilteredIds(null);
+  };
 
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="bg-white shadow-sm border-b">
         <SearchBar />
       </div>
-      
+
       <div className="flex h-[calc(100vh-120px)]">
         <div className="w-1/2">
-          <MapView 
-            listings={initialListings} 
-            onClusterClick={handleClusterClick}
-          />
+          <MapView listings={allListings} onClusterClick={handleClusterClick} />
         </div>
-        
+
         <div className="w-1/2 bg-white border-l flex flex-col h-full">
-          {displayListings.length < initialListings.length && (
+          {filteredIds !== null && (
             <div className="p-2 text-center border-b">
-              <button onClick={handleResetFilter} className="text-sm text-blue-600 hover:underline">
-                {displayListings.length}개의 매물만 표시 중입니다. 전체 목록으로 돌아가기
+              <button
+                onClick={handleResetFilter}
+                className="text-sm text-blue-600 hover:underline"
+              >
+                {displayListings.length}개의 매물만 표시 중입니다. 전체
+                목록으로 돌아가기
               </button>
             </div>
           )}
           <div className="flex-1 overflow-hidden">
-            <ListingList listings={displayListings} sortBy={sortBy} onSortChange={handleSortChange} />
+            <ListingList
+              listings={displayListings}
+              sortBy={sortBy}
+              onSortChange={handleSortChange}
+              fetchNextPage={fetchNextPage}
+              hasNextPage={hasNextPage}
+              isFetchingNextPage={isFetchingNextPage}
+            />
           </div>
-          
-          {totalPages > 1 && (
-            <div className="border-t bg-white p-4 flex-shrink-0">
-              <LandSearchPagination 
-                currentPage={currentPage} 
-                totalPages={totalPages}
-                searchParams={searchParams}
-              />
-            </div>
-          )}
         </div>
       </div>
     </div>
   );
+}
+
+const queryClient = new QueryClient();
+
+export default function LandSearchClient(props: Props) {
+    return (
+        <QueryClientProvider client={queryClient}>
+            <LandSearchClientContent {...props} />
+        </QueryClientProvider>
+    )
 }

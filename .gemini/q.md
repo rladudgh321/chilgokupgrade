@@ -1,273 +1,115 @@
-"use client"
-import { useEffect, useState } from "react"
-import { useRouter, useSearchParams } from "next/navigation"
+"use client";
 
-const SearchBar = () => {
-  const router = useRouter()
-  const searchParams = useSearchParams()
-  
-  const [searchTerm, setSearchTerm] = useState(searchParams.get("keyword") || "")
-  const [propertyType, setPropertyType] = useState(searchParams.get("propertyType") || "")
-  const [dealType, setDealType] = useState(searchParams.get("dealType") || "")
-  const [priceRange, setPriceRange] = useState(searchParams.get("priceRange") || "")
-  const [areaRange, setAreaRange] = useState(searchParams.get("areaRange") || "")
-  const [theme, setTheme] = useState(searchParams.get("theme") || "")
-  const [rooms, setRooms] = useState(searchParams.get("rooms") || "")
-  const [floor, setFloor] = useState(searchParams.get("floor") || "")
-  const [bathrooms, setBathrooms] = useState(searchParams.get("bathrooms") || "")
-  const [subwayLine, setSubwayLine] = useState(searchParams.get("subwayLine") || "")
-  const [themeOptions, setThemeOptions] = useState<string[]>([])
-  const [propertyTypeOptions, setPropertyTypeOptions] = useState<string[]>([])
-  const [buyTypeOptions, setBuyTypeOptions] = useState<string[]>([])
+import { useRouter } from "next/navigation";
+import { useEffect, useState, useCallback } from "react";
+import { clsx } from "clsx";
 
-  useEffect(() => {
-    let isMounted = true
-    ;(async () => {
-      try {
-        const res = await fetch("/api/theme-images", { cache: "no-store" })
-        if (!res.ok) return
-        const json = await res.json()
-        const items: Array<{ label?: string; isActive?: boolean }> = json?.data ?? []
-        const labels = items
-          .filter((x) => x && x.label && (x.isActive === undefined || x.isActive === true))
-          .map((x) => String(x.label))
-        if (isMounted) setThemeOptions(labels)
-      } catch {
-        // ignore
-      }
-    })()
-    return () => {
-      isMounted = false
-    }
-  }, [])
-
-  // 매물종류 옵션 로드
-  useEffect(() => {
-    let isMounted = true
-    ;(async () => {
-      try {
-        const res = await fetch("/api/listing-type", { cache: "no-store" })
-        if (!res.ok) return
-        const json = await res.json()
-        const items: Array<{ name?: string }> = json?.data ?? []
-        const names = items.map(x => x?.name).filter((v): v is string => typeof v === 'string' && v.length > 0)
-        const uniq = Array.from(new Set<string>(names))
-        if (isMounted) setPropertyTypeOptions(uniq)
-      } catch {
-        // ignore
-      }
-    })()
-    return () => { isMounted = false }
-  }, [])
-
-  // 거래유형 옵션 로드
-  useEffect(() => {
-    let isMounted = true
-    ;(async () => {
-      try {
-        const res = await fetch("/api/buy-types", { cache: "no-store" })
-        if (!res.ok) return
-        const json = await res.json()
-        const items: Array<{ name?: string }> = json?.data ?? []
-        const names = items.map(x => x?.name).filter((v): v is string => typeof v === 'string' && v.length > 0)
-        const uniq = Array.from(new Set<string>(names))
-        if (isMounted) setBuyTypeOptions(uniq)
-      } catch {
-        // ignore
-      }
-    })()
-    return () => { isMounted = false }
-  }, [])
-
-  const handleSearch = () => {
-    const params = new URLSearchParams()
-    
-    if (searchTerm) params.set("keyword", searchTerm)
-    if (propertyType) params.set("propertyType", propertyType)
-    if (dealType) params.set("dealType", dealType)
-    if (priceRange) params.set("priceRange", priceRange)
-    if (areaRange) params.set("areaRange", areaRange)
-    if (theme) params.set("theme", theme)
-    if (rooms) params.set("rooms", rooms)
-    if (floor) params.set("floor", floor)
-    if (bathrooms) params.set("bathrooms", bathrooms)
-    if (subwayLine) params.set("subwayLine", subwayLine)
-    
-    // 검색 시 페이지를 1로 리셋
-    params.set("page", "1")
-    
-    router.push(`/landSearch?${params.toString()}`)
-  }
-
-  const handleReset = () => {
-    setSearchTerm("")
-    setPropertyType("")
-    setDealType("")
-    setPriceRange("")
-    setAreaRange("")
-    setTheme("")
-    setRooms("")
-    setFloor("")
-    setBathrooms("")
-    setSubwayLine("")
-    router.push("/landSearch")
-  }
-
-  return (
-    <div className="p-4">
-      <div className="flex items-center gap-4 mb-4">
-        {/* 검색 입력 */}
-        <div className="flex-1">
-          <input
-            type="text"
-            placeholder="관심지역 또는 매물번호를 입력"
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-          />
-        </div>
-        
-        {/* 검색 버튼 */}
-        <button
-          onClick={handleSearch}
-          className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
-        >
-          검색
-        </button>
-        
-        {/* 초기화 버튼 */}
-        <button
-          onClick={handleReset}
-          className="px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition-colors"
-        >
-          초기화
-        </button>
-      </div>
-
-      {/* 필터 옵션들 */}
-      <div className="grid grid-cols-5 gap-4">
-        <select
-          value={propertyType}
-          onChange={(e) => setPropertyType(e.target.value)}
-          className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-        >
-          <option value="">매물 종류</option>
-          {(propertyTypeOptions && propertyTypeOptions.length > 0
-            && propertyTypeOptions || []
-          ).map((opt) => (
-            <option key={opt} value={opt}>{opt}</option>
-          ))}
-        </select>
-
-        <select
-          value={dealType}
-          onChange={(e) => setDealType(e.target.value)}
-          className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-        >
-          <option value="">거래유형</option>
-          {buyTypeOptions.map((opt) => (
-            <option key={opt} value={opt}>{opt}</option>
-          ))}
-        </select>
-
-        <select
-          value={priceRange}
-          onChange={(e) => setPriceRange(e.target.value)}
-          className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-        >
-          <option value="">금액</option>
-          <option value="0-1">1억 이하</option>
-          <option value="1-2">1억-2억</option>
-          <option value="2-3">2억-3억</option>
-          <option value="3-5">3억-5억</option>
-          <option value="5-10">5억-10억</option>
-          <option value="10+">10억 이상</option>
-        </select>
-
-        <select
-          value={areaRange}
-          onChange={(e) => setAreaRange(e.target.value)}
-          className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-        >
-          <option value="">면적</option>
-          <option value="0-20">20평 이하</option>
-          <option value="20-30">20-30평</option>
-          <option value="30-40">30-40평</option>
-          <option value="40-50">40-50평</option>
-          <option value="50+">50평 이상</option>
-        </select>
-
-        <select
-          value={theme}
-          onChange={(e) => setTheme(e.target.value)}
-          className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-        >
-          <option value="">테마</option>
-          {themeOptions.map((label) => (
-            <option key={label} value={label}>{label}</option>
-          ))}
-        </select>
-
-        <select
-          value={rooms}
-          onChange={(e) => setRooms(e.target.value)}
-          className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-        >
-          <option value="">방</option>
-          <option value="1">1룸</option>
-          <option value="2">2룸</option>
-          <option value="3">3룸</option>
-          <option value="4">4룸</option>
-          <option value="5+">5룸 이상</option>
-        </select>
-
-        <select
-          value={floor}
-          onChange={(e) => setFloor(e.target.value)}
-          className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-        >
-          <option value="">층수</option>
-          <option value="1-3">1-3층</option>
-          <option value="4-6">4-6층</option>
-          <option value="7-10">7-10층</option>
-          <option value="11-20">11-20층</option>
-          <option value="20+">20층 이상</option>
-        </select>
-
-        <select
-          value={bathrooms}
-          onChange={(e) => setBathrooms(e.target.value)}
-          className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-        >
-          <option value="">화장실</option>
-          <option value="1">1개</option>
-          <option value="2">2개</option>
-          <option value="3">3개</option>
-          <option value="4+">4개 이상</option>
-        </select>
-
-        <select
-          value={subwayLine}
-          onChange={(e) => setSubwayLine(e.target.value)}
-          className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-        >
-          <option value="">호선 검색</option>
-          <option value="1">1호선</option>
-          <option value="2">2호선</option>
-          <option value="3">3호선</option>
-          <option value="4">4호선</option>
-          <option value="5">5호선</option>
-          <option value="6">6호선</option>
-          <option value="7">7호선</option>
-          <option value="8">8호선</option>
-          <option value="9">9호선</option>
-        </select>
-      </div>
-    </div>
-  )
+interface LandSearchPaginationProps {
+  currentPage: number;
+  totalPages: number;
+  searchParams: { [key: string]: string | string[] | undefined };
 }
 
-export default SearchBar
+const LandSearchPagination = ({ currentPage, totalPages, searchParams }: LandSearchPaginationProps) => {
+  const router = useRouter();
 
-----------
-나는 검색을 없애고 자동으로 옵션을 바꾸면 업데이트 되도록 하고 싶어
+  const [pageLimit, setPageLimit] = useState(10);
+
+  const updatePageLimit = useCallback(() => {
+    const width = window.innerWidth;
+
+    if (width >= 1024) {
+      setPageLimit(10);
+    } else if (width >= 768) {
+      setPageLimit(5);
+    } else {
+      setPageLimit(3);
+    }
+  }, []);
+
+  useEffect(() => {
+    updatePageLimit();
+    window.addEventListener("resize", updatePageLimit);
+    return () => {
+      window.removeEventListener("resize", updatePageLimit);
+    };
+  }, [updatePageLimit]);
+
+  const handlePageChange = (page: number) => {
+    const params = new URLSearchParams();
+    
+    // 기존 검색 파라미터 유지
+    Object.entries(searchParams).forEach(([key, value]) => {
+      if (value && typeof value === 'string') {
+        params.set(key, value);
+      }
+    });
+    
+    // 페이지 번호 업데이트
+    params.set("page", page.toString());
+    
+    router.push(`/landSearch?${params.toString()}`, { scroll: false });
+  };
+
+  const getPaginationRange = (currentPage: number, totalPages: number, limit: number) => {
+    const startPage = Math.max(1, Math.floor((currentPage - 1) / limit) * limit + 1);
+    const endPage = Math.min(startPage + limit - 1, totalPages);
+    const range = [];
+    for (let i = startPage; i <= endPage; i++) {
+      range.push(i);
+    }
+    return range;
+  };
+
+  const paginationRange = getPaginationRange(currentPage, totalPages, pageLimit);
+
+  return (
+    <div className="flex justify-center mt-6 space-x-2">
+      {/* 이전 페이지 버튼 */}
+      {currentPage > 1 && (
+        <button
+          className={clsx(
+            "px-4 py-2 rounded-md bg-blue-500 text-white hover:bg-blue-600 transition-all duration-300 transform hover:scale-105 shadow-lg"
+          )}
+          onClick={() => handlePageChange(currentPage - 1)}
+        >
+          <span className="material-icons">＜</span>
+          이전
+        </button>
+      )}
+
+      {/* 페이지 번호 버튼 */}
+      {paginationRange.map((page) => (
+        <button
+          key={page}
+          className={clsx(
+            "px-4 py-2 rounded-md text-sm font-semibold hover:bg-blue-200 transition-all duration-300 transform hover:scale-105",
+            currentPage === page
+              ? "bg-blue-500 text-white shadow-md"
+              : "bg-gray-200 text-gray-700 hover:bg-blue-100"
+          )}
+          onClick={() => handlePageChange(page)}
+        >
+          {page}
+        </button>
+      ))}
+
+      {/* 다음 페이지 버튼 */}
+      {currentPage < totalPages && (
+        <button
+          className={clsx(
+            "px-4 py-2 rounded-md bg-blue-500 text-white hover:bg-blue-600 transition-all duration-300 transform hover:scale-105 shadow-lg"
+          )}
+          onClick={() => handlePageChange(currentPage + 1)}
+        >
+          다음 <span className="material-icons">＞</span>
+        </button>
+      )}
+    </div>
+  );
+};
+
+export default LandSearchPagination;
+-----------------
+
+`TanStack Virtual` 라이브러리를 사용하여 무한 스크롤로 페이지네이션 코드를 삭제하고 수정해줘. 나는 성능최적화를 원해 
