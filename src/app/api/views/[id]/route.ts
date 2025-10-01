@@ -1,30 +1,27 @@
-
-import { createClient } from '@/app/utils/supabase/server';
-import { cookies } from 'next/headers';
+import { Prisma } from '@prisma/client';
 import { NextRequest, NextResponse } from 'next/server';
+import { createClient } from '@/app/utils/supabase/server';
+import prisma from '@/lib/prisma';
 
-export async function POST(req: NextRequest, { params }: { params: { id: string } }) {
-  const { id } = params;
+export async function POST(request: NextRequest, { params }: { params: { id: string } }) {
+  const postId = params.id;
 
-  if (!id) {
-    return new NextResponse('Post ID is required', { status: 400 });
+  if (!postId) {
+    return NextResponse.json({ ok: false, error: { message: 'ID가 누락되었습니다.' } }, { status: 400 });
   }
 
   try {
-    const cookieStore = await cookies();
-    const supabase = createClient(cookieStore);
+    const supabase = createClient();
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
 
-    const { error } = await supabase.rpc('increment_post_views', { post_id: parseInt(id) });
-
-    if (error) {
-      console.error('Error incrementing post views:', error);
-      return new NextResponse('Error incrementing post views', { status: 500 });
+    if (authError || !user) {
+      return NextResponse.json({ ok: false, error: { message: '인증되지 않은 사용자입니다.' } }, { status: 401 });
     }
 
-    return new NextResponse('View count incremented', { status: 200 });
+    await prisma.$executeRaw(Prisma.raw`SELECT increment_post_views(${parseInt(postId, 10)})`);
 
-  } catch (error) {
-    console.error('Internal Server Error:', error);
-    return new NextResponse('Internal Server Error', { status: 500 });
+    return NextResponse.json({ ok: true, message: '조회수가 1 증가했습니다.' });
+  } catch (error: any) {
+    return NextResponse.json({ ok: false, error: { message: error.message } }, { status: 500 });
   }
 }

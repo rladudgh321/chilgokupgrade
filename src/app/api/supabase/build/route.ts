@@ -86,6 +86,7 @@ export async function GET(req: NextRequest) {
       }
     }
 
+    console.log(q);
     const { data, error, count } = await q;
 
     if (error) {
