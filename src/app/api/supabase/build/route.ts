@@ -44,7 +44,7 @@ export async function GET(req: NextRequest) {
         break;
       case 'price':
         // This uses the custom `max_price` function which needs to be created via a migration.
-        q = q.order('max_price', { ascending: false } as any);
+        q = q.order('actualEntryCost', { ascending: false, nullsFirst: true });
         break;
       case 'area':
         q = q.order('totalArea', { ascending: false, nullsFirst: true });
