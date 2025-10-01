@@ -3,7 +3,7 @@
 
 import { useState, useMemo } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useInfiniteQuery, QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { useInfiniteQuery, useQuery, QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import MapView from "./MapView";
 import ListingList from "./ListingList";
 import SearchBar from "./SearchBar";
@@ -36,16 +36,32 @@ const fetchListings = async ({ pageParam = 1, queryKey }: any) => {
   return data;
 };
 
+const fetchMapListings = async ({ queryKey }: any) => {
+  const [_, searchParams] = queryKey;
+  const params = new URLSearchParams();
+
+  Object.entries(searchParams).forEach(([key, value]) => {
+    if (value && typeof value === "string") {
+      params.set(key, value);
+    }
+  });
+
+  const { data } = await axios.get(`/api/listings/map?${params.toString()}`);
+  return data.data; // The new endpoint wraps data in a `data` property
+};
+
 function LandSearchClientContent({ initialListings, searchParams }: Props) {
   const router = useRouter();
   const currentSearchParams = useSearchParams();
   const sortBy = currentSearchParams.get("sortBy") ?? "latest";
 
   const {
-    data,
+    data: paginatedData,
+    error,
     fetchNextPage,
     hasNextPage,
     isFetchingNextPage,
+    status,
   } = useInfiniteQuery({
     queryKey: ["listings", searchParams],
     queryFn: fetchListings,
@@ -68,7 +84,12 @@ function LandSearchClientContent({ initialListings, searchParams }: Props) {
     initialPageParam: 1,
   });
 
-  const allListings = useMemo(() => (data ? data.pages.flatMap((page) => page.listings) : []), [data]);
+  const { data: mapListings = [] } = useQuery({
+    queryKey: ["map-listings", searchParams],
+    queryFn: fetchMapListings,
+  });
+
+  const allListings = useMemo(() => (paginatedData ? paginatedData.pages.flatMap((page) => page.listings) : []), [paginatedData]);
   const [filteredIds, setFilteredIds] = useState<number[] | null>(null);
 
   const displayListings = useMemo(() => {
@@ -103,7 +124,7 @@ function LandSearchClientContent({ initialListings, searchParams }: Props) {
 
       <div className="flex h-[calc(100vh-120px)]">
         <div className="w-1/2">
-          <MapView listings={allListings} onClusterClick={handleClusterClick} />
+          <MapView listings={mapListings} onClusterClick={handleClusterClick} />
         </div>
 
         <div className="w-1/2 bg-white border-l flex flex-col h-full">
