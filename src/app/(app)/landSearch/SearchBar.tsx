@@ -1,12 +1,14 @@
 "use client"
-import { useEffect, useState } from "react"
+import { useEffect, useState, useRef } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
 
 const SearchBar = () => {
   const router = useRouter()
   const searchParams = useSearchParams()
-  
+  const isInitialMount = useRef(true)
+
   const [searchTerm, setSearchTerm] = useState(searchParams.get("keyword") || "")
+  const [debouncedSearchTerm, setDebouncedSearchTerm] = useState(searchTerm)
   const [propertyType, setPropertyType] = useState(searchParams.get("propertyType") || "")
   const [dealType, setDealType] = useState(searchParams.get("dealType") || "")
   const [priceRange, setPriceRange] = useState(searchParams.get("priceRange") || "")
@@ -79,10 +81,25 @@ const SearchBar = () => {
     return () => { isMounted = false }
   }, [])
 
-  const handleSearch = () => {
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedSearchTerm(searchTerm)
+    }, 500)
+
+    return () => {
+      clearTimeout(handler)
+    }
+  }, [searchTerm])
+
+  useEffect(() => {
+    if (isInitialMount.current) {
+      isInitialMount.current = false
+      return
+    }
+
     const params = new URLSearchParams()
     
-    if (searchTerm) params.set("keyword", searchTerm)
+    if (debouncedSearchTerm) params.set("keyword", debouncedSearchTerm)
     if (propertyType) params.set("propertyType", propertyType)
     if (dealType) params.set("dealType", dealType)
     if (priceRange) params.set("priceRange", priceRange)
@@ -97,7 +114,7 @@ const SearchBar = () => {
     params.set("page", "1")
     
     router.push(`/landSearch?${params.toString()}`)
-  }
+  }, [debouncedSearchTerm, propertyType, dealType, priceRange, areaRange, theme, rooms, floor, bathrooms, subwayLine, router])
 
   const handleReset = () => {
     setSearchTerm("")
@@ -127,13 +144,7 @@ const SearchBar = () => {
           />
         </div>
         
-        {/* 검색 버튼 */}
-        <button
-          onClick={handleSearch}
-          className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
-        >
-          검색
-        </button>
+
         
         {/* 초기화 버튼 */}
         <button

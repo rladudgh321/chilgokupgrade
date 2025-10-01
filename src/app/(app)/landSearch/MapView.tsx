@@ -1,4 +1,3 @@
-// app/components/MapView.tsx
 "use client";
 
 import { useEffect, useRef, useState } from "react";
@@ -34,7 +33,7 @@ const MapView = ({
   const containerRef = useRef<HTMLDivElement | null>(null);
   const mapRef = useRef<any>(null);
   const clustererRef = useRef<any>(null);
-  const autoZoomingRef = useRef(false);
+  // const autoZoomingRef =useRef(false);
 
   const [scriptLoaded, setScriptLoaded] = useState(false);
   const [scriptError, setScriptError] = useState(false);
