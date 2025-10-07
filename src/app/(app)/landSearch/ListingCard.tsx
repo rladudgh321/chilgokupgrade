@@ -43,7 +43,7 @@ const ListingCard = ({ listing }: Props) => {
 
   return (
     <div className="p-4 hover:bg-gray-50 transition-colors cursor-pointer">
-      <div className="flex gap-4">
+      <div className="flex gap-2">
         {/* 매물 이미지 */}
         <div className="flex-shrink-0">
           <div className="w-32 h-24 bg-gray-200 rounded-lg overflow-hidden">

@@ -123,11 +123,11 @@ function LandSearchClientContent({ initialListings, searchParams }: Props) {
       </div>
 
       <div className="flex h-[calc(100vh-120px)]">
-        <div className="w-1/2">
+        <div className="flex-1 min-w-0">
           <MapView listings={mapListings} onClusterClick={handleClusterClick} />
         </div>
 
-        <div className="w-1/2 bg-white border-l flex flex-col h-full">
+        <div className="w-[480px] flex-shrink-0 bg-white border-l flex flex-col h-full">
           {filteredIds !== null && (
             <div className="p-2 text-center border-b">
               <button
