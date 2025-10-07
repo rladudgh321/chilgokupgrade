@@ -145,7 +145,7 @@ const ListManager = ({ title, placeholder, buttonText, apiEndpoint='', enableIma
           headers: {
             'Content-Type': 'application/json',
           },
-          body: JSON.stringify(apiEndpoint === '/api/buy-types' ? { name: newItem.trim() } : { label: newItem.trim() }),
+          body: JSON.stringify({ name: newItem.trim() }),
         });
 
         const result = await response.json();
@@ -205,13 +205,16 @@ const ListManager = ({ title, placeholder, buttonText, apiEndpoint='', enableIma
     }
   };
 
-  const handleDeleteItem = async (name: string) => {
+  const handleDeleteItem = async (id: number, name: string) => {
     if (!confirm(`"${name}"을(를) 삭제하시겠습니까?`)) return;
 
     try {
       setLoading(true);
-      const queryParam = apiEndpoint === '/api/buy-types' ? 'name' : 'label';
-      const response = await fetch(`${apiEndpoint}?${queryParam}=${encodeURIComponent(name)}`, {
+      const isBuyTypes = apiEndpoint === '/api/buy-types';
+      const queryParam = isBuyTypes ? 'name' : 'id';
+      const queryValue = isBuyTypes ? name : id;
+
+      const response = await fetch(`${apiEndpoint}?${queryParam}=${encodeURIComponent(queryValue)}`, {
         method: 'DELETE',
       });
 

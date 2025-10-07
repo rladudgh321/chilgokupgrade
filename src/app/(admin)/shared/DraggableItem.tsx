@@ -10,7 +10,7 @@ type DraggableItemProps = {
   imageName?: string;
   moveItem: (draggedId: number, hoveredId: number) => void;
   onEdit?: (oldName: string, newName: string) => void;
-  onDelete?: (name: string) => void;
+  onDelete?: (id: number, name: string) => void;
   onImageEdit?: (id: number, newImageUrl: string, newImageName: string) => void;
   disabled?: boolean;
   uploadEndpoint?: string;
@@ -201,7 +201,7 @@ const DraggableItem = ({ id, name, imageUrl, imageName, moveItem, onEdit, onDele
               )}
               {onDelete && (
                 <button
-                  onClick={() => onDelete(name)}
+                  onClick={() => onDelete(id, name)}
                   disabled={disabled}
                   className="px-3 py-1 bg-red-500 text-white rounded text-sm hover:bg-red-600 disabled:opacity-50"
                 >

@@ -33,12 +33,15 @@ model Build {
   labelId          Int?
   label            Label?         @relation(fields: [labelId], references: [id], onDelete: SetNull)
   floorType        String?
-  currentFloor     Int?
+  floorOption      FloorOption?   @relation(fields: [floorOptionId], references: [id], onDelete: SetNull)
+  floorOptionId    Int?
   totalFloors      Int?
   basementFloors   Int?
   floorDescription String?
-  rooms            Int?
-  bathrooms        Int?
+  roomOption       RoomOption?    @relation(fields: [roomOptionId], references: [id], onDelete: SetNull)
+  roomOptionId     Int?
+  bathroomOption   BathroomOption? @relation(fields: [bathroomOptionId], references: [id], onDelete: SetNull)
+  bathroomOptionId Int?
   actualArea       Float?
   supplyArea       Float?
   landArea         Float?
@@ -207,4 +210,31 @@ enum AddressPublic {
   public
   private
   exclude
+}
+
+model RoomOption {
+  id        Int      @id @default(autoincrement())
+  name      String   @unique
+  order     Int?     @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now()) @updatedAt
+  builds    Build[]
+}
+
+model FloorOption {
+  id        Int      @id @default(autoincrement())
+  name      String   @unique
+  order     Int?     @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now()) @updatedAt
+  builds    Build[]
+}
+
+model BathroomOption {
+  id        Int      @id @default(autoincrement())
+  name      String   @unique
+  order     Int?     @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now()) @updatedAt
+  builds    Build[]
 }
