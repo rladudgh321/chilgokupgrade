@@ -33,7 +33,7 @@ const ListingList = ({
   const rowVirtualizer = useVirtualizer({
     count: hasNextPage ? listings.length + 1 : listings.length,
     getScrollElement: () => parentRef.current,
-    estimateSize: () => 160, // 각 항목의 예상 높이 (조정 필요)
+    estimateSize: () => 272, // 각 항목의 예상 높이 (조정 필요)
   });
 
   const virtualItems = rowVirtualizer.getVirtualItems();
@@ -99,12 +99,13 @@ const ListingList = ({
               return (
                 <div
                   key={virtualRow.key}
+                  data-index={virtualRow.index}
+                  ref={rowVirtualizer.measureElement}
                   style={{
                     position: "absolute",
                     top: 0,
                     left: 0,
                     width: "100%",
-                    height: `${virtualRow.size}px`,
                     transform: `translateY(${virtualRow.start}px)`,
                   }}
                 >

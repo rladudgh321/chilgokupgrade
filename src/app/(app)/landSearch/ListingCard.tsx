@@ -1,4 +1,13 @@
-import Image from "next/image"
+import Image from "next/image";
+import {
+  Building2,
+  Square,
+  Layers,
+  BedDouble,
+  Bath,
+  Car,
+  Coins,
+} from "lucide-react";
 
 type Props = {
   listing: {
@@ -42,107 +51,118 @@ const ListingCard = ({ listing }: Props) => {
   }
 
   return (
-    <div className="p-4 hover:bg-gray-50 transition-colors cursor-pointer">
-      <div className="flex gap-2">
-        {/* 매물 이미지 */}
-        <div className="flex-shrink-0">
-          <div className="w-32 h-24 bg-gray-200 rounded-lg overflow-hidden">
+    <div className="border bg-white rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-shadow duration-300">
+      <div className="flex flex-col md:flex-row">
+        {/* Image Section */}
+        <div className="w-full md:w-48 flex-shrink-0 relative">
+          <div className="aspect-w-1 aspect-h-1 w-full h-48 md:h-full">
             {listing.mainImage ? (
-              <Image 
-                src={listing.mainImage} 
-                alt={listing.title || "매물 이미지"} 
-                width={128} 
-                height={96} 
-                className="w-full h-full object-cover"
+              <Image
+                src={listing.mainImage}
+                alt={listing.title || "매물 이미지"}
+                fill
+                className="object-cover"
               />
             ) : (
-              <div className="w-full h-full bg-gray-300 flex items-center justify-center text-gray-500 text-sm">
-                이미지 없음
+              <div className="w-full h-full bg-gray-200 flex items-center justify-center text-gray-500">
+                <Building2 className="w-12 h-12 text-gray-400" />
               </div>
             )}
           </div>
         </div>
 
-        {/* 매물 정보 */}
-        <div className="flex-1 min-w-0">
-          {/* 라벨들 */}
-          <div className="flex flex-wrap gap-1 mb-2">
+        {/* Content Section */}
+        <div className="p-4 flex flex-col flex-grow">
+          {/* Labels */}
+          <div className="flex flex-wrap gap-2 mb-2">
             {listing.label && (
-              <span className="px-2 py-1 bg-red-100 text-red-600 text-xs rounded-full">
+              <span className="px-2.5 py-0.5 bg-red-100 text-red-700 text-xs font-semibold rounded-full">
                 {listing.label}
               </span>
             )}
             {listing.popularity && (
-              <span className="px-2 py-1 bg-orange-100 text-orange-600 text-xs rounded-full">
+              <span className="px-2.5 py-0.5 bg-amber-100 text-amber-700 text-xs font-semibold rounded-full">
                 {listing.popularity}
               </span>
             )}
-            {listing.themes && listing.themes.length > 0 && (
-              <span className="px-2 py-1 bg-blue-100 text-blue-600 text-xs rounded-full">
-                {listing.themes[0]}
-              </span>
-            )}
           </div>
 
-          {/* 매물 제목 */}
-          <h3 className="text-lg font-semibold text-gray-900 mb-1 line-clamp-2">
+          {/* Title */}
+          <h3 className="text-lg font-bold text-gray-800 leading-snug mb-1 line-clamp-2">
             {listing.title || "제목 없음"}
           </h3>
 
-          {/* 매물 ID와 주소 */}
-          <p className="text-sm text-gray-600 mb-2">
-            [{listing.id}] {listing.address || "주소 정보 없음"}
+          {/* Address */}
+          <p className="text-sm text-gray-500 mb-3 line-clamp-1">
+            {listing.address || "주소 정보 없음"}
           </p>
 
-          {/* 매물 상세 정보 */}
-          <div className="flex flex-wrap gap-4 text-sm text-gray-600 mb-3">
-            {listing.parking && listing.parking.length > 0 && (
-              <span>주차</span>
-            )}
-            {listing.managementFee && (
-              <span>관리비 {formatPrice(listing.managementFee)}</span>
-            )}
-            {listing.actualArea && (
-              <span>실 {formatArea(listing.actualArea)}</span>
-            )}
-            {listing.supplyArea && (
-              <span>공 {formatArea(listing.supplyArea)}</span>
-            )}
-          </div>
-
-          {/* 가격 정보 */}
-          <div className="space-y-1 mb-2">
+          {/* Price */}
+          <div className="mb-3">
             {listing.salePrice && (
-              <div className="text-lg font-bold text-blue-600">
-                분 {formatPrice(listing.salePrice)} 실 {formatPrice(listing.actualEntryCost)}
-              </div>
+              <p className="text-xl font-bold text-gray-900">
+                <span className="text-sm font-medium text-gray-600 mr-2">
+                  매매
+                </span>
+                {formatPrice(listing.salePrice)}
+              </p>
             )}
             {listing.rentalPrice && (
-              <div className="text-sm text-gray-700">
-                전 {formatPrice(listing.rentalPrice)}
-              </div>
-            )}
-            {listing.actualEntryCost && !listing.salePrice && (
-              <div className="text-sm text-gray-700">
-                보 {formatPrice(listing.actualEntryCost)} 월 {formatPrice(listing.managementFee)}
-              </div>
+              <p className="text-xl font-bold text-gray-900">
+                <span className="text-sm font-medium text-gray-600 mr-2">
+                  전세
+                </span>
+                {formatPrice(listing.rentalPrice)}
+              </p>
             )}
           </div>
 
-          {/* 매물 타입과 층수 */}
-          <div className="flex items-center gap-2 text-sm text-gray-600">
-            <span>{listing.propertyType || "타입 미정"}</span>
-            {listing.currentFloor && listing.totalFloors && (
-              <span>현재층 {listing.currentFloor}층</span>
+          {/* Details Grid */}
+          <div className="grid grid-cols-2 gap-x-4 gap-y-2 text-sm text-gray-600 border-t pt-3">
+            <div className="flex items-center gap-1.5">
+              <Building2 className="w-4 h-4 text-gray-500 flex-shrink-0" />
+              <span>{listing.propertyType || "타입 미정"}</span>
+            </div>
+            <div className="flex items-center gap-1.5">
+              <Square className="w-4 h-4 text-gray-500 flex-shrink-0" />
+              <span>
+                실 {formatArea(listing.actualArea)} / 공{" "}
+                {formatArea(listing.supplyArea)}
+              </span>
+            </div>
+            <div className="flex items-center gap-1.5">
+              <Layers className="w-4 h-4 text-gray-500 flex-shrink-0" />
+              <span>
+                {listing.currentFloor && listing.totalFloors
+                  ? `${listing.currentFloor}/${listing.totalFloors}층`
+                  : "층수 정보 없음"}
+              </span>
+            </div>
+            <div className="flex items-center gap-1.5">
+              <BedDouble className="w-4 h-4 text-gray-500 flex-shrink-0" />
+              <span>
+                방 {listing.rooms || "-"} / 욕실 {listing.bathrooms || "-"}
+              </span>
+            </div>
+            {listing.parking && listing.parking.length > 0 && (
+              <div className="flex items-center gap-1.5">
+                <Car className="w-4 h-4 text-gray-500 flex-shrink-0" />
+                <span>{listing.parking.join(", ")}</span>
+              </div>
             )}
-            {listing.rooms && listing.bathrooms && (
-              <span>방{listing.rooms}/화{listing.bathrooms}</span>
+            {listing.managementFee && (
+              <div className="flex items-center gap-1.5">
+                <Coins className="w-4 h-4 text-gray-500 flex-shrink-0" />
+                <span>
+                  관리비 {formatPrice(listing.managementFee)}
+                </span>
+              </div>
             )}
           </div>
         </div>
       </div>
     </div>
-  )
+  );
 }
 
 export default ListingCard

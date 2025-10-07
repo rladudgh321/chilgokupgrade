@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useCallback } from "react";
 import Script from "next/script";
 
 declare global {
@@ -26,7 +26,7 @@ type Props = {
 const MapView = ({
   listings,
   width = "100%",
-  height = 680,
+  height = "100%",
   onClusterClick,
 }: Props) => {
   const KAKAO_KEY = process.env.NEXT_PUBLIC_KAKAO_MAP_KEY;
@@ -54,7 +54,7 @@ const MapView = ({
   });
 
   // 마커(및 클러스터) 갱신
-  const refreshMarkers = async (items: Listing[]) => {
+  const refreshMarkers = useCallback(async (items: Listing[]) => {
     const kakao = window.kakao;
     const map = mapRef.current;
     const clusterer = clustererRef.current;
@@ -116,10 +116,10 @@ const MapView = ({
 
     clusterer.addMarkers(markers);
     map.panTo(markers[0].getPosition());
-  };
+  }, [onClusterClick]);
 
   // 지도/클러스터 초기화
-  const initMap = () => {
+  const initMap = useCallback(() => {
     const kakao = window.kakao;
     if (!kakao?.maps || !containerRef.current || mapRef.current) return; // Prevent re-initialization
 
@@ -166,7 +166,7 @@ const MapView = ({
 
     // 최초 마커 세팅
     void refreshMarkers(listings);
-  };
+  }, [listings, onClusterClick, refreshMarkers]);
 
   useEffect(() => {
     if (scriptLoaded && !scriptError) {
@@ -177,8 +177,7 @@ const MapView = ({
   // 목록이 바뀌면 마커 갱신
   useEffect(() => {
     void refreshMarkers(listings);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [listings]);
+  }, [listings, refreshMarkers]);
 
   if (!KAKAO_KEY) {
     return (
