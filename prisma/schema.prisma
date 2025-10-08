@@ -169,8 +169,19 @@ model BuyType {
   name      String   @unique
   order     Int?     @default(0)
   builds    Build[]
+  presets   PricePreset[]
   createdAt DateTime @default(now())
   updatedAt DateTime @default(now()) @updatedAt
+}
+
+model PricePreset {
+  id          Int      @id @default(autoincrement())
+  name        String
+  order       Int?     @default(0)
+  buyType     BuyType  @relation(fields: [buyTypeId], references: [id])
+  buyTypeId   Int
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @default(now()) @updatedAt
 }
 
 model ContactRequest {
