@@ -15,7 +15,7 @@ export async function BuildFindAll(
   page: number = 1,
   limit: number = 10,
   keyword?: string,
-  filters?: { theme?: string; propertyType?: string; dealType?: string },
+  filters?: { theme?: string; propertyType?: string; dealType?: string; rooms?: string; bathrooms?: string },
   sortBy?: string,
   opts?: { signal?: AbortSignal }
 ) {
@@ -26,6 +26,8 @@ export async function BuildFindAll(
     ...(filters?.theme ? { theme: filters.theme } : {}),
     ...(filters?.propertyType ? { propertyType: filters.propertyType } : {}),
     ...(filters?.dealType ? { dealType: filters.dealType } : {}),
+    ...(filters?.rooms ? { rooms: filters.rooms } : {}),
+    ...(filters?.bathrooms ? { bathrooms: filters.bathrooms } : {}),
     ...(sortBy ? { sortBy: sortBy } : {}),
   });
 

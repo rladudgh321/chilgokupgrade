@@ -15,6 +15,8 @@ export async function GET(req: NextRequest) {
     const theme = searchParams.get("theme")?.trim();
     const propertyType = searchParams.get("propertyType")?.trim();
     const dealType = searchParams.get("dealType")?.trim();
+    const rooms = searchParams.get("rooms")?.trim();
+    const bathrooms = searchParams.get("bathrooms")?.trim();
     const sortBy = searchParams.get("sortBy")?.trim() ?? "latest";
 
     const from = (page - 1) * limit;
@@ -83,6 +85,24 @@ export async function GET(req: NextRequest) {
           q = q.eq("buyTypeId", typeRec.id);
       } else {
           q = q.eq("buyTypeId", -1); // Return no results if dealType doesn't exist
+      }
+    }
+
+    if (rooms) {
+      const { data: roomRec } = await supabase.from("RoomOption").select("id").eq("name", rooms).single();
+      if (roomRec) {
+          q = q.eq("roomOptionId", roomRec.id);
+      } else {
+          q = q.eq("roomOptionId", -1); // Return no results if room option doesn't exist
+      }
+    }
+
+    if (bathrooms) {
+      const { data: bathroomRec } = await supabase.from("BathroomOption").select("id").eq("name", bathrooms).single();
+      if (bathroomRec) {
+          q = q.eq("bathroomOptionId", bathroomRec.id);
+      } else {
+          q = q.eq("bathroomOptionId", -1); // Return no results if bathroom option doesn't exist
       }
     }
 

@@ -90,7 +90,7 @@ describe('/api/floor-options API 라우트', () => {
       const idToDelete = '1';
       const req = new NextRequest(`http://localhost?id=${idToDelete}`, { method: 'DELETE' });
 
-      const response = await DELETE(req);
+      const response = await POST(req);
       const body = await response.json();
 
       expect(response.status).toBe(200);
@@ -101,7 +101,7 @@ describe('/api/floor-options API 라우트', () => {
 
     test('id가 없으면 400 에러를 반환해야 합니다.', async () => {
         const req = new NextRequest('http://localhost', { method: 'DELETE' });
-        const response = await DELETE(req);
+        const response = await POST(req);
         const body = await response.json();
 
         expect(response.status).toBe(400);

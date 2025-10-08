@@ -10,6 +10,8 @@ export async function GET(request: Request) {
   const theme = searchParams.get("theme") || undefined;
   const propertyType = searchParams.get("propertyType") || undefined;
   const dealType = searchParams.get("dealType") || undefined;
+  const rooms = searchParams.get("rooms") || undefined;
+  const bathrooms = searchParams.get("bathrooms") || undefined;
   const sortBy = searchParams.get("sortBy") || "latest";
 
   try {
@@ -21,6 +23,8 @@ export async function GET(request: Request) {
         theme,
         propertyType,
         dealType,
+        rooms,
+        bathrooms,
       },
       sortBy
     );

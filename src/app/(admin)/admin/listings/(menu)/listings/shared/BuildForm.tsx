@@ -177,6 +177,9 @@ type Props = {
   mode: "create" | "update";
   submitLabel?: string;
   onCancel?: () => void;
+  roomOptions: string[];
+  bathroomOptions: string[];
+  themeOptions: string[];
 };
 
 export default function BuildForm({
@@ -186,6 +189,9 @@ export default function BuildForm({
   mode,
   submitLabel,
   onCancel,
+  roomOptions,
+  bathroomOptions,
+  themeOptions,
 }: Props) {
   return (
     <FormProvider {...methods}>
@@ -203,7 +209,7 @@ export default function BuildForm({
         </Container>
 
         <Container title="기본정보">
-          <BuildBasic />
+          <BuildBasic roomOptions={roomOptions} bathroomOptions={bathroomOptions} themeOptions={themeOptions} />
         </Container>
 
         <Container title="건물 추가 정보">

@@ -7,6 +7,32 @@ import { useForm } from "react-hook-form";
 import BuildForm, { BASE_DEFAULTS, FormData } from "@/app/(admin)/admin/listings/(menu)/listings/shared/BuildForm";
 import { BuildFindOne, BuildUpdate } from "@/app/apis/build";
 
+interface Option {
+  id: number;
+  name: string;
+}
+
+const fetchRoomOptions = async (): Promise<Option[]> => {
+  const res = await fetch("/api/room-options", { cache: "no-store" });
+  if (!res.ok) throw new Error("Failed to fetch room options");
+  const json = await res.json();
+  return json.data;
+};
+
+const fetchBathroomOptions = async (): Promise<Option[]> => {
+  const res = await fetch("/api/bathroom-options", { cache: "no-store" });
+  if (!res.ok) throw new Error("Failed to fetch bathroom options");
+  const json = await res.json();
+  return json.data;
+};
+
+const fetchThemeOptions = async () => {
+  const res = await fetch("/api/theme-images", { cache: "no-store" });
+  if (!res.ok) throw new Error("Failed to fetch theme options");
+  const json = await res.json();
+  return json.data.map((item: { label: string }) => item.label);
+};
+
 function toStrArray(v: unknown): string[] {
   if (!v) return [];
   if (Array.isArray(v)) {
@@ -22,7 +48,7 @@ function toStrArray(v: unknown): string[] {
   return [];
 }
 
-function normalizeForForm(d: any): FormData {
+function normalizeForForm(d: any, roomOptions: Option[], bathroomOptions: Option[], themeOptions: string[]): FormData {
   return {
     ...BASE_DEFAULTS,
 
@@ -87,8 +113,8 @@ function normalizeForForm(d: any): FormData {
     currentFloor: d.currentFloor ?? 0,
     totalFloors: d.totalFloors ?? 0,
     basementFloors: d.basementFloors ?? 0,
-    rooms: d.rooms ?? 0,
-    bathrooms: d.bathrooms ?? 0,
+    rooms: d.roomOption?.name ?? (roomOptions.length > 0 ? roomOptions[0].name : ""),
+    bathrooms: d.bathroomOption?.name ?? (bathroomOptions.length > 0 ? bathroomOptions[0].name : ""),
     actualArea: d.actualArea ?? 0,
     supplyArea: d.supplyArea ?? 0,
     landArea: d.landArea ?? 0,
@@ -99,7 +125,7 @@ function normalizeForForm(d: any): FormData {
     parkingFee: d.parkingFee ?? 0,
     elevatorCount: d.elevatorCount ?? 0,
 
-    themes: Array.isArray(d.themes) ? d.themes : [],
+    themes: (d.themes && d.themes[0]) ?? (themeOptions.length > 0 ? themeOptions[0] : ""),
     buildingOptions: Array.isArray(d.buildingOptions) ? d.buildingOptions : [],
     parking: Array.isArray(d.parking) ? d.parking : [],
 
@@ -120,25 +146,56 @@ export default function EditClient({ id }: { id: number }) {
     queryFn: () => BuildFindOne(id),
   });
 
+  const { data: roomOptions = [], isLoading: isLoadingRoomOptions } = useQuery<Option[]>({
+    queryKey: ["roomOptions"],
+    queryFn: fetchRoomOptions,
+  });
+
+  const { data: bathroomOptions = [], isLoading: isLoadingBathroomOptions } = useQuery<Option[]>({
+    queryKey: ["bathroomOptions"],
+    queryFn: fetchBathroomOptions,
+  });
+
+  const { data: themeOptions = [], isLoading: isLoadingThemeOptions } = useQuery({
+    queryKey: ["themeOptions"],
+    queryFn: fetchThemeOptions,
+  });
+
   const methods = useForm<FormData>({ defaultValues: BASE_DEFAULTS });
+
+  const allQueriesLoaded = !isLoading && !isLoadingRoomOptions && !isLoadingBathroomOptions && !isLoadingThemeOptions;
 
   // ✅ 데이터 도착 시 단 한번, 정규화해서 reset
   useEffect(() => {
-    if (!data) return;
-    methods.reset(normalizeForForm(data));
-  }, [data, methods]);
+    if (allQueriesLoaded && data) {
+      methods.reset(normalizeForForm(data, roomOptions, bathroomOptions, themeOptions));
+    }
+  }, [allQueriesLoaded, data, roomOptions, bathroomOptions, themeOptions, methods]);
 
   const { mutate, isPending } = useMutation({
     mutationFn: (payload: FormData) => {
-      // (선택) 서버가 원하는 형태로 변환: '' → null, 문자열 숫자 → number 등
-      // 여기서는 폼에서 이미 올바른 타입으로 관리한다고 가정
-      return BuildUpdate(id, payload);
+      const { rooms, bathrooms, themes, ...rest } = payload;
+
+      const roomOption = roomOptions.find(opt => opt.name === rooms);
+      const bathroomOption = bathroomOptions.find(opt => opt.name === bathrooms);
+
+      const serverPayload: Record<string, unknown> = {
+        ...rest,
+        roomOptionId: roomOption?.id,
+        bathroomOptionId: bathroomOption?.id,
+        themes: themes ? [themes] : [],
+      };
+      
+      return BuildUpdate(id, serverPayload);
     },
     onSuccess: () => router.back(),
-    onError: () => alert("수정 중 에러가 발생했습니다."),
+    onError: (e) => {
+      console.error(e);
+      alert("수정 중 에러가 발생했습니다.");
+    },
   });
 
-  if (isLoading) return <p>로딩 중...</p>;
+  if (!allQueriesLoaded) return <p>로딩 중...</p>;
   if (isError) return <p>불러오기 실패</p>;
 
   return (

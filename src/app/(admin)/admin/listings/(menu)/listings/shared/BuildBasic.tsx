@@ -165,20 +165,64 @@ const Button = ({
    BuildBasic 본문
    ========================= */
 const BuildBasic = () => {
-  const { watch, setValue, register } = useFormContext();
+  const { watch, setValue, register, getValues } = useFormContext();
 
   // ✅ 폼 값 watch (오타 수정 및 값 보정)
   const watchedPopularity = watch("popularity") ?? "";
   const watchedDirection = watch("direction") ?? "";
   const watchedDirectionBase = watch("directionBase") ?? "";
+  const watchedRooms = watch("rooms") ?? "";
+  const watchedBathrooms = watch("bathrooms") ?? "";
+  const watchedThemes = watch("themes") ?? "";
+  const watchedBuildingOptions = watch("buildingOptions") ?? [];
+  const watchedParking = watch("parking") ?? [];
 
-  // ✅ 체크박스 UI용 로컬 상태 (폼 값과 항상 동기화)
-  const [selectedThemes, setSelectedThemes] = useState<string[]>([]);
-  const [selectedBuilding, setSelectedBuildingOptions] = useState<string[]>([]);
-  const [selectedParking, setSelectedParkingOptions] = useState<string[]>([]);
-  const [themeOptions, setThemeOptions] = useState<string[]>([]);
+
   const [buildingOptionItems, setBuildingOptionItems] = useState<string[]>([]);
   const [labelOptions, setLabelOptions] = useState<string[]>([]);
+  const [roomOptions, setRoomOptions] = useState<string[]>([]);
+  const [bathroomOptions, setBathroomOptions] = useState<string[]>([]);
+  const [themeOptions, setThemeOptions] = useState<string[]>([]);
+
+  // 방 옵션 로드
+  useEffect(() => {
+    let isMounted = true;
+    (async () => {
+      try {
+        const res = await fetch("/api/room-options", { cache: "no-store" });
+        if (!res.ok) return;
+        const json = await res.json();
+        const items: Array<{ name?: string }> = json?.data ?? [];
+        const names = items.map((x) => x.name).filter((v): v is string => !!v);
+        if (isMounted) setRoomOptions(names);
+      } catch {
+        // ignore
+      }
+    })();
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  // 화장실 옵션 로드
+  useEffect(() => {
+    let isMounted = true;
+    (async () => {
+      try {
+        const res = await fetch("/api/bathroom-options", { cache: "no-store" });
+        if (!res.ok) return;
+        const json = await res.json();
+        const items: Array<{ name?: string }> = json?.data ?? [];
+        const names = items.map((x) => x.name).filter((v): v is string => !!v);
+        if (isMounted) setBathroomOptions(names);
+      } catch {
+        // ignore
+      }
+    })();
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 
   // 라벨 옵션 로드
   useEffect(() => {
@@ -222,25 +266,6 @@ const BuildBasic = () => {
     };
   }, []);
 
-  useEffect(() => {
-    const watchedThemes = watch("themes") ?? [];
-    setSelectedThemes(Array.isArray(watchedThemes) ? watchedThemes : []);
-  }, [watch]);
-
-  useEffect(() => {
-    const watchedBuildingOptions = watch("buildingOptions") ?? [];
-    setSelectedBuildingOptions(
-      Array.isArray(watchedBuildingOptions) ? watchedBuildingOptions : []
-    );
-  }, [watch]);
-
-  useEffect(() => {
-    const watchedParking = watch("parking") ?? [];
-    setSelectedParkingOptions(
-      Array.isArray(watchedParking) ? watchedParking : []
-    );
-  }, [watch]);
-
   // 옵션(빌딩 옵션) 목록 로드
   useEffect(() => {
     let isMounted = true;
@@ -264,25 +289,25 @@ const BuildBasic = () => {
   // ✅ 라디오(단일 선택) → 폼 값 갱신
   const handleRadioChange = (
     item: string,
-    type: "popularity" | "direction" | "directionBase"
+    type: "popularity" | "direction" | "directionBase" | "rooms" | "bathrooms"
   ) => {
     setValue(type, item, { shouldDirty: true, shouldTouch: true });
   };
 
   // ✅ 체크박스(다중 선택) → 폼/로컬 동시 갱신
   const handleBuildingOptionsButtonClick = (v: string) => {
-    setSelectedBuildingOptions((prev) => {
-      const next = prev.includes(v) ? prev.filter((x) => x !== v) : [...prev, v];
-      setValue("buildingOptions", next, { shouldDirty: true, shouldTouch: true });
-      return next;
-    });
+    const current = getValues("buildingOptions") ?? [];
+    const next = current.includes(v)
+      ? current.filter((x: string) => x !== v)
+      : [...current, v];
+    setValue("buildingOptions", next, { shouldDirty: true, shouldTouch: true });
   };
   const handleParkingButtonClick = (v: string) => {
-    setSelectedParkingOptions((prev) => {
-      const next = prev.includes(v) ? prev.filter((x) => x !== v) : [...prev, v];
-      setValue("parking", next, { shouldDirty: true, shouldTouch: true });
-      return next;
-    });
+    const current = getValues("parking") ?? [];
+    const next = current.includes(v)
+      ? current.filter((x: string) => x !== v)
+      : [...current, v];
+    setValue("parking", next, { shouldDirty: true, shouldTouch: true });
   };
 
   const onClickCustomer: MouseEventHandler<HTMLButtonElement> = (e) => {
@@ -334,8 +359,42 @@ const BuildBasic = () => {
 
       {/* 방수/화장실수 */}
       <div className="grid grid-cols-2 gap-4">
-        <InputField label="방수" name="rooms" type="number" placeholder="숫자만 입력하세요" />
-        <InputField label="화장실수" name="bathrooms" type="number" placeholder="숫자만 입력하세요" />
+        <div className="flex flex-col">
+          <label className="block text-sm font-medium text-gray-700">방수</label>
+          <div className="flex space-x-0 mt-2 flex-wrap gap-y-4">
+            {(roomOptions || []).map((item) => (
+              <label key={item} className="cursor-pointer">
+                <input
+                  type="radio"
+                  {...register("rooms")}
+                  value={item}
+                  className="hidden"
+                  checked={watchedRooms === item}
+                  onChange={() => handleRadioChange(item, "rooms")}
+                />
+                <span style={getButtonStyle(watchedRooms, item)}>{item}</span>
+              </label>
+            ))}
+          </div>
+        </div>
+        <div className="flex flex-col">
+          <label className="block text-sm font-medium text-gray-700">화장실수</label>
+          <div className="flex space-x-0 mt-2 flex-wrap gap-y-4">
+            {(bathroomOptions || []).map((item) => (
+              <label key={item} className="cursor-pointer">
+                <input
+                  type="radio"
+                  {...register("bathrooms")}
+                  value={item}
+                  className="hidden"
+                  checked={watchedBathrooms === item}
+                  onChange={() => handleRadioChange(item, "bathrooms")}
+                />
+                <span style={getButtonStyle(watchedBathrooms, item)}>{item}</span>
+              </label>
+            ))}
+          </div>
+        </div>
       </div>
 
       {/* 면적 */}
@@ -353,20 +412,15 @@ const BuildBasic = () => {
         <div className="flex space-x-2 mt-2 flex-wrap gap-y-4">
           {(themeOptions || []).map(
             (theme) => {
-              const checked = selectedThemes.includes(theme);
+              const checked = watchedThemes === theme;
               return (
                 <label key={theme} className="cursor-pointer">
                   <input
-                    type="checkbox"
+                    type="radio"
                     className="hidden"
                     checked={checked}
-                    // onChange={() => handleThemesButtonClick(theme)}
                     onChange={() => {
-                      setSelectedThemes(prev => {
-                        const next = prev.includes(theme) ? prev.filter(x => x !== theme) : [...prev, theme];
-                        setValue("themes", next, { shouldDirty: true, shouldTouch: true }); // ✅ 이벤트 핸들러에서만 호출
-                        return next;
-                      });
+                      setValue("themes", theme, { shouldDirty: true, shouldTouch: true });
                     }}
                   />
                   <span style={getButtonStyle(checked ? theme : null, theme)}>
@@ -384,7 +438,7 @@ const BuildBasic = () => {
         <label>옵션</label>
         <div className="flex space-x-2 mt-2 flex-wrap gap-y-4">
           {(buildingOptionItems.length > 0 && buildingOptionItems || []).map((opt) => {
-            const checked = selectedBuilding.includes(opt);
+            const checked = watchedBuildingOptions.includes(opt);
             return (
               <label key={opt} className="cursor-pointer">
                 <input
@@ -421,7 +475,7 @@ const BuildBasic = () => {
         <label>주차옵션</label>
         <div className="flex space-x-2 mt-2 flex-wrap gap-y-4">
           {["주차가능", "주차불가", "주차협의", "자주식주차", "기계식주차"].map((opt) => {
-            const checked = selectedParking.includes(opt);
+            const checked = watchedParking.includes(opt);
             return (
               <label key={opt} className="cursor-pointer">
                 <input

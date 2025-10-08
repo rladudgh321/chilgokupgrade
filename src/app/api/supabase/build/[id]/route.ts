@@ -23,7 +23,9 @@ export async function GET(
         label:Label(name),
         buildingOptions:BuildingOption(id, name),
         listingType:ListingType(name),
-        buyType:BuyType(name)
+        buyType:BuyType(name),
+        roomOption:RoomOption(name),
+        bathroomOption:BathroomOption(name)
       `)
       .eq("id", idNum)
       .single();
@@ -41,6 +43,8 @@ export async function GET(
       buildingOptions: (data.buildingOptions as any[]).map((o: any) => o.name),
       propertyType: (data.listingType as any)?.name,
       dealType: (data.buyType as any)?.name,
+      roomOption: (data.roomOption as any)?.name,
+      bathroomOption: (data.bathroomOption as any)?.name,
     };
 
     return NextResponse.json(result);

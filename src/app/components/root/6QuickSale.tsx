@@ -20,14 +20,19 @@ const QuickSale = () => {
         const mapToCard = (b: Build): ICardSlideProps => {
           const sub = Array.isArray(b?.subImage) ? b.subImage : [];
           const image = b?.mainImage || sub[0] || "/img/main.png";
-          const floor = typeof b?.currentFloor === "number" ? `${b.currentFloor}층` : (b?.floorDescription || "");
+          let floor = "";
+          if (b?.currentFloor && b?.totalFloors) {
+            floor = `${b.currentFloor}층/${b.totalFloors}층`;
+          } else if (b?.currentFloor) {
+            floor = `${b.currentFloor}층`;
+          }
           return {
             type: b?.propertyType ?? "",
             floor,
             rooms: b?.rooms != null ? String(b.rooms) : "",
             image,
             title: b?.title || b?.buildingName || b?.address || "매물",
-            description: b?.floorDescription || b?.address || "",
+            description: b?.address || "",
           };
         };
 

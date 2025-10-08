@@ -33,11 +33,12 @@ model Build {
   labelId          Int?
   label            Label?         @relation(fields: [labelId], references: [id], onDelete: SetNull)
   floorType        String?
-  floorOption      FloorOption?   @relation(fields: [floorOptionId], references: [id], onDelete: SetNull)
+  currentFloor     Int?   
   floorOptionId    Int?
   totalFloors      Int?
   basementFloors   Int?
   floorDescription String?
+  floorOption      FloorOption?   @relation(fields: [floorOptionId], references: [id], onDelete: SetNull)
   roomOption       RoomOption?    @relation(fields: [roomOptionId], references: [id], onDelete: SetNull)
   roomOptionId     Int?
   bathroomOption   BathroomOption? @relation(fields: [bathroomOptionId], references: [id], onDelete: SetNull)
@@ -221,7 +222,7 @@ model RoomOption {
   builds    Build[]
 }
 
-model FloorOption {
+model BathroomOption {
   id        Int      @id @default(autoincrement())
   name      String   @unique
   order     Int?     @default(0)
@@ -230,7 +231,7 @@ model FloorOption {
   builds    Build[]
 }
 
-model BathroomOption {
+model FloorOption {
   id        Int      @id @default(autoincrement())
   name      String   @unique
   order     Int?     @default(0)

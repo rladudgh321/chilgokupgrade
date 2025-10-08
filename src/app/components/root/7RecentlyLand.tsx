@@ -10,6 +10,7 @@ type Build = {
   subImage?: string[] | null;
   mainImage?: string | null;
   currentFloor?: number | null;
+  totalFloors?: number | null;
   floorDescription?: string | null;
   propertyType?: string | null;
   rooms?: number | null;

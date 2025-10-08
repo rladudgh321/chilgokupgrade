@@ -21,6 +21,66 @@ const SearchBar = () => {
   const [themeOptions, setThemeOptions] = useState<string[]>([])
   const [propertyTypeOptions, setPropertyTypeOptions] = useState<string[]>([])
   const [buyTypeOptions, setBuyTypeOptions] = useState<string[]>([])
+  const [roomOptions, setRoomOptions] = useState<string[]>([])
+  const [floorOptions, setFloorOptions] = useState<string[]>([])
+  const [bathroomOptions, setBathroomOptions] = useState<string[]>([])
+
+  // 방 갯수 옵션 로드
+  useEffect(() => {
+    let isMounted = true
+    ;(async () => {
+      try {
+        const res = await fetch("/api/room-options", { cache: "no-store" })
+        if (!res.ok) return
+        const json = await res.json()
+        const items: Array<{ name?: string }> = json?.data ?? []
+        const names = items.map(x => x?.name).filter((v): v is string => typeof v === 'string' && v.length > 0)
+        const uniq = Array.from(new Set<string>(names))
+        if (isMounted) setRoomOptions(uniq)
+      } catch {
+        // ignore
+      }
+    })()
+    return () => { isMounted = false }
+  }, [])
+
+  // 층 단위 옵션 로드
+  useEffect(() => {
+    let isMounted = true
+    ;(async () => {
+      try {
+        const res = await fetch("/api/floor-options", { cache: "no-store" })
+        if (!res.ok) return
+        const json = await res.json()
+        const items: Array<{ name?: string }> = json?.data ?? []
+        const names = items.map(x => x?.name).filter((v): v is string => typeof v === 'string' && v.length > 0)
+        const uniq = Array.from(new Set<string>(names))
+        if (isMounted) setFloorOptions(uniq)
+      } catch {
+        // ignore
+      }
+    })()
+    return () => { isMounted = false }
+  }, [])
+
+  // 화장실 갯수 옵션 로드
+  useEffect(() => {
+    let isMounted = true
+    ;(async () => {
+      try {
+        const res = await fetch("/api/bathroom-options", { cache: "no-store" })
+        if (!res.ok) return
+        const json = await res.json()
+        const items: Array<{ name?: string }> = json?.data ?? []
+        const names = items.map(x => x?.name).filter((v): v is string => typeof v === 'string' && v.length > 0)
+        const uniq = Array.from(new Set<string>(names))
+        if (isMounted) setBathroomOptions(uniq)
+      } catch {
+        // ignore
+      }
+    })()
+    return () => { isMounted = false }
+  }, [])
 
   useEffect(() => {
     let isMounted = true
@@ -225,11 +285,9 @@ const SearchBar = () => {
           className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
         >
           <option value="">방</option>
-          <option value="1">1룸</option>
-          <option value="2">2룸</option>
-          <option value="3">3룸</option>
-          <option value="4">4룸</option>
-          <option value="5+">5룸 이상</option>
+          {roomOptions.map((opt) => (
+            <option key={opt} value={opt}>{opt}</option>
+          ))}
         </select>
 
         <select
@@ -238,11 +296,9 @@ const SearchBar = () => {
           className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
         >
           <option value="">층수</option>
-          <option value="1-3">1-3층</option>
-          <option value="4-6">4-6층</option>
-          <option value="7-10">7-10층</option>
-          <option value="11-20">11-20층</option>
-          <option value="20+">20층 이상</option>
+          {floorOptions.map((opt) => (
+            <option key={opt} value={opt}>{opt}</option>
+          ))}
         </select>
 
         <select
@@ -251,13 +307,12 @@ const SearchBar = () => {
           className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
         >
           <option value="">화장실</option>
-          <option value="1">1개</option>
-          <option value="2">2개</option>
-          <option value="3">3개</option>
-          <option value="4+">4개 이상</option>
+          {bathroomOptions.map((opt) => (
+            <option key={opt} value={opt}>{opt}</option>
+          ))}
         </select>
 
-        <select
+        {/* <select
           value={subwayLine}
           onChange={(e) => setSubwayLine(e.target.value)}
           className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -272,7 +327,7 @@ const SearchBar = () => {
           <option value="7">7호선</option>
           <option value="8">8호선</option>
           <option value="9">9호선</option>
-        </select>
+        </select> */}
       </div>
     </div>
   )
