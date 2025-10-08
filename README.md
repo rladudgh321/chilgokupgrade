@@ -36,11 +36,5 @@ rm -f ~/.gemini/settings.json
 ##api/inquiries/orders/route.ts에서는 post 요청이 prisma 방식으로 api작성됨 rls할때 참고.
 
 ------
-
-. Installed Dependencies: Added
-      @tanstack/react-virtual for list
-      virtualization and axios for data        
-      fetching.
-  This new implementation provides a more 
-  modern, performant, and user-friendly 
-  experience for browsing listings.
+데이터가 안흐른다고 생각할 때는 양쪽의 데이터를 설명한다
+예를들면 클라이언트의 데이터console.log와 백엔드의 데이터 console.log를 확인해본다

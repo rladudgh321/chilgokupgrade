@@ -110,6 +110,76 @@ export async function GET(req: NextRequest) {
       }
     }
 
+    const floor = searchParams.get("floor")?.trim();
+    if (floor) {
+        console.log(`[DEBUG] Raw floor param: ${floor}`);
+        const filters = [];
+        if (floor.includes("~")) {
+            const [minStr, maxStr] = floor.replace(/층/g, "").split("~");
+            console.log(`[DEBUG] Floor min string: ${minStr}, max string: ${maxStr}`);
+            const min = Number(minStr);
+            const max = Number(maxStr);
+            console.log(`[DEBUG] Floor min value: ${min}, max value: ${max}`);
+            if (!isNaN(min)) {
+                filters.push(`currentFloor.gte.${min}`);
+            }
+            if (maxStr && !isNaN(Number(maxStr))) {
+                filters.push(`currentFloor.lte.${Number(maxStr)}`);
+            }
+        } else {
+            const singleFloor = Number(floor.replace("층", ""));
+            console.log(`[DEBUG] Single floor value: ${singleFloor}`);
+            if (!isNaN(singleFloor)) {
+                filters.push(`currentFloor.eq.${singleFloor}`);
+            }
+        }
+
+        if (filters.length > 0) {
+            console.log(`[DEBUG] Applying floor filters: ${filters.join(",")}`);
+            q = q.and(filters.join(","));
+        }
+    }
+
+    const priceRange = searchParams.get("priceRange")?.trim();
+    if (priceRange && dealType) {
+        let priceField = "";
+        if (dealType === "전세") {
+            priceField = "lumpSumPrice";
+        } else if (dealType === "월세") {
+            priceField = "rentalPrice";
+        } else if (dealType === "매매") {
+            priceField = "salePrice";
+        }
+
+        if (priceField) {
+            const filters = [];
+            if (priceRange.includes("~")) {
+                const [minStr, maxStr] = priceRange.split("~");
+                const min = koreanToNumber(minStr);
+                const max = koreanToNumber(maxStr);
+                if (min !== null) {
+                    filters.push(`${priceField}.gte.${min}`);
+                }
+                if (max !== null) {
+                    filters.push(`${priceField}.lte.${max}`);
+                }
+            } else if (priceRange.includes("이상")) {
+                const min = koreanToNumber(priceRange.replace("이상", ""));
+                if (min !== null) {
+                    filters.push(`${priceField}.gte.${min}`);
+                }
+            } else if (priceRange.includes("이하")) {
+                const max = koreanToNumber(priceRange.replace("이하", ""));
+                if (max !== null) {
+                    filters.push(`${priceField}.lte.${max}`);
+                }
+            }
+
+            if (filters.length > 0) {
+                q = q.and(filters.join(","));
+            }
+        }
+    }
     console.log(q);
     const { data, error, count } = await q;
 

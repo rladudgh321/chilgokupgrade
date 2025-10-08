@@ -59,6 +59,7 @@ function LandSearchClientContent({ initialListings }: Props) {
     currentSearchParams.forEach((value, key) => {
       params[key] = value;
     });
+    console.log("Current Query Params:", params);
     return params;
   }, [currentSearchParams]);
 
@@ -154,6 +155,34 @@ function LandSearchClientContent({ initialListings }: Props) {
       }
     }
 
+    const floor = queryParams.floor;
+    if (floor) {
+        listings = listings.filter(listing => {
+            const currentFloor = listing.currentFloor;
+            if (currentFloor === undefined || currentFloor === null) return false;
+
+            if (floor.includes("~")) {
+                const [minStr, maxStr] = floor.replace(/층/g, "").split("~");
+                const min = Number(minStr);
+                const max = Number(maxStr);
+                let passesMin = true;
+                let passesMax = true;
+                if (!isNaN(min)) {
+                    passesMin = currentFloor >= min;
+                }
+                if (maxStr && !isNaN(Number(maxStr))) {
+                    passesMax = currentFloor <= Number(maxStr);
+                }
+                return passesMin && passesMax;
+            } else {
+                const singleFloor = Number(floor.replace("층", ""));
+                if (!isNaN(singleFloor)) {
+                    return currentFloor === singleFloor;
+                }
+            }
+            return true;
+        });
+    }
 
     if (filteredIds === null) {
       return listings;

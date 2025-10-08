@@ -15,7 +15,6 @@ export default async function Page({ searchParams }: { searchParams: { [key: str
     propertyType,
     dealType,
   }, sortBy);
-
   return (
     <LandSearchClient 
       initialListings={processedListings ?? []}
