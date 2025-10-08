@@ -189,6 +189,46 @@ function LandSearchClientContent({ initialListings }: Props) {
         });
     }
 
+    const areaRange = queryParams.areaRange;
+    if (areaRange) {
+        const PYEONG_TO_M2 = 3.305785;
+        listings = listings.filter(listing => {
+            const totalArea = listing.totalArea;
+            if (totalArea === undefined || totalArea === null) return false;
+
+            // "20평~30평"
+            if (areaRange.includes("~")) {
+                const [minStr, maxStr] = areaRange.replace(/평/g, "").split("~");
+                const minPyeong = Number(minStr);
+                const maxPyeong = Number(maxStr);
+                let passesMin = true;
+                let passesMax = true;
+                if (!isNaN(minPyeong)) {
+                    passesMin = totalArea >= minPyeong * PYEONG_TO_M2;
+                }
+                if (maxStr && !isNaN(Number(maxStr))) {
+                    passesMax = totalArea <= maxPyeong * PYEONG_TO_M2;
+                }
+                return passesMin && passesMax;
+            } 
+            // "20평이상"
+            else if (areaRange.includes("이상")) {
+                const minPyeong = Number(areaRange.replace("평이상", ""));
+                if (!isNaN(minPyeong)) {
+                    return totalArea >= minPyeong * PYEONG_TO_M2;
+                }
+            } 
+            // "20평이하"
+            else if (areaRange.includes("이하")) {
+                const maxPyeong = Number(areaRange.replace("평이하", ""));
+                if (!isNaN(maxPyeong)) {
+                    return totalArea <= maxPyeong * PYEONG_TO_M2;
+                }
+            }
+            return true;
+        });
+    }
+
     if (filteredIds === null) {
       return listings;
     }

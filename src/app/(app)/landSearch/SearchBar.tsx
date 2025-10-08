@@ -50,6 +50,7 @@ const SearchBar = () => {
   }, [dealType, buyTypeOptions]);
   const [bathroomOptions, setBathroomOptions] = useState<string[]>([])
   const [floorOptions, setFloorOptions] = useState<string[]>([])
+  const [areaOptions, setAreaOptions] = useState<string[]>([])
 
   // 방 갯수 옵션 로드
   useEffect(() => {
@@ -103,6 +104,25 @@ const SearchBar = () => {
         const names = items.map(x => x?.name).filter((v): v is string => typeof v === 'string' && v.length > 0)
         const uniq = Array.from(new Set<string>(names))
         if (isMounted) setFloorOptions(uniq)
+      } catch {
+        // ignore
+      }
+    })()
+    return () => { isMounted = false }
+  }, [])
+
+  // 면적 옵션 로드
+  useEffect(() => {
+    let isMounted = true
+    ;(async () => {
+      try {
+        const res = await fetch("/api/area", { cache: "no-store" })
+        if (!res.ok) return
+        const json = await res.json()
+        const items: Array<{ name?: string }> = json?.data ?? []
+        const names = items.map(x => x?.name).filter((v): v is string => typeof v === 'string' && v.length > 0)
+        const uniq = Array.from(new Set<string>(names))
+        if (isMounted) setAreaOptions(uniq)
       } catch {
         // ignore
       }
@@ -283,11 +303,9 @@ const SearchBar = () => {
           className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
         >
           <option value="">면적</option>
-          <option value="0-20">20평 이하</option>
-          <option value="20-30">20-30평</option>
-          <option value="30-40">30-40평</option>
-          <option value="40-50">40-50평</option>
-          <option value="50+">50평 이상</option>
+          {areaOptions.map((opt) => (
+            <option key={opt} value={opt}>{opt}</option>
+          ))}
         </select>
 
         <select
