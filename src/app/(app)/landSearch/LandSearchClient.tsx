@@ -174,6 +174,11 @@ function LandSearchClientContent({ initialListings }: Props) {
                     passesMax = currentFloor <= Number(maxStr);
                 }
                 return passesMin && passesMax;
+            } else if (floor.includes("이상")) {
+                const min = Number(floor.replace("층이상", ""));
+                if (!isNaN(min)) {
+                    return currentFloor >= min;
+                }
             } else {
                 const singleFloor = Number(floor.replace("층", ""));
                 if (!isNaN(singleFloor)) {
