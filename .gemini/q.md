@@ -1,1 +1,1 @@
-`/admin/listings/category-settings`페이지에서 SearchBar.tsx컴포넌트에 대한 설정을 하지만 여전히 `/card`나 `/landSeach`페이지에서는 보여지고 있어
+나는 `/card`페이지의 매물카드 리스트들처럼 CardSlide.tsx컴포넌트를 수정하고자해. CardItem.tsx컴포넌트를 재사용해줘

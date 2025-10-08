@@ -2,60 +2,57 @@
 
 import { useEffect, useMemo, useState } from "react";
 import CardSlide from "./shaped/CardSlide";
-import { ICardSlideProps } from "./shaped/type";
 
-type Build = {
+type Listing = {
+  id: number;
+  title?: string;
+  address?: string;
+  salePrice?: number;
+  isSalePriceEnabled?: boolean;
+  lumpSumPrice?: number;
+  isLumpSumPriceEnabled?: boolean;
+  actualEntryCost?: number;
+  isActualEntryCostEnabled?: boolean;
+  rentalPrice?: number;
+  isRentalPriceEnabled?: boolean;
+  halfLumpSumMonthlyRent?: number;
+  isHalfLumpSumMonthlyRentEnabled?: boolean;
+  deposit?: number;
+  isDepositEnabled?: boolean;
+  managementFee?: number;
+  isManagementFeeEnabled?: boolean;
+  propertyType?: string;
+  currentFloor?: number;
+  totalFloors?: number;
+  rooms?: number;
+  bathrooms?: number;
+  actualArea?: number;
+  supplyArea?: number;
+  mainImage?: string;
+  label?: string;
+  popularity?: string;
+  themes?: string[];
+  buildingOptions?: string[];
+  parking?: string[];
+  isAddressPublic?: string;
   visibility?: boolean;
-  popularity?: string | null;
-  subImage?: string[] | null;
-  mainImage?: string | null;
-  currentFloor?: number | null;
-  totalFloors?: number | null;
-  floorDescription?: string | null;
-  propertyType?: string | null;
-  rooms?: number | null;
-  title?: string | null;
-  buildingName?: string | null;
-  address?: string | null;
 };
 
 const RecommedLand = () => {
-  const [items, setItems] = useState<ICardSlideProps[]>([]);
+  const [items, setItems] = useState<Listing[]>([]);
 
   useEffect(() => {
     let aborted = false;
     const load = async () => {
       try {
-        const res = await fetch(`/api/supabase/build?limit=50`, { cache: "no-store" });
+        const res = await fetch(`/api/listings?sortBy=popular&limit=10`, { cache: "no-store" });
         const json = await res.json();
-        if (!json?.ok || !Array.isArray(json?.data)) return;
+        if (!json?.listings || !Array.isArray(json?.listings)) return;
 
-        const mapToCard = (b: Build): ICardSlideProps => {
-          const sub = Array.isArray(b?.subImage) ? b.subImage : [];
-          const image = b?.mainImage || sub[0] || "/img/main.png";
-          let floor = "";
-          if (b?.currentFloor && b?.totalFloors) {
-            floor = `${b.currentFloor}층/${b.totalFloors}층`;
-          } else if (b?.currentFloor) {
-            floor = `${b.currentFloor}층`;
-          }
-          return {
-            type: b?.propertyType ?? "",
-            floor,
-            rooms: b?.rooms != null ? String(b.rooms) : "",
-            image,
-            title: b?.title || b?.buildingName || b?.address || "매물",
-            description: b?.address || "",
-          };
-        };
-
-        const filtered = (json.data as Build[])
-          .filter((b) => b?.visibility !== false)
-          .filter((b) => b?.popularity === "인기")
-          .map(mapToCard);
-
-        if (!aborted) setItems(filtered);
-      } catch {}
+        if (!aborted) setItems(json.listings);
+      } catch (e) {
+        console.error(e);
+      }
     };
     load();
     return () => {
@@ -63,13 +60,13 @@ const RecommedLand = () => {
     };
   }, []);
 
-  const properties = useMemo(() => items, [items]);
+  const listings = useMemo(() => items, [items]);
 
   return (
     <div className="text-center p-6">
-      <h2 className="text-xl font-bold">이달의 추천 부동산</h2>
-      <p className="text-gray-600">다부 부동산이 추천하는 이 달의 매물을 확인해보세요!</p>
-      <CardSlide properties={properties} />
+      <h2 className="text-xl font-bold">이달의 인기 부동산</h2>
+      <p className="text-gray-600">이 달의 인기 매물을 확인해보세요!</p>
+      <CardSlide listings={listings} />
     </div>
   );
 };

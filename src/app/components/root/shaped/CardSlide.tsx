@@ -7,12 +7,45 @@ import "swiper/css";
 import "swiper/css/navigation";
 import "swiper/css/pagination";
 import "swiper/css/scrollbar";
-import Check from "../../svg/Check";
-import Layer from "../../svg/Layer";
-import Smile from "../../svg/Smile";
-import { ICardSlideProps } from "./type";
+import CardItem from "../../../(app)/card/CardItem";
 
-const CardSlide = ({properties}: {properties: ICardSlideProps[]}) => {
+type Listing = {
+  id: number;
+  title?: string;
+  address?: string;
+  salePrice?: number;
+  isSalePriceEnabled?: boolean;
+  lumpSumPrice?: number;
+  isLumpSumPriceEnabled?: boolean;
+  actualEntryCost?: number;
+  isActualEntryCostEnabled?: boolean;
+  rentalPrice?: number;
+  isRentalPriceEnabled?: boolean;
+  halfLumpSumMonthlyRent?: number;
+  isHalfLumpSumMonthlyRentEnabled?: boolean;
+  deposit?: number;
+  isDepositEnabled?: boolean;
+  managementFee?: number;
+  isManagementFeeEnabled?: boolean;
+  propertyType?: string;
+  currentFloor?: number;
+  totalFloors?: number;
+  rooms?: number;
+  bathrooms?: number;
+  actualArea?: number;
+  supplyArea?: number;
+  mainImage?: string;
+  label?: string;
+  popularity?: string;
+  themes?: string[];
+  buildingOptions?: string[];
+  parking?: string[];
+  isAddressPublic?: string;
+  visibility?: boolean;
+};
+
+
+const CardSlide = ({listings}: {listings: Listing[]}) => {
   const computeSlides = () => (globalThis.innerWidth < 768 ? 2 : 4);
   const computeMaxItems = () => {
     const w = globalThis.innerWidth;
@@ -41,32 +74,9 @@ const CardSlide = ({properties}: {properties: ICardSlideProps[]}) => {
         scrollbar={{ draggable: true }}
         className="mt-6"
       >
-        {properties.slice(0, maxItems).map((property, index) => (
-          <SwiperSlide key={index}>
-            <div className="border rounded-lg shadow-md overflow-hidden">
-              <div
-                className="h-[150px] bg-cover bg-center"
-                style={{ backgroundImage: `url(${property.image})` }}
-              />
-              <div className="p-4">
-                <h3 className="font-semibold">{property.title}</h3>
-                <p className="text-sm text-gray-500">{property.description}</p>
-                <div className="flex justify-around mt-3 text-sm text-gray-700">
-                  <div className="text-center">
-                    <Check className="mx-auto mb-1 w-5" />
-                    {property.type}
-                  </div>
-                  <div className="text-center">
-                    <Layer className="mx-auto mb-1 w-5" />
-                    {property.floor}
-                  </div>
-                  <div className="text-center">
-                    <Smile className="mx-auto mb-1 w-5" />
-                    {property.rooms}
-                  </div>
-                </div>
-              </div>
-            </div>
+        {listings.slice(0, maxItems).map((listing) => (
+          <SwiperSlide key={listing.id}>
+            <CardItem listing={listing} />
           </SwiperSlide>
         ))}
       </Swiper>
