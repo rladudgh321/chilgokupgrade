@@ -2,7 +2,7 @@
 
 import { useFormContext, useWatch } from "react-hook-form";
 import { useEffect, useState } from "react";
-import { numberToKorean } from "@/app/utility/NumberToKorean";
+import { numberToKoreanWithDigits } from "@/app/utility/NumberToKoreanWithDigits";
 
 const PriceInput = ({ name, label, enabledName }) => {
   const { register, watch } = useFormContext();
@@ -29,7 +29,7 @@ const PriceInput = ({ name, label, enabledName }) => {
           placeholder="숫자로만 입력"
           disabled={!isEnabled}
         />
-        {isEnabled && value > 0 && <span className="ml-2 text-sm text-gray-500 whitespace-nowrap">{numberToKorean(value)}</span>}
+        {isEnabled && value > 0 && <span className="ml-2 text-sm text-gray-500 whitespace-nowrap">{numberToKoreanWithDigits(value)}</span>}
       </div>
     </div>
   );
