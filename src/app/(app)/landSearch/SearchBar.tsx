@@ -20,8 +20,34 @@ const SearchBar = () => {
   const [subwayLine, setSubwayLine] = useState(searchParams.get("subwayLine") || "")
   const [themeOptions, setThemeOptions] = useState<string[]>([])
   const [propertyTypeOptions, setPropertyTypeOptions] = useState<string[]>([])
-  const [buyTypeOptions, setBuyTypeOptions] = useState<string[]>([])
+  const [buyTypeOptions, setBuyTypeOptions] = useState<Array<{id: number, name: string}>>([])
   const [roomOptions, setRoomOptions] = useState<string[]>([])
+  const [pricePresets, setPricePresets] = useState<Array<{id: number, name: string}>>([]);
+
+  // Fetch price presets when dealType changes
+  useEffect(() => {
+    if (dealType) {
+      const selectedBuyType = buyTypeOptions.find(bt => bt.name === dealType);
+      if (selectedBuyType) {
+        let isMounted = true;
+        (async () => {
+          try {
+            const res = await fetch(`/api/price-presets?buyTypeId=${selectedBuyType.id}`);
+            if (!res.ok) return;
+            const json = await res.json();
+            if (isMounted && json.ok) {
+              setPricePresets(json.data);
+            }
+          } catch {
+            // ignore
+          }
+        })();
+        return () => { isMounted = false };
+      }
+    } else {
+      setPricePresets([]);
+    }
+  }, [dealType, buyTypeOptions]);
   const [floorOptions, setFloorOptions] = useState<string[]>([])
   const [bathroomOptions, setBathroomOptions] = useState<string[]>([])
 
@@ -130,10 +156,9 @@ const SearchBar = () => {
         const res = await fetch("/api/buy-types", { cache: "no-store" })
         if (!res.ok) return
         const json = await res.json()
-        const items: Array<{ name?: string }> = json?.data ?? []
-        const names = items.map(x => x?.name).filter((v): v is string => typeof v === 'string' && v.length > 0)
-        const uniq = Array.from(new Set<string>(names))
-        if (isMounted) setBuyTypeOptions(uniq)
+        const items: Array<{ id: number, name?: string }> = json?.data ?? []
+        const options = items.map(x => ({ id: x.id, name: x.name || '' })).filter(x => x.name);
+        if (isMounted) setBuyTypeOptions(options)
       } catch {
         // ignore
       }
@@ -234,7 +259,7 @@ const SearchBar = () => {
         >
           <option value="">거래유형</option>
           {buyTypeOptions.map((opt) => (
-            <option key={opt} value={opt}>{opt}</option>
+            <option key={opt.id} value={opt.name}>{opt.name}</option>
           ))}
         </select>
 
@@ -242,14 +267,12 @@ const SearchBar = () => {
           value={priceRange}
           onChange={(e) => setPriceRange(e.target.value)}
           className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+          disabled={!dealType || pricePresets.length === 0}
         >
           <option value="">금액</option>
-          <option value="0-1">1억 이하</option>
-          <option value="1-2">1억-2억</option>
-          <option value="2-3">2억-3억</option>
-          <option value="3-5">3억-5억</option>
-          <option value="5-10">5억-10억</option>
-          <option value="10+">10억 이상</option>
+          {pricePresets.map((preset) => (
+            <option key={preset.id} value={preset.name}>{preset.name}</option>
+          ))}
         </select>
 
         <select

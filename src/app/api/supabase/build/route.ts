@@ -1,3 +1,4 @@
+import { koreanToNumber } from "@/app/utility/koreanToNumber";
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/app/utils/supabase/server";
 import { cookies } from "next/headers";
@@ -38,6 +39,8 @@ export async function GET(req: NextRequest) {
         { count: "exact" }
       )
       .is("deletedAt", null)
+
+
       
     // Sorting logic
     switch (sortBy) {

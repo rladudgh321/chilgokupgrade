@@ -1,6 +1,6 @@
 
 "use client";
-
+import { koreanToNumber } from "@/app/utility/koreanToNumber";
 import { useState, useMemo } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useInfiniteQuery, useQuery, QueryClient, QueryClientProvider } from "@tanstack/react-query";
@@ -18,7 +18,6 @@ type Listing = {
 
 type Props = {
   initialListings: Listing[];
-  searchParams: { [key: string]: string | string[] | undefined };
 };
 
 const fetchListings = async ({ pageParam = 1, queryKey }: any) => {
@@ -50,7 +49,7 @@ const fetchMapListings = async ({ queryKey }: any) => {
   return data.data; // The new endpoint wraps data in a `data` property
 };
 
-function LandSearchClientContent({ initialListings, searchParams: initialSearchParams }: Props) {
+function LandSearchClientContent({ initialListings }: Props) {
   const router = useRouter();
   const currentSearchParams = useSearchParams();
   const sortBy = currentSearchParams.get("sortBy") ?? "latest";
@@ -102,11 +101,65 @@ function LandSearchClientContent({ initialListings, searchParams: initialSearchP
   const [filteredIds, setFilteredIds] = useState<number[] | null>(null);
 
   const displayListings = useMemo(() => {
-    if (filteredIds === null) {
-      return allListings;
+    let listings = allListings;
+
+    const priceRange = queryParams.priceRange;
+    const dealType = queryParams.dealType;
+
+    if (priceRange && dealType) {
+      let priceField = "";
+      if (dealType === "전세") {
+        priceField = "lumpSumPrice";
+      } else if (dealType === "월세") {
+        priceField = "rentalPrice";
+      } else if (dealType === "매매") {
+        priceField = "salePrice";
+      }
+
+      if (priceField) {
+        listings = listings.filter(listing => {
+          const price = listing[priceField];
+          if (price === undefined || price === null) return false;
+
+          if (priceRange.includes("~")) {
+            const [minStr, maxStr] = priceRange.split("~");
+            const min = koreanToNumber(minStr);
+            const max = koreanToNumber(maxStr);
+            let passesMin = true;
+            let passesMax = true;
+            if (min !== null) {
+              console.log(`Comparing: ${price} >= ${min}`);
+              passesMin = price >= min;
+            }
+            if (max !== null) {
+              console.log(`Comparing: ${price} <= ${max}`);
+              passesMax = price <= max;
+            }
+            return passesMin && passesMax;
+          } else if (priceRange.includes("이상")) {
+            const min = koreanToNumber(priceRange.replace("이상", ""));
+            if (min !== null) {
+              console.log(`Comparing: ${price} >= ${min}`);
+              return price >= min;
+            }
+          } else if (priceRange.includes("이하")) {
+            const max = koreanToNumber(priceRange.replace("이하", ""));
+            if (max !== null) {
+              console.log(`Comparing: ${price} <= ${max}`);
+              return price <= max;
+            }
+          }
+          return true;
+        });
+      }
     }
-    return allListings.filter((listing) => filteredIds.includes(listing.id));
-  }, [allListings, filteredIds]);
+
+
+    if (filteredIds === null) {
+      return listings;
+    }
+    return listings.filter((listing) => filteredIds.includes(listing.id));
+  }, [allListings, filteredIds, queryParams]);
 
 
   const handleSortChange = (newSortBy: string) => {
