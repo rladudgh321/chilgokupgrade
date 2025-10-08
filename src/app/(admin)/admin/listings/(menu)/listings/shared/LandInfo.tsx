@@ -2,18 +2,60 @@
 
 import { useFormContext, useWatch } from "react-hook-form";
 import { useEffect, useState } from "react";
+import { numberToKorean } from "@/app/utility/NumberToKorean";
+
+const PriceInput = ({ name, label, enabledName }) => {
+  const { register, watch } = useFormContext();
+  const isEnabled = watch(enabledName);
+  const value = watch(name);
+
+  return (
+    <div className="flex flex-col">
+      <div className="flex items-center mb-1">
+        <input
+          id={`${enabledName}-checkbox`}
+          type="checkbox"
+          {...register(enabledName)}
+          className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"
+        />
+        <label htmlFor={name} className="ml-2 block text-sm font-medium text-gray-700">{label}</label>
+      </div>
+      <div className="flex items-center">
+        <input
+          id={name}
+          type="number"
+          {...register(name, { setValueAs: v => v === "" ? 0 : Number(v) })}
+          className={`mt-1 block w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${!isEnabled ? 'bg-gray-100 cursor-not-allowed' : ''}`}
+          placeholder="숫자로만 입력"
+          disabled={!isEnabled}
+        />
+        {isEnabled && value > 0 && <span className="ml-2 text-sm text-gray-500 whitespace-nowrap">{numberToKorean(value)}</span>}
+      </div>
+    </div>
+  );
+};
 
 const LandInfo = () => {
-  const { register, setValue, control } = useFormContext<{
+  const { register, setValue, control, watch } = useFormContext<{
     propertyType: string;
     dealType: string;
     dealScope: string;
-    visibility: boolean;        // ✅ 불린
+    visibility: boolean;
     priceDisplay: string;
     salePrice: number;
+    isSalePriceEnabled: boolean;
+    lumpSumPrice: number;
+    isLumpSumPriceEnabled: boolean;
     actualEntryCost: number;
+    isActualEntryCostEnabled: boolean;
     rentalPrice: number;
+    isRentalPriceEnabled: boolean;
+    halfLumpSumMonthlyRent: number;
+    isHalfLumpSumMonthlyRentEnabled: boolean;
+    deposit: number;
+    isDepositEnabled: boolean;
     managementFee: number;
+    isManagementFeeEnabled: boolean;
     managementEtc: string;
   }>();
 
@@ -155,49 +197,13 @@ const LandInfo = () => {
 
       {/* 숫자 입력들: 숫자로 보정 */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-        <div className="flex flex-col">
-          <label htmlFor="salePrice" className="block text-sm font-medium text-gray-700">분양가</label>
-          <input
-            id="salePrice"
-            type="number"
-            {...register("salePrice", { setValueAs: v => v === "" ? 0 : Number(v) })}
-            className="mt-1 block w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-            placeholder="숫자로만 입력"
-          />
-        </div>
-
-        <div className="flex flex-col">
-          <label htmlFor="actualEntryCost" className="block text-sm font-medium text-gray-700">실입주금</label>
-          <input
-            id="actualEntryCost"
-            type="number"
-            {...register("actualEntryCost", { setValueAs: v => v === "" ? 0 : Number(v) })}
-            className="mt-1 block w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-            placeholder="숫자로만 입력"
-          />
-        </div>
-
-        <div className="flex flex-col">
-          <label htmlFor="rentalPrice" className="block text-sm font-medium text-gray-700">전세가</label>
-          <input
-            id="rentalPrice"
-            type="number"
-            {...register("rentalPrice", { setValueAs: v => v === "" ? 0 : Number(v) })}
-            className="mt-1 block w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-            placeholder="숫자로만 입력"
-          />
-        </div>
-
-        <div className="flex flex-col">
-          <label htmlFor="managementFee" className="block text-sm font-medium text-gray-700">관리비</label>
-          <input
-            id="managementFee"
-            type="number"
-            {...register("managementFee", { setValueAs: v => v === "" ? 0 : Number(v) })}
-            className="mt-1 block w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-            placeholder="숫자로만 입력"
-          />
-        </div>
+        <PriceInput name="salePrice" label="분양가/매매가" enabledName="isSalePriceEnabled" />
+        <PriceInput name="lumpSumPrice" label="전세가" enabledName="isLumpSumPriceEnabled" />
+        <PriceInput name="actualEntryCost" label="실입주금" enabledName="isActualEntryCostEnabled" />
+        <PriceInput name="deposit" label="보증금" enabledName="isDepositEnabled" />
+        <PriceInput name="rentalPrice" label="월세" enabledName="isRentalPriceEnabled" />
+        <PriceInput name="halfLumpSumMonthlyRent" label="반전세의 월세" enabledName="isHalfLumpSumMonthlyRentEnabled" />
+        <PriceInput name="managementFee" label="관리비" enabledName="isManagementFeeEnabled" />
       </div>
 
       {/* 공개여부 (불린) */}
@@ -248,7 +254,7 @@ const LandInfo = () => {
           id="managementEtc"
           type="text"
           {...register("managementEtc")}
-          placeholder="기타사항"
+          placeholder="'경매에 나올 물건이다', '주인이 가격 할인 의지가 있다', '반전세가격은 전세가격마다 월세를 다르게 받을 수 있다' 등"
           className="mt-1 block w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
         />
       </div>

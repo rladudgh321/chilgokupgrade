@@ -105,9 +105,19 @@ function normalizeForForm(d: any, roomOptions: Option[], bathroomOptions: Option
     visibility: d.visibility ?? true, // ← 스키마가 boolean이면 boolean 유지
 
     salePrice: d.salePrice ?? 0,
+    isSalePriceEnabled: d.isSalePriceEnabled ?? false,
+    lumpSumPrice: d.lumpSumPrice ?? 0,
+    isLumpSumPriceEnabled: d.isLumpSumPriceEnabled ?? false,
     actualEntryCost: d.actualEntryCost ?? 0,
+    isActualEntryCostEnabled: d.isActualEntryCostEnabled ?? false,
     rentalPrice: d.rentalPrice ?? 0,
+    isRentalPriceEnabled: d.isRentalPriceEnabled ?? false,
+    halfLumpSumMonthlyRent: d.halfLumpSumMonthlyRent ?? 0,
+    isHalfLumpSumMonthlyRentEnabled: d.isHalfLumpSumMonthlyRentEnabled ?? false,
+    deposit: d.deposit ?? 0,
+    isDepositEnabled: d.isDepositEnabled ?? false,
     managementFee: d.managementFee ?? 0,
+    isManagementFeeEnabled: d.isManagementFeeEnabled ?? false,
     managementEtc: d.managementEtc ?? d.management_etc ?? "",
     
     currentFloor: d.currentFloor ?? 0,

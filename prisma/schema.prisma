@@ -25,9 +25,19 @@ model Build {
   visibility       Boolean?       @default(true)
   priceDisplay     String?
   salePrice        Int?
+  isSalePriceEnabled Boolean? @default(false)
+  lumpSumPrice     Int?
+  isLumpSumPriceEnabled Boolean? @default(false)
   actualEntryCost  Int?
+  isActualEntryCostEnabled Boolean? @default(false)
   rentalPrice      Int?
+  isRentalPriceEnabled Boolean? @default(false)
+  halfLumpSumMonthlyRent Int?
+  isHalfLumpSumMonthlyRentEnabled Boolean? @default(false)
+  deposit          Int?
+  isDepositEnabled Boolean? @default(false)
   managementFee    Int?
+  isManagementFeeEnabled Boolean? @default(false)
   managementEtc    String?
   popularity       String?
   labelId          Int?

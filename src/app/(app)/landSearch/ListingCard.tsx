@@ -11,44 +11,66 @@ import {
 
 type Props = {
   listing: {
-    id: number
-    title?: string
-    address?: string
-    salePrice?: number
-    actualEntryCost?: number
-    rentalPrice?: number
-    managementFee?: number
-    propertyType?: string
-    currentFloor?: number
-    totalFloors?: number
-    rooms?: number
-    bathrooms?: number
-    actualArea?: number
-    supplyArea?: number
-    mainImage?: string
-    label?: string
-    popularity?: string
-    themes?: string[]
-    buildingOptions?: string[]
-    parking?: string[]
-    isAddressPublic?: string
-    visibility?: boolean
-  }
-}
+    id: number;
+    title?: string;
+    address?: string;
+    salePrice?: number;
+    isSalePriceEnabled?: boolean;
+    lumpSumPrice?: number;
+    isLumpSumPriceEnabled?: boolean;
+    actualEntryCost?: number;
+    isActualEntryCostEnabled?: boolean;
+    rentalPrice?: number;
+    isRentalPriceEnabled?: boolean;
+    halfLumpSumMonthlyRent?: number;
+    isHalfLumpSumMonthlyRentEnabled?: boolean;
+    deposit?: number;
+    isDepositEnabled?: boolean;
+    managementFee?: number;
+    isManagementFeeEnabled?: boolean;
+    propertyType?: string;
+    currentFloor?: number;
+    totalFloors?: number;
+    rooms?: number;
+    bathrooms?: number;
+    actualArea?: number;
+    supplyArea?: number;
+    mainImage?: string;
+    label?: string;
+    popularity?: string;
+    themes?: string[];
+    buildingOptions?: string[];
+    parking?: string[];
+    isAddressPublic?: string;
+    visibility?: boolean;
+  };
+};
 
 const ListingCard = ({ listing }: Props) => {
   const formatPrice = (price: number | undefined) => {
-    if (!price) return ""
+    if (!price) return "";
     if (price >= 10000) {
-      return `${Math.floor(price / 10000)}억 ${(price % 10000).toLocaleString()}`
+      const 억 = Math.floor(price / 10000);
+      const 만 = price % 10000;
+      return `${억}억 ${만 > 0 ? `${만.toLocaleString()}만` : ''}`;
     }
-    return price.toLocaleString()
-  }
+    return `${price.toLocaleString()}만`;
+  };
 
   const formatArea = (area: number | undefined) => {
-    if (!area) return ""
-    return `${area}`
-  }
+    if (!area) return "";
+    return `${area}`;
+  };
+
+  const renderPrice = (label: string, value: number | undefined) => {
+    if (!value) return null;
+    return (
+      <div>
+        <span className="text-sm font-medium text-gray-600 mr-2">{label}</span>
+        <span className="text-lg font-bold text-gray-900">{formatPrice(value)}</span>
+      </div>
+    );
+  };
 
   return (
     <div className="border bg-white rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-shadow duration-300">
@@ -98,23 +120,13 @@ const ListingCard = ({ listing }: Props) => {
           </p>
 
           {/* Price */}
-          <div className="mb-3">
-            {listing.salePrice && (
-              <p className="text-xl font-bold text-gray-900">
-                <span className="text-sm font-medium text-gray-600 mr-2">
-                  매매
-                </span>
-                {formatPrice(listing.salePrice)}
-              </p>
-            )}
-            {listing.rentalPrice && (
-              <p className="text-xl font-bold text-gray-900">
-                <span className="text-sm font-medium text-gray-600 mr-2">
-                  전세
-                </span>
-                {formatPrice(listing.rentalPrice)}
-              </p>
-            )}
+          <div className="mb-3 space-y-1">
+            {listing.isSalePriceEnabled && renderPrice("매매", listing.salePrice)}
+            {listing.isLumpSumPriceEnabled && renderPrice("전세", listing.lumpSumPrice)}
+            {listing.isActualEntryCostEnabled && renderPrice("실입주금", listing.actualEntryCost)}
+            {listing.isDepositEnabled && renderPrice("보증금", listing.deposit)}
+            {listing.isRentalPriceEnabled && renderPrice("월세", listing.rentalPrice)}
+            {listing.isHalfLumpSumMonthlyRentEnabled && renderPrice("반전세 월세", listing.halfLumpSumMonthlyRent)}
           </div>
 
           {/* Details Grid */}
@@ -150,7 +162,7 @@ const ListingCard = ({ listing }: Props) => {
                 <span>{listing.parking.join(", ")}</span>
               </div>
             )}
-            {listing.managementFee && (
+            {listing.isManagementFeeEnabled && listing.managementFee && (
               <div className="flex items-center gap-1.5">
                 <Coins className="w-4 h-4 text-gray-500 flex-shrink-0" />
                 <span>
@@ -163,6 +175,6 @@ const ListingCard = ({ listing }: Props) => {
       </div>
     </div>
   );
-}
+};
 
-export default ListingCard
+export default ListingCard;

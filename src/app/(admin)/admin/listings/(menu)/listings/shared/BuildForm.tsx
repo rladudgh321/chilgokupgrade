@@ -25,12 +25,22 @@ export interface FormData {
   propertyType: string;
   dealType: string;
   dealScope: string;
-  visibility: string;
+  visibility: boolean;
   priceDisplay: string;
   salePrice: number;
+  isSalePriceEnabled: boolean;
+  lumpSumPrice: number;
+  isLumpSumPriceEnabled: boolean;
   actualEntryCost: number;
+  isActualEntryCostEnabled: boolean;
   rentalPrice: number;
+  isRentalPriceEnabled: boolean;
+  halfLumpSumMonthlyRent: number;
+  isHalfLumpSumMonthlyRentEnabled: boolean;
+  deposit: number;
+  isDepositEnabled: boolean;
   managementFee: number;
+  isManagementFeeEnabled: boolean;
   managementEtc: string;
 
   // BuildBasic
@@ -108,9 +118,19 @@ export const BASE_DEFAULTS: FormData = {
   visibility: "",
   priceDisplay: "",
   salePrice: 0,
+  isSalePriceEnabled: false,
+  lumpSumPrice: 0,
+  isLumpSumPriceEnabled: false,
   actualEntryCost: 0,
+  isActualEntryCostEnabled: false,
   rentalPrice: 0,
+  isRentalPriceEnabled: false,
+  halfLumpSumMonthlyRent: 0,
+  isHalfLumpSumMonthlyRentEnabled: false,
+  deposit: 0,
+  isDepositEnabled: false,
   managementFee: 0,
+  isManagementFeeEnabled: false,
   managementEtc: "",
 
   popularity: "",
