@@ -30,6 +30,13 @@ export async function PUT(
       return NextResponse.json({ ok: false, error }, { status: 400 });
     }
 
+    if (!data || data.length === 0) {
+      return NextResponse.json(
+        { ok: false, error: { message: "수정할 항목을 찾을 수 없습니다." } },
+        { status: 404 }
+      );
+    }
+
     return NextResponse.json(
       { ok: true, message: "금액이 수정되었습니다.", data: data[0] },
       { status: 200 }

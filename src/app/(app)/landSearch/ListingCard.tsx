@@ -46,15 +46,12 @@ type Props = {
   };
 };
 
+import { numberToKoreanWithDigits } from "@/app/utility/NumberToKoreanWithDigits";
+
 const ListingCard = ({ listing }: Props) => {
   const formatPrice = (price: number | undefined) => {
     if (!price) return "";
-    if (price >= 10000) {
-      const 억 = Math.floor(price / 10000);
-      const 만 = price % 10000;
-      return `${억}억 ${만 > 0 ? `${만.toLocaleString()}만` : ''}`;
-    }
-    return `${price.toLocaleString()}만`;
+    return numberToKoreanWithDigits(price);
   };
 
   const formatArea = (area: number | undefined) => {

@@ -199,7 +199,7 @@ const PricePresetManager = ({ buyTypeId }: PricePresetManagerProps) => {
             id={item.id}
             name={item.name}
             moveItem={moveItem}
-            onEdit={(newName) => handleEditItem(item.id, newName)}
+            onEdit={(oldName, newName) => handleEditItem(item.id, newName)}
             onDelete={() => handleDeleteItem(item.id, item.name)}
             disabled={loading}
           />
