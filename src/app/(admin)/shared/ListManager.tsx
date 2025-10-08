@@ -145,7 +145,7 @@ const ListManager = ({ title, placeholder, buttonText, apiEndpoint='', enableIma
           headers: {
             'Content-Type': 'application/json',
           },
-          body: JSON.stringify({ name: newItem.trim() }),
+          body: JSON.stringify({ label: newItem.trim() }),
         });
 
         const result = await response.json();
@@ -211,8 +211,8 @@ const ListManager = ({ title, placeholder, buttonText, apiEndpoint='', enableIma
     try {
       setLoading(true);
       const isBuyTypes = apiEndpoint === '/api/buy-types';
-      const queryParam = isBuyTypes ? 'name' : 'id';
-      const queryValue = isBuyTypes ? name : id;
+      const queryParam = isBuyTypes ? 'name' : 'label';
+      const queryValue = isBuyTypes ? name : name;
 
       const response = await fetch(`${apiEndpoint}?${queryParam}=${encodeURIComponent(queryValue)}`, {
         method: 'DELETE',
