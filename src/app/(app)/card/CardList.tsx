@@ -1,88 +1,49 @@
 "use client"
-import { useState, useEffect, useCallback } from "react"
+import { useState, useEffect, useCallback, useMemo } from "react"
 import { useInfiniteQuery } from "@tanstack/react-query"
 import CardItem from "./CardItem"
-import { BuildFindAll } from "@/app/apis/build"
+import SearchBar from "../landSearch/SearchBar"
+import { useRouter, useSearchParams } from "next/navigation"
+import axios from "axios"
+import { koreanToNumber } from "@/app/utility/koreanToNumber"
 
 const LIMIT = 12
 
+const fetchListings = async ({ pageParam = 1, queryKey }: any) => {
+  const [_, searchParams] = queryKey;
+  const params = new URLSearchParams();
+
+  // We only pass filters that the API can handle
+  params.set("page", pageParam.toString());
+  params.set("limit", LIMIT.toString());
+  if (searchParams.keyword) params.set("keyword", searchParams.keyword);
+  if (searchParams.theme) params.set("theme", searchParams.theme);
+  if (searchParams.propertyType) params.set("propertyType", searchParams.propertyType);
+  if (searchParams.dealType) params.set("dealType", searchParams.dealType);
+  if (searchParams.rooms) params.set("rooms", searchParams.rooms);
+  if (searchParams.bathrooms) params.set("bathrooms", searchParams.bathrooms);
+  if (searchParams.sortBy) params.set("sortBy", searchParams.sortBy);
+
+
+  const { data } = await axios.get(`/api/listings?${params.toString()}`);
+  return data;
+};
+
+
 const CardList = () => {
-  const [searchTerm, setSearchTerm] = useState("")
-  const [sortBy, setSortBy] = useState("recommended")
-  const [filters, setFilters] = useState({
-    propertyType: "",
-    dealType: "",
-    priceRange: "",
-    areaRange: "",
-    theme: "",
-    rooms: "",
-    floor: "",
-    bathrooms: "",
-    subwayLine: "",
-  })
+  const router = useRouter()
+  const searchParams = useSearchParams()
 
-  const [themeOptions, setThemeOptions] = useState<string[]>([])
-  const [propertyTypeOptions, setPropertyTypeOptions] = useState<string[]>([])
-  const [buyTypeOptions, setBuyTypeOptions] = useState<string[]>([])
+  const sortBy = searchParams.get("sortBy") || "recommended"
 
-  useEffect(() => {
-    let isMounted = true
-    ;(async () => {
-      try {
-        const res = await fetch("/api/theme-images", { cache: "no-store" })
-        if (!res.ok) return
-        const json = await res.json()
-        const items: Array<{ label?: string; isActive?: boolean }> = json?.data ?? []
-        const labels = items
-          .filter((x) => x && x.label && (x.isActive === undefined || x.isActive === true))
-          .map((x) => String(x.label))
-        if (isMounted) setThemeOptions(labels)
-      } catch {
-        // ignore
-      }
-    })()
-    return () => {
-      isMounted = false
-    }
-  }, [])
+  const queryParams = useMemo(() => {
+    const params: { [key: string]: string } = {};
+    searchParams.forEach((value, key) => {
+      params[key] = value;
+    });
+    return params;
+  }, [searchParams]);
 
-  // 매물종류 옵션 로드
-  useEffect(() => {
-    let isMounted = true
-    ;(async () => {
-      try {
-        const res = await fetch("/api/listing-type", { cache: "no-store" })
-        if (!res.ok) return
-        const json = await res.json()
-        const items: Array<{ name?: string }> = json?.data ?? []
-        const names = items.map(x => x?.name).filter((v): v is string => typeof v === 'string' && v.length > 0)
-        const uniq = Array.from(new Set<string>(names))
-        if (isMounted) setPropertyTypeOptions(uniq)
-      } catch {
-        // ignore
-      }
-    })()
-    return () => { isMounted = false }
-  }, [])
-
-  // 거래유형 옵션 로드
-  useEffect(() => {
-    let isMounted = true
-    ;(async () => {
-      try {
-        const res = await fetch("/api/buy-types", { cache: "no-store" })
-        if (!res.ok) return
-        const json = await res.json()
-        const items: Array<{ name?: string }> = json?.data ?? []
-        const names = items.map(x => x?.name).filter((v): v is string => typeof v === 'string' && v.length > 0)
-        const uniq = Array.from(new Set<string>(names))
-        if (isMounted) setBuyTypeOptions(uniq)
-      } catch {
-        // ignore
-      }
-    })()
-    return () => { isMounted = false }
-  }, [])
 
   // 무한 스크롤 쿼리
   const {
@@ -93,12 +54,13 @@ const CardList = () => {
     isLoading,
     isError,
   } = useInfiniteQuery({
-    queryKey: ["builds", "card", searchTerm, sortBy, filters],
-    queryFn: ({ pageParam = 1 }) => 
-      BuildFindAll(pageParam, LIMIT, searchTerm, { theme: filters.theme, propertyType: filters.propertyType, dealType: filters.dealType }),
-    getNextPageParam: (lastPage, pages) => {
-      if (lastPage.data.length < LIMIT) return undefined
-      return pages.length + 1
+    queryKey: ["listings", queryParams],
+    queryFn: fetchListings,
+    getNextPageParam: (lastPage) => {
+      if (lastPage.currentPage < lastPage.totalPages) {
+        return lastPage.currentPage + 1;
+      }
+      return undefined;
     },
     initialPageParam: 1,
   })
@@ -120,29 +82,144 @@ const CardList = () => {
     return () => window.removeEventListener("scroll", handleScroll)
   }, [handleScroll])
 
-  // 필터 초기화
-  const handleReset = () => {
-    setSearchTerm("")
-    setFilters({
-      propertyType: "",
-      dealType: "",
-      priceRange: "",
-      areaRange: "",
-      theme: "",
-      rooms: "",
-      floor: "",
-      bathrooms: "",
-      subwayLine: "",
-    })
-  }
+  const handleSortChange = (newSortBy: string) => {
+    const params = new URLSearchParams(searchParams.toString());
+    params.set("sortBy", newSortBy);
+    router.push(`/card?${params.toString()}`);
+  };
 
-  // 필터 변경
-  const handleFilterChange = (key: string, value: string) => {
-    setFilters(prev => ({ ...prev, [key]: value }))
-  }
 
   // 모든 매물 데이터 수집
-  const allListings = data?.pages.flatMap(page => page.data) || []
+  const allListings = useMemo(() => {
+    if (!data) return [];
+    const listings = data.pages.flatMap((page) => page.listings);
+    const uniqueListings = Array.from(new Map(listings.map(item => [item.id, item])).values());
+    return uniqueListings;
+  }, [data]);
+
+  const displayListings = useMemo(() => {
+    let listings = allListings;
+
+    const priceRange = queryParams.priceRange;
+    const dealType = queryParams.dealType;
+
+    if (priceRange && dealType) {
+      let priceField = "";
+      if (dealType === "전세") {
+        priceField = "lumpSumPrice";
+      } else if (dealType === "월세") {
+        priceField = "rentalPrice";
+      } else if (dealType === "매매") {
+        priceField = "salePrice";
+      }
+
+      if (priceField) {
+        listings = listings.filter(listing => {
+          const price = listing[priceField];
+          if (price === undefined || price === null) return false;
+
+          if (priceRange.includes("~")) {
+            const [minStr, maxStr] = priceRange.split("~");
+            const min = koreanToNumber(minStr);
+            const max = koreanToNumber(maxStr);
+            let passesMin = true;
+            let passesMax = true;
+            if (min !== null) {
+              passesMin = price >= min;
+            }
+            if (max !== null) {
+              passesMax = price <= max;
+            }
+            return passesMin && passesMax;
+          } else if (priceRange.includes("이상")) {
+            const min = koreanToNumber(priceRange.replace("이상", ""));
+            if (min !== null) {
+              return price >= min;
+            }
+          } else if (priceRange.includes("이하")) {
+            const max = koreanToNumber(priceRange.replace("이하", ""));
+            if (max !== null) {
+              return price <= max;
+            }
+          }
+          return true;
+        });
+      }
+    }
+
+    const floor = queryParams.floor;
+    if (floor) {
+        listings = listings.filter(listing => {
+            const currentFloor = listing.currentFloor;
+            if (currentFloor === undefined || currentFloor === null) return false;
+
+            if (floor.includes("~")) {
+                const [minStr, maxStr] = floor.replace(/층/g, "").split("~");
+                const min = Number(minStr);
+                const max = Number(maxStr);
+                let passesMin = true;
+                let passesMax = true;
+                if (!isNaN(min)) {
+                    passesMin = currentFloor >= min;
+                }
+                if (maxStr && !isNaN(Number(maxStr))) {
+                    passesMax = currentFloor <= Number(maxStr);
+                }
+                return passesMin && passesMax;
+            } else if (floor.includes("이상")) {
+                const min = Number(floor.replace("층이상", ""));
+                if (!isNaN(min)) {
+                    return currentFloor >= min;
+                }
+            } else {
+                const singleFloor = Number(floor.replace("층", ""));
+                if (!isNaN(singleFloor)) {
+                    return currentFloor === singleFloor;
+                }
+            }
+            return true;
+        });
+    }
+
+    const areaRange = queryParams.areaRange;
+    if (areaRange) {
+        const PYEONG_TO_M2 = 3.305785;
+        listings = listings.filter(listing => {
+            const totalArea = listing.totalArea;
+            if (totalArea === undefined || totalArea === null) return false;
+
+            if (areaRange.includes("~")) {
+                const [minStr, maxStr] = areaRange.replace(/평/g, "").split("~");
+                const minPyeong = Number(minStr);
+                const maxPyeong = Number(maxStr);
+                let passesMin = true;
+                let passesMax = true;
+                if (!isNaN(minPyeong)) {
+                    passesMin = totalArea >= minPyeong * PYEONG_TO_M2;
+                }
+                if (maxStr && !isNaN(Number(maxStr))) {
+                    passesMax = totalArea <= maxPyeong * PYEONG_TO_M2;
+                }
+                return passesMin && passesMax;
+            }
+            else if (areaRange.includes("이상")) {
+                const minPyeong = Number(areaRange.replace("평이상", ""));
+                if (!isNaN(minPyeong)) {
+                    return totalArea >= minPyeong * PYEONG_TO_M2;
+                }
+            }
+            else if (areaRange.includes("이하")) {
+                const maxPyeong = Number(areaRange.replace("평이하", ""));
+                if (!isNaN(maxPyeong)) {
+                    return totalArea <= maxPyeong * PYEONG_TO_M2;
+                }
+            }
+            return true;
+        });
+    }
+
+    return listings;
+  }, [allListings, queryParams]);
 
   if (isLoading) {
     return (
@@ -160,7 +237,7 @@ const CardList = () => {
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
           <p className="text-red-600 mb-4">데이터를 불러오는 중 오류가 발생했습니다.</p>
-          <button 
+          <button
             onClick={() => window.location.reload()}
             className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600"
           >
@@ -175,149 +252,7 @@ const CardList = () => {
     <div className="min-h-screen bg-gray-50">
       {/* 검색 바 */}
       <div className="bg-white shadow-sm border-b">
-        <div className="p-4">
-          <div className="flex items-center gap-4 mb-4">
-            {/* 검색 입력 */}
-            <div className="flex-1">
-              <input
-                type="text"
-                placeholder="관심지역 또는 매물번호를 입력"
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
-            </div>
-            
-            {/* 초기화 버튼 */}
-            <button 
-              onClick={handleReset}
-              className="px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition-colors"
-            >
-              초기화
-            </button>
-          </div>
-
-          {/* 필터 옵션들 */}
-          <div className="grid grid-cols-5 gap-4">
-            <select 
-              value={filters.propertyType}
-              onChange={(e) => handleFilterChange("propertyType", e.target.value)}
-              className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-            >
-              <option value="">매물 종류</option>
-              {(propertyTypeOptions && propertyTypeOptions.length > 0
-                ? propertyTypeOptions
-                : ["아파트","신축빌라","원룸","투룸","쓰리룸","사무실","상가","오피스텔"]
-              ).map((opt) => (
-                <option key={opt} value={opt}>{opt}</option>
-              ))}
-            </select>
-
-            <select 
-              value={filters.dealType}
-              onChange={(e) => handleFilterChange("dealType", e.target.value)}
-              className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-            >
-              <option value="">거래유형</option>
-              {buyTypeOptions.map((opt) => (
-                <option key={opt} value={opt}>{opt}</option>
-              ))}
-            </select>
-
-            <select 
-              value={filters.priceRange}
-              onChange={(e) => handleFilterChange("priceRange", e.target.value)}
-              className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-            >
-              <option value="">금액</option>
-              <option value="0-1">1억 이하</option>
-              <option value="1-2">1억-2억</option>
-              <option value="2-3">2억-3억</option>
-              <option value="3-5">3억-5억</option>
-              <option value="5-10">5억-10억</option>
-              <option value="10+">10억 이상</option>
-            </select>
-
-            <select 
-              value={filters.areaRange}
-              onChange={(e) => handleFilterChange("areaRange", e.target.value)}
-              className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-            >
-              <option value="">면적</option>
-              <option value="0-20">20평 이하</option>
-              <option value="20-30">20-30평</option>
-              <option value="30-40">30-40평</option>
-              <option value="40-50">40-50평</option>
-              <option value="50+">50평 이상</option>
-            </select>
-
-            <select 
-              value={filters.theme}
-              onChange={(e) => handleFilterChange("theme", e.target.value)}
-              className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-            >
-              <option value="">테마</option>
-              {themeOptions.map((label) => (
-                <option key={label} value={label}>{label}</option>
-              ))}
-            </select>
-
-            <select 
-              value={filters.rooms}
-              onChange={(e) => handleFilterChange("rooms", e.target.value)}
-              className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-            >
-              <option value="">방</option>
-              <option value="1">1룸</option>
-              <option value="2">2룸</option>
-              <option value="3">3룸</option>
-              <option value="4">4룸</option>
-              <option value="5+">5룸 이상</option>
-            </select>
-
-            <select 
-              value={filters.floor}
-              onChange={(e) => handleFilterChange("floor", e.target.value)}
-              className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-            >
-              <option value="">층수</option>
-              <option value="1-3">1-3층</option>
-              <option value="4-6">4-6층</option>
-              <option value="7-10">7-10층</option>
-              <option value="11-20">11-20층</option>
-              <option value="20+">20층 이상</option>
-            </select>
-
-            <select 
-              value={filters.bathrooms}
-              onChange={(e) => handleFilterChange("bathrooms", e.target.value)}
-              className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-            >
-              <option value="">화장실</option>
-              <option value="1">1개</option>
-              <option value="2">2개</option>
-              <option value="3">3개</option>
-              <option value="4+">4개 이상</option>
-            </select>
-
-            <select 
-              value={filters.subwayLine}
-              onChange={(e) => handleFilterChange("subwayLine", e.target.value)}
-              className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-            >
-              <option value="">호선 검색</option>
-              <option value="1">1호선</option>
-              <option value="2">2호선</option>
-              <option value="3">3호선</option>
-              <option value="4">4호선</option>
-              <option value="5">5호선</option>
-              <option value="6">6호선</option>
-              <option value="7">7호선</option>
-              <option value="8">8호선</option>
-              <option value="9">9호선</option>
-            </select>
-          </div>
-        </div>
+        <SearchBar />
       </div>
 
       {/* 메인 콘텐츠 */}
@@ -327,13 +262,12 @@ const CardList = () => {
           {[
             { key: "latest", label: "최신순" },
             { key: "popular", label: "인기순" },
-            { key: "recommended", label: "추천순" },
-            { key: "price-asc", label: "금액순↑" },
-            { key: "area-asc", label: "면적순↑" },
+            { key: "price-desc", label: "금액순↓" },
+            { key: "area-desc", label: "면적순↓" },
           ].map((option) => (
             <button
               key={option.key}
-              onClick={() => setSortBy(option.key)}
+              onClick={() => handleSortChange(option.key)}
               className={`px-4 py-3 text-sm font-medium border-b-2 transition-colors ${
                 sortBy === option.key
                   ? "border-blue-500 text-blue-600"
@@ -347,13 +281,13 @@ const CardList = () => {
 
         {/* 3열 그리드 */}
         <div className="grid grid-cols-3 gap-6">
-          {allListings.map((listing) => (
+          {displayListings.map((listing) => (
             <CardItem key={listing.id} listing={listing} />
           ))}
         </div>
 
         {/* 매물이 없을 때 */}
-        {allListings.length === 0 && (
+        {displayListings.length === 0 && (
           <div className="flex items-center justify-center h-64 text-gray-500">
             <p>표시할 매물이 없습니다.</p>
           </div>
@@ -368,7 +302,7 @@ const CardList = () => {
         )}
 
         {/* 더 이상 로드할 데이터가 없을 때 */}
-        {!hasNextPage && allListings.length > 0 && (
+        {!hasNextPage && displayListings.length > 0 && (
           <div className="flex items-center justify-center mt-8 text-gray-500">
             <p>모든 매물을 불러왔습니다.</p>
           </div>

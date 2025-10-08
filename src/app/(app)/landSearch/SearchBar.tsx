@@ -1,6 +1,6 @@
 "use client"
 import { useEffect, useState, useRef } from "react"
-import { useRouter, useSearchParams } from "next/navigation"
+import { useRouter, useSearchParams, usePathname } from "next/navigation"
 
 const SearchBar = () => {
   const router = useRouter()
@@ -198,13 +198,14 @@ const SearchBar = () => {
     }
   }, [searchTerm])
 
+  const pathname = usePathname()
   useEffect(() => {
     if (isInitialMount.current) {
       isInitialMount.current = false
       return
     }
 
-    const query: { [key: string]: string } = { page: "1" };
+    const query: { [key:string]: string } = { page: "1" };
 
     if (debouncedSearchTerm) query.keyword = debouncedSearchTerm;
     if (propertyType) query.propertyType = propertyType;
@@ -217,8 +218,8 @@ const SearchBar = () => {
     if (bathrooms) query.bathrooms = bathrooms;
     if (subwayLine) query.subwayLine = subwayLine;
 
-    router.push(`/landSearch?${new URLSearchParams(query).toString()}`);
-  }, [debouncedSearchTerm, propertyType, dealType, priceRange, areaRange, theme, rooms, floor, bathrooms, subwayLine, router])
+    router.push(`${pathname}?${new URLSearchParams(query).toString()}`);
+  }, [debouncedSearchTerm, propertyType, dealType, priceRange, areaRange, theme, rooms, floor, bathrooms, subwayLine, router, pathname])
 
   const handleReset = () => {
     setSearchTerm("")
@@ -231,7 +232,7 @@ const SearchBar = () => {
     setFloor("")
     setBathrooms("")
     setSubwayLine("")
-    router.push("/landSearch")
+    router.push(pathname)
   }
 
   return (

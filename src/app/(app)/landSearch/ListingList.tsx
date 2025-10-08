@@ -24,8 +24,8 @@ const ListingList = ({
   const sortOptions = [
     { key: "latest", label: "최신순" },
     { key: "popular", label: "인기순" },
-    { key: "price", label: "금액순" },
-    { key: "area", label: "면적순" },
+    { key: "price-desc", label: "금액순↓" },
+    { key: "area-desc", label: "면적순↓" },
   ];
 
   const parentRef = useRef<HTMLDivElement>(null);

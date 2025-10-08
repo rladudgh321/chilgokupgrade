@@ -1,64 +1,94 @@
 import Image from "next/image"
+import {
+  Building2,
+  Square,
+  Layers,
+  BedDouble,
+  Bath,
+  Car,
+  Coins,
+} from "lucide-react";
+import { numberToKoreanWithDigits } from "@/app/utility/NumberToKoreanWithDigits";
 
 type Props = {
   listing: {
-    id: number
-    title?: string
-    address?: string
-    salePrice?: number
-    actualEntryCost?: number
-    rentalPrice?: number
-    managementFee?: number
-    propertyType?: string
-    currentFloor?: number
-    totalFloors?: number
-    rooms?: number
-    bathrooms?: number
-    actualArea?: number
-    supplyArea?: number
-    mainImage?: string
-    label?: string
-    popularity?: string
-    themes?: string[]
-    buildingOptions?: string[]
-    parking?: string[]
-    isAddressPublic?: string
-    visibility?: boolean
-  }
-}
+    id: number;
+    title?: string;
+    address?: string;
+    salePrice?: number;
+    isSalePriceEnabled?: boolean;
+    lumpSumPrice?: number;
+    isLumpSumPriceEnabled?: boolean;
+    actualEntryCost?: number;
+    isActualEntryCostEnabled?: boolean;
+    rentalPrice?: number;
+    isRentalPriceEnabled?: boolean;
+    halfLumpSumMonthlyRent?: number;
+    isHalfLumpSumMonthlyRentEnabled?: boolean;
+    deposit?: number;
+    isDepositEnabled?: boolean;
+    managementFee?: number;
+    isManagementFeeEnabled?: boolean;
+    propertyType?: string;
+    currentFloor?: number;
+    totalFloors?: number;
+    rooms?: number;
+    bathrooms?: number;
+    actualArea?: number;
+    supplyArea?: number;
+    mainImage?: string;
+    label?: string;
+    popularity?: string;
+    themes?: string[];
+    buildingOptions?: string[];
+    parking?: string[];
+    isAddressPublic?: string;
+    visibility?: boolean;
+  };
+};
 
 const CardItem = ({ listing }: Props) => {
   const formatPrice = (price: number | undefined) => {
-    if (!price) return ""
-    if (price >= 10000) {
-      return `${Math.floor(price / 10000)}억 ${(price % 10000).toLocaleString()}`
-    }
-    return price.toLocaleString()
-  }
+    if (price === undefined || price === null) return "";
+    return numberToKoreanWithDigits(price);
+  };
 
   const formatArea = (area: number | undefined) => {
-    if (!area) return ""
-    return `${area}`
-  }
+    if (!area) return "";
+    const pyeong = area / 3.305785;
+    return `${pyeong.toFixed(2)}평`;
+  };
+
+  const renderPrice = (label: string, value: number | undefined) => {
+    if (value === undefined || value === null) return null;
+    const formattedPrice = formatPrice(value);
+    if (!formattedPrice) return null;
+    return (
+      <div className="flex justify-between items-center">
+        <span className="text-sm font-medium text-gray-600">{label}</span>
+        <span className="text-base font-bold text-gray-900">{formattedPrice}</span>
+      </div>
+    );
+  };
 
   return (
-    <div className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow cursor-pointer">
+    <div className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow cursor-pointer flex flex-col">
       {/* 매물 이미지 */}
       <div className="relative h-48 bg-gray-200">
         {listing.mainImage ? (
-          <Image 
-            src={listing.mainImage} 
-            alt={listing.title || "매물 이미지"} 
+          <Image
+            src={listing.mainImage}
+            alt={listing.title || "매물 이미지"}
             fill
             className="object-cover"
           />
         ) : (
           <div className="w-full h-full bg-gray-300 flex items-center justify-center text-gray-500">
-            이미지 없음
+            <Building2 className="w-12 h-12 text-gray-400" />
           </div>
         )}
-        
-        {/* 라벨들 */}
+
+        {/* 라벨들 (Existing from CardItem) */}
         <div className="absolute top-3 left-3 flex flex-wrap gap-1">
           {listing.label && (
             <span className="px-2 py-1 bg-red-500 text-white text-xs rounded-full">
@@ -77,76 +107,75 @@ const CardItem = ({ listing }: Props) => {
           )}
         </div>
 
-        {/* 매물 ID */}
+        {/* 매물 ID (Existing from CardItem) */}
         <div className="absolute top-3 right-3 bg-black bg-opacity-75 text-white text-xs px-2 py-1 rounded">
           #{listing.id}
         </div>
       </div>
 
       {/* 매물 정보 */}
-      <div className="p-4">
-        {/* 매물 제목 */}
-        <h3 className="text-lg font-semibold text-gray-900 mb-2 line-clamp-2">
+      <div className="p-4 flex flex-col flex-grow">
+        {/* Title */}
+        <h3 className="text-lg font-bold text-gray-800 leading-snug mb-1 line-clamp-2 h-14">
           {listing.title || "제목 없음"}
         </h3>
 
-        {/* 주소 */}
-        <p className="text-sm text-gray-600 mb-3">
+        {/* Address */}
+        <p className="text-sm text-gray-500 mb-3 line-clamp-1">
           {listing.address || "주소 정보 없음"}
         </p>
 
-        {/* 매물 상세 정보 */}
-        <div className="flex flex-wrap gap-2 text-sm text-gray-600 mb-3">
-          {listing.parking && listing.parking.length > 0 && (
-            <span className="px-2 py-1 bg-gray-100 rounded">주차</span>
-          )}
-          {listing.managementFee && (
-            <span className="px-2 py-1 bg-gray-100 rounded">
-              관리비 {formatPrice(listing.managementFee)}
-            </span>
-          )}
-          {listing.actualArea && (
-            <span className="px-2 py-1 bg-gray-100 rounded">
-              실 {formatArea(listing.actualArea)}
-            </span>
-          )}
-          {listing.supplyArea && (
-            <span className="px-2 py-1 bg-gray-100 rounded">
-              공 {formatArea(listing.supplyArea)}
-            </span>
-          )}
+        {/* Price */}
+        <div className="mb-4 space-y-1 border-t pt-3">
+            {listing.isSalePriceEnabled && renderPrice("매매", listing.salePrice)}
+            {listing.isLumpSumPriceEnabled && renderPrice("전세", listing.lumpSumPrice)}
+            {listing.isActualEntryCostEnabled && renderPrice("실입주금", listing.actualEntryCost)}
+            {listing.isDepositEnabled && renderPrice("보증금", listing.deposit)}
+            {listing.isRentalPriceEnabled && renderPrice("월세", listing.rentalPrice)}
+            {listing.isHalfLumpSumMonthlyRentEnabled && renderPrice("반전세 월세", listing.halfLumpSumMonthlyRent)}
         </div>
 
-        {/* 가격 정보 */}
-        <div className="space-y-1 mb-3">
-          {listing.salePrice && (
-            <div className="text-lg font-bold text-blue-600">
-              분 {formatPrice(listing.salePrice)} 실 {formatPrice(listing.actualEntryCost)}
+        {/* Details Grid */}
+        <div className="grid grid-cols-2 gap-x-4 gap-y-2 text-sm text-gray-600 border-t pt-3 mt-auto">
+            <div className="flex items-center gap-1.5">
+              <Building2 className="w-4 h-4 text-gray-500 flex-shrink-0" />
+              <span>{listing.propertyType || "타입 미정"}</span>
             </div>
-          )}
-          {listing.rentalPrice && (
-            <div className="text-sm text-gray-700">
-              전 {formatPrice(listing.rentalPrice)}
+            <div className="flex items-center gap-1.5">
+              <Square className="w-4 h-4 text-gray-500 flex-shrink-0" />
+              <span>
+                실 {formatArea(listing.actualArea)} / 공{" "}
+                {formatArea(listing.supplyArea)}
+              </span>
             </div>
-          )}
-          {listing.actualEntryCost && !listing.salePrice && (
-            <div className="text-sm text-gray-700">
-              보 {formatPrice(listing.actualEntryCost)} 월 {formatPrice(listing.managementFee)}
+            <div className="flex items-center gap-1.5">
+              <Layers className="w-4 h-4 text-gray-500 flex-shrink-0" />
+              <span>
+                {listing.currentFloor && listing.totalFloors
+                  ? `${listing.currentFloor}/${listing.totalFloors}층`
+                  : "층수 정보 없음"}
+              </span>
             </div>
-          )}
-        </div>
-
-        {/* 매물 타입과 층수 */}
-        <div className="flex items-center justify-between text-sm text-gray-600">
-          <span>{listing.propertyType || "타입 미정"}</span>
-          <div className="flex items-center gap-2">
-            {listing.currentFloor && listing.totalFloors && (
-              <span>현재층 {listing.currentFloor}층</span>
+            <div className="flex items-center gap-1.5">
+              <BedDouble className="w-4 h-4 text-gray-500 flex-shrink-0" />
+              <span>
+                방 {listing.rooms || "-"} / 욕실 {listing.bathrooms || "-"}
+              </span>
+            </div>
+            {listing.parking && listing.parking.length > 0 && (
+              <div className="flex items-center gap-1.5">
+                <Car className="w-4 h-4 text-gray-500 flex-shrink-0" />
+                <span>{listing.parking.join(", ")}</span>
+              </div>
             )}
-            {listing.rooms && listing.bathrooms && (
-              <span>방{listing.rooms}/화{listing.bathrooms}</span>
+            {listing.isManagementFeeEnabled && listing.managementFee && (
+              <div className="flex items-center gap-1.5">
+                <Coins className="w-4 h-4 text-gray-500 flex-shrink-0" />
+                <span>
+                  관리비 {formatPrice(listing.managementFee)}
+                </span>
+              </div>
             )}
-          </div>
         </div>
       </div>
     </div>
