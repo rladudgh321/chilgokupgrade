@@ -1,11 +1,24 @@
 "use client"
 import { useEffect, useState, useRef } from "react"
 import { useRouter, useSearchParams, usePathname } from "next/navigation"
+import { useQuery } from "@tanstack/react-query";
+import axios from "axios";
+
+const fetchSettings = async () => {
+  const { data } = await axios.get("/api/admin/search-bar-settings");
+  return data.data;
+};
 
 const SearchBar = () => {
   const router = useRouter()
   const searchParams = useSearchParams()
   const isInitialMount = useRef(true)
+
+  const { data: settings, isLoading: isLoadingSettings } = useQuery({
+    queryKey: ["search-bar-settings"],
+    queryFn: fetchSettings,
+    staleTime: 1000 * 60 * 5, // 5 minutes
+  });
 
   const [searchTerm, setSearchTerm] = useState(searchParams.get("keyword") || "")
   const [debouncedSearchTerm, setDebouncedSearchTerm] = useState(searchTerm)
@@ -235,144 +248,162 @@ const SearchBar = () => {
     router.push(pathname)
   }
 
+  if (isLoadingSettings) {
+    return <div className="p-4">검색 필터 로딩 중...</div>;
+  }
+
   return (
     <div className="p-4">
-      <div className="flex items-center gap-4 mb-4">
-        {/* 검색 입력 */}
-        <div className="flex-1">
-          <input
-            type="text"
-            placeholder="관심지역 또는 매물번호를 입력"
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-          />
+      {settings?.showKeyword && (
+        <div className="flex items-center gap-4 mb-4">
+          <div className="flex-1">
+            <input
+              type="text"
+              placeholder="관심지역 또는 매물번호를 입력"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+          </div>
+          <button
+            onClick={handleReset}
+            className="px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition-colors"
+          >
+            초기화
+          </button>
         </div>
-        
+      )}
 
-        
-        {/* 초기화 버튼 */}
-        <button
-          onClick={handleReset}
-          className="px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition-colors"
-        >
-          초기화
-        </button>
-      </div>
-
-      {/* 필터 옵션들 */}
       <div className="grid grid-cols-5 gap-4">
-        <select
-          value={propertyType}
-          onChange={(e) => setPropertyType(e.target.value)}
-          className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-        >
-          <option value="">매물 종류</option>
-          {(propertyTypeOptions && propertyTypeOptions.length > 0
-            && propertyTypeOptions || []
-          ).map((opt) => (
-            <option key={opt} value={opt}>{opt}</option>
-          ))}
-        </select>
+        {settings?.showPropertyType && (
+          <select
+            value={propertyType}
+            onChange={(e) => setPropertyType(e.target.value)}
+            className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+          >
+            <option value="">매물 종류</option>
+            {(propertyTypeOptions && propertyTypeOptions.length > 0
+              && propertyTypeOptions || []
+            ).map((opt) => (
+              <option key={opt} value={opt}>{opt}</option>
+            ))}
+          </select>
+        )}
 
-        <select
-          value={dealType}
-          onChange={(e) => setDealType(e.target.value)}
-          className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-        >
-          <option value="">거래유형</option>
-          {buyTypeOptions.map((opt) => (
-            <option key={opt.id} value={opt.name}>{opt.name}</option>
-          ))}
-        </select>
+        {settings?.showDealType && (
+          <select
+            value={dealType}
+            onChange={(e) => setDealType(e.target.value)}
+            className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+          >
+            <option value="">거래유형</option>
+            {buyTypeOptions.map((opt) => (
+              <option key={opt.id} value={opt.name}>{opt.name}</option>
+            ))}
+          </select>
+        )}
 
-        <select
-          value={priceRange}
-          onChange={(e) => setPriceRange(e.target.value)}
-          className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-          disabled={!dealType || pricePresets.length === 0}
-        >
-          <option value="">금액</option>
-          {pricePresets.map((preset) => (
-            <option key={preset.id} value={preset.name}>{preset.name}</option>
-          ))}
-        </select>
+        {settings?.showPriceRange && (
+          <select
+            value={priceRange}
+            onChange={(e) => setPriceRange(e.target.value)}
+            className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            disabled={!dealType || pricePresets.length === 0}
+          >
+            <option value="">금액</option>
+            {pricePresets.map((preset) => (
+              <option key={preset.id} value={preset.name}>{preset.name}</option>
+            ))}
+          </select>
+        )}
 
-        <select
-          value={areaRange}
-          onChange={(e) => setAreaRange(e.target.value)}
-          className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-        >
-          <option value="">면적</option>
-          {areaOptions.map((opt) => (
-            <option key={opt} value={opt}>{opt}</option>
-          ))}
-        </select>
+        {settings?.showAreaRange && (
+          <select
+            value={areaRange}
+            onChange={(e) => setAreaRange(e.target.value)}
+            className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+          >
+            <option value="">면적</option>
+            {areaOptions.map((opt) => (
+              <option key={opt} value={opt}>{opt}</option>
+            ))}
+          </select>
+        )}
 
-        <select
-          value={theme}
-          onChange={(e) => setTheme(e.target.value)}
-          className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-        >
-          <option value="">테마</option>
-          {themeOptions.map((label) => (
-            <option key={label} value={label}>{label}</option>
-          ))}
-        </select>
+        {settings?.showTheme && (
+          <select
+            value={theme}
+            onChange={(e) => setTheme(e.target.value)}
+            className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+          >
+            <option value="">테마</option>
+            {themeOptions.map((label) => (
+              <option key={label} value={label}>{label}</option>
+            ))}
+          </select>
+        )}
 
-        <select
-          value={rooms}
-          onChange={(e) => setRooms(e.target.value)}
-          className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-        >
-          <option value="">방</option>
-          {roomOptions.map((opt) => (
-            <option key={opt} value={opt}>{opt}</option>
-          ))}
-        </select>
+        {settings?.showRooms && (
+          <select
+            value={rooms}
+            onChange={(e) => setRooms(e.target.value)}
+            className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+          >
+            <option value="">방</option>
+            {roomOptions.map((opt) => (
+              <option key={opt} value={opt}>{opt}</option>
+            ))}
+          </select>
+        )}
 
-        <select
-          value={floor}
-          onChange={(e) => {
-            const newFloor = e.target.value;
-            console.log("Selected floor:", newFloor);
-            setFloor(newFloor);
-          }}
-          className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-        >
-          <option value="">층수</option>
-          {floorOptions.map((opt) => (
-            <option key={opt} value={opt}>{opt}</option>
-          ))}
-        </select>
+        {settings?.showFloor && (
+          <select
+            value={floor}
+            onChange={(e) => {
+              const newFloor = e.target.value;
+              console.log("Selected floor:", newFloor);
+              setFloor(newFloor);
+            }}
+            className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+          >
+            <option value="">층수</option>
+            {floorOptions.map((opt) => (
+              <option key={opt} value={opt}>{opt}</option>
+            ))}
+          </select>
+        )}
 
-        <select
-          value={bathrooms}
-          onChange={(e) => setBathrooms(e.target.value)}
-          className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-        >
-          <option value="">화장실</option>
-          {bathroomOptions.map((opt) => (
-            <option key={opt} value={opt}>{opt}</option>
-          ))}
-        </select>
+        {settings?.showBathrooms && (
+          <select
+            value={bathrooms}
+            onChange={(e) => setBathrooms(e.target.value)}
+            className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+          >
+            <option value="">화장실</option>
+            {bathroomOptions.map((opt) => (
+              <option key={opt} value={opt}>{opt}</option>
+            ))}
+          </select>
+        )}
 
-        {/* <select
-          value={subwayLine}
-          onChange={(e) => setSubwayLine(e.target.value)}
-          className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-        >
-          <option value="">호선 검색</option>
-          <option value="1">1호선</option>
-          <option value="2">2호선</option>
-          <option value="3">3호선</option>
-          <option value="4">4호선</option>
-          <option value="5">5호선</option>
-          <option value="6">6호선</option>
-          <option value="7">7호선</option>
-          <option value="8">8호선</option>
-          <option value="9">9호선</option>
-        </select> */}
+        {settings?.showSubwayLine && (
+          <select
+            value={subwayLine}
+            onChange={(e) => setSubwayLine(e.target.value)}
+            className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+          >
+            <option value="">호선 검색</option>
+            <option value="1">1호선</option>
+            <option value="2">2호선</option>
+            <option value="3">3호선</option>
+            <option value="4">4호선</option>
+            <option value="5">5호선</option>
+            <option value="6">6호선</option>
+            <option value="7">7호선</option>
+            <option value="8">8호선</option>
+            <option value="9">9호선</option>
+          </select>
+        )}
       </div>
     </div>
   )

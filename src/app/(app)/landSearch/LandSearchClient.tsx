@@ -3,7 +3,7 @@
 import { koreanToNumber } from "@/app/utility/koreanToNumber";
 import { useState, useMemo } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useInfiniteQuery, useQuery, QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { useInfiniteQuery, useQuery } from "@tanstack/react-query";
 import MapView from "./MapView";
 import ListingList from "./ListingList";
 import SearchBar from "./SearchBar";
@@ -49,7 +49,7 @@ const fetchMapListings = async ({ queryKey }: any) => {
   return data.data; // The new endpoint wraps data in a `data` property
 };
 
-function LandSearchClientContent({ initialListings }: Props) {
+export default function LandSearchClient({ initialListings }: Props) {
   const router = useRouter();
   const currentSearchParams = useSearchParams();
   const sortBy = currentSearchParams.get("sortBy") ?? "latest";
@@ -292,14 +292,4 @@ function LandSearchClientContent({ initialListings }: Props) {
       </div>
     </div>
   );
-}
-
-const queryClient = new QueryClient();
-
-export default function LandSearchClient(props: Props) {
-    return (
-        <QueryClientProvider client={queryClient}>
-            <LandSearchClientContent {...props} />
-        </QueryClientProvider>
-    )
 }

@@ -268,3 +268,18 @@ model AreaPreset {
   createdAt DateTime @default(now())
   updatedAt DateTime @default(now()) @updatedAt
 }
+
+model SearchBarSetting {
+  id                  Int     @id @default(1)
+  showKeyword         Boolean @default(true)
+  showPropertyType    Boolean @default(true)
+  showDealType        Boolean @default(true)
+  showPriceRange      Boolean @default(true)
+  showAreaRange       Boolean @default(true)
+  showTheme           Boolean @default(true)
+  showRooms           Boolean @default(true)
+  showFloor           Boolean @default(true)
+  showBathrooms       Boolean @default(true)
+  showSubwayLine      Boolean @default(true)
+  updatedAt           DateTime @updatedAt
+}
