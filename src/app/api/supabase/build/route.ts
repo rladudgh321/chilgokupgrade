@@ -89,11 +89,12 @@ export async function GET(req: NextRequest) {
     }
 
     if (rooms) {
-      const { data: roomRec } = await supabase.from("RoomOption").select("id").eq("name", rooms).single();
-      if (roomRec) {
-          q = q.eq("roomOptionId", roomRec.id);
+      const { data: roomRecs } = await supabase.from("RoomOption").select("id").ilike("name", `${rooms}%`);
+      if (roomRecs && roomRecs.length > 0) {
+        const roomIds = roomRecs.map(r => r.id);
+        q = q.in("roomOptionId", roomIds);
       } else {
-          q = q.eq("roomOptionId", -1); // Return no results if room option doesn't exist
+        q = q.eq("roomOptionId", -1);
       }
     }
 

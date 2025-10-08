@@ -50,10 +50,18 @@ const fetchMapListings = async ({ queryKey }: any) => {
   return data.data; // The new endpoint wraps data in a `data` property
 };
 
-function LandSearchClientContent({ initialListings, searchParams }: Props) {
+function LandSearchClientContent({ initialListings, searchParams: initialSearchParams }: Props) {
   const router = useRouter();
   const currentSearchParams = useSearchParams();
   const sortBy = currentSearchParams.get("sortBy") ?? "latest";
+
+  const queryParams = useMemo(() => {
+    const params: { [key: string]: string } = {};
+    currentSearchParams.forEach((value, key) => {
+      params[key] = value;
+    });
+    return params;
+  }, [currentSearchParams]);
 
   const {
     data: paginatedData,
@@ -63,7 +71,7 @@ function LandSearchClientContent({ initialListings, searchParams }: Props) {
     isFetchingNextPage,
     status,
   } = useInfiniteQuery({
-    queryKey: ["listings", searchParams],
+    queryKey: ["listings", queryParams],
     queryFn: fetchListings,
     getNextPageParam: (lastPage) => {
       if (lastPage.currentPage < lastPage.totalPages) {
@@ -85,8 +93,9 @@ function LandSearchClientContent({ initialListings, searchParams }: Props) {
   });
 
   const { data: mapListings = [] } = useQuery({
-    queryKey: ["map-listings", searchParams],
+    queryKey: ["map-listings", queryParams],
     queryFn: fetchMapListings,
+    initialData: initialListings,
   });
 
   const allListings = useMemo(() => (paginatedData ? paginatedData.pages.flatMap((page) => page.listings) : []), [paginatedData]);
@@ -101,7 +110,10 @@ function LandSearchClientContent({ initialListings, searchParams }: Props) {
 
 
   const handleSortChange = (newSortBy: string) => {
-    const params = new URLSearchParams(currentSearchParams.toString());
+    const params = new URLSearchParams();
+    currentSearchParams.forEach((value, key) => {
+        params.set(key, value);
+    })
     params.set("sortBy", newSortBy);
     // Reset pagination when sorting changes
     params.delete("page");

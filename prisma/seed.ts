@@ -15,9 +15,70 @@ async function main() {
   const data = JSON.parse(fs.readFileSync(filePath, 'utf-8'));
 
   for (const item of data) {
+    const { rooms, dealType, propertyType, popularity, label, ...restOfItem } = item;
+    let roomOptionId = null;
+    let buyTypeId = null;
+    let listingTypeId = null;
+    let popularityString = null;
+    let labelId = null;
+
+    if (rooms) {
+      const roomOptionName = `${rooms}개`;
+      const roomOption = await prisma.roomOption.findUnique({
+        where: { name: roomOptionName },
+      });
+      if (roomOption) {
+        roomOptionId = roomOption.id;
+      } else {
+        console.warn(`Could not find RoomOption for rooms: ${rooms}`)
+      }
+    }
+
+    if (dealType) {
+      const buyType = await prisma.buyType.findUnique({
+        where: { name: dealType },
+      });
+      if (buyType) {
+        buyTypeId = buyType.id;
+      } else {
+        console.warn(`Could not find BuyType for dealType: ${dealType}`)
+      }
+    }
+
+    if (propertyType) {
+      const listingType = await prisma.listingType.findUnique({
+        where: { name: propertyType },
+      });
+      if (listingType) {
+        listingTypeId = listingType.id;
+      } else {
+        console.warn(`Could not find ListingType for propertyType: ${propertyType}`)
+      }
+    }
+
+    if (popularity && Array.isArray(popularity)) {
+      popularityString = popularity.join(', ');
+    }
+
+    if (label) {
+      const labelRecord = await prisma.label.findUnique({
+        where: { name: label },
+      });
+      if (labelRecord) {
+        labelId = labelRecord.id;
+      } else {
+        console.warn(`Could not find Label for label: ${label}`)
+      }
+    }
+
     await prisma.build.create({
       data: {
-        ...item,
+        ...restOfItem,
+        roomOptionId,
+        buyTypeId,
+        listingTypeId,
+        popularity: popularityString,
+        labelId,
         // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
         constructionYear: new Date(item.constructionYear),
         // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access

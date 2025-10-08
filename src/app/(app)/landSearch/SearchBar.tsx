@@ -157,23 +157,20 @@ const SearchBar = () => {
       return
     }
 
-    const params = new URLSearchParams()
-    
-    if (debouncedSearchTerm) params.set("keyword", debouncedSearchTerm)
-    if (propertyType) params.set("propertyType", propertyType)
-    if (dealType) params.set("dealType", dealType)
-    if (priceRange) params.set("priceRange", priceRange)
-    if (areaRange) params.set("areaRange", areaRange)
-    if (theme) params.set("theme", theme)
-    if (rooms) params.set("rooms", rooms)
-    if (floor) params.set("floor", floor)
-    if (bathrooms) params.set("bathrooms", bathrooms)
-    if (subwayLine) params.set("subwayLine", subwayLine)
-    
-    // 검색 시 페이지를 1로 리셋
-    params.set("page", "1")
-    
-    router.push(`/landSearch?${params.toString()}`)
+    const query: { [key: string]: string } = { page: "1" };
+
+    if (debouncedSearchTerm) query.keyword = debouncedSearchTerm;
+    if (propertyType) query.propertyType = propertyType;
+    if (dealType) query.dealType = dealType;
+    if (priceRange) query.priceRange = priceRange;
+    if (areaRange) query.areaRange = areaRange;
+    if (theme) query.theme = theme;
+    if (rooms) query.rooms = rooms;
+    if (floor) query.floor = floor;
+    if (bathrooms) query.bathrooms = bathrooms;
+    if (subwayLine) query.subwayLine = subwayLine;
+
+    router.push(`/landSearch?${new URLSearchParams(query).toString()}`);
   }, [debouncedSearchTerm, propertyType, dealType, priceRange, areaRange, theme, rooms, floor, bathrooms, subwayLine, router])
 
   const handleReset = () => {

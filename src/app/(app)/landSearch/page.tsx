@@ -5,8 +5,8 @@ export default async function Page({ searchParams }: { searchParams: { [key: str
   const page = 1; // Always fetch first page on server
   const keyword = typeof searchParams.keyword === 'string' ? searchParams.keyword : undefined;
   const theme = typeof searchParams.theme === 'string' ? searchParams.theme : undefined;
-  const propertyType = typeof searchParams.propertyType === 'string' ? searchParams.propertyType : undefined;
-  const dealType = typeof searchParams.dealType === 'string' ? searchParams.dealType : undefined;
+  const propertyType = searchParams.propertyType ? decodeURIComponent(searchParams.propertyType as string) : undefined;
+  const dealType = searchParams.dealType ? decodeURIComponent(searchParams.dealType as string) : undefined;
   const sortBy = typeof searchParams.sortBy === 'string' ? searchParams.sortBy : 'latest';
 
   // API를 통해 초기 데이터만 가져오기
