@@ -1,13 +1,14 @@
-디자인은 루트 폴더의 `.gemini`폴더 안에 있는 `./aaa.png`에 있는 것으로 디자인해줘. 모달처럼 나오도록 가로 폭 사이즈를 잘 조절해줘.
-Build테이블에 있는 정보를 잘 조합해서 넣어줘. 
+BuildDetailModal.tsx에 대하여 `표`와 `상세설명` 사이에 옵션을 예쁘게 디자인하여 넣고 싶어. 예를들면 루트의 .gemini폴더의 `aaa.png`처럼 옵션에 Build 테이블의 buildingOptions 컬럼에 대하여 예쁘게 아이콘 아래에 데이터를 넣고 싶어.
+그리고 나는 landSearch 기존의 페이지가 매물상세정보 카드 뒤에 background로 보이도록 하고 싶어.
+---------------------
+Unhandled Runtime Error
 
-표처럼 보기 좋게 디자인해서 해줘
-면적도 데이터 토대로 해주고 그 옆에 작은 버튼을 만들어서 평수계산 m2전환등 토글로 만들어줘.
 
-방 화장실 갯수도 말해주고
+Error: Cannot read properties of undefined (reading 'Geocoder')
 
-층수도 지상인지 지하인지도 알려주고 현재층/전체층도 얘기해줘
-비용도 관리비나 매매나 전세가 등 체크박스에 체크되어 있는 것은 얼마인지 적어줘
-주차옵션도 얘기해주고 테마 난방 엘리베이터 입주가능일 등 Build 테이블에 있는 항목은 전부 넣어줘.
+Call Stack
+3
 
-옵션도 넣어주고 카카오톡 api를 통해서 위치가 어디인지도 마커로 표시해줘
+Show 2 ignore-listed frame(s)
+KakaoMapMarker.useEffect.initMap
+.next\static\chunks\src_app_dbf429b2._.js (1364:62)

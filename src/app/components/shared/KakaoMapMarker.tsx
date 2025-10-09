@@ -3,9 +3,6 @@
 
 import { useEffect, useRef } from 'react';
 
-// @ts-ignore
-const kakao = window.kakao;
-
 interface KakaoMapMarkerProps {
   address: string;
 }
@@ -14,6 +11,8 @@ const KakaoMapMarker = ({ address }: KakaoMapMarkerProps) => {
   const containerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
+    // @ts-ignore
+    const kakao = window.kakao;
     if (!address || !kakao || !kakao.maps) return;
 
     const initMap = () => {

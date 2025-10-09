@@ -4,6 +4,8 @@ import { useEffect, useState } from 'react';
 import { BuildFindOne } from '@/app/apis/build';
 import KakaoMapMarker from '@/app/components/shared/KakaoMapMarker';
 import { IBuild } from '@/app/interface/build';
+import ImageSlider from '@/app/components/shared/ImageSlider';
+import OptionIcon from '@/app/components/shared/OptionIcon';
 
 interface BuildDetailModalProps {
   buildId: number;
@@ -37,8 +39,8 @@ const BuildDetailModal = ({ buildId, onClose }: BuildDetailModalProps) => {
 
   const renderInfoRow = (label: string, value: React.ReactNode) => (
     <>
-      <div className="bg-gray-50 px-4 py-3 font-semibold">{label}</div>
-      <div className="px-4 py-3">{value || '-'}</div>
+      <div className="bg-gray-50 px-4 py-3 font-semibold text-sm">{label}</div>
+      <div className="px-4 py-3 text-sm">{value || '-'}</div>
     </>
   );
 
@@ -56,6 +58,8 @@ const BuildDetailModal = ({ buildId, onClose }: BuildDetailModalProps) => {
     return `${floor}층`;
   };
 
+  const allImages = build?.mainImage ? [build.mainImage, ...(Array.isArray(build.subImage) ? build.subImage : [])] : [];
+
   return (
     <div className="fixed inset-0 bg-black bg-opacity-60 z-50 flex justify-center items-center p-4" onClick={onClose}>
       <div className="bg-white rounded-lg shadow-xl w-full max-w-4xl" onClick={(e) => e.stopPropagation()}>
@@ -69,11 +73,9 @@ const BuildDetailModal = ({ buildId, onClose }: BuildDetailModalProps) => {
           {build && (
             <div className="space-y-6">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div>
-                  {build.mainImage && (
-                    <img src={build.mainImage} alt={build.title} className="w-full h-80 object-cover rounded-md mb-4" />
-                  )}
-                  <h3 className="text-2xl font-bold mb-2">{build.title}</h3>
+                <div className="space-y-2">
+                  <ImageSlider images={allImages} />
+                  <h3 className="text-2xl font-bold">{build.title}</h3>
                   <p className="text-gray-600">{build.address}</p>
                 </div>
                 <div>
@@ -82,7 +84,7 @@ const BuildDetailModal = ({ buildId, onClose }: BuildDetailModalProps) => {
               </div>
 
               <div className="border rounded-lg overflow-hidden">
-                <div className="grid grid-cols-2">
+                <div className="grid grid-cols-1 md:grid-cols-2">
                   {renderInfoRow('매물 종류', build.propertyType)}
                   {renderInfoRow('거래 종류', build.dealType)}
                   
@@ -122,9 +124,17 @@ const BuildDetailModal = ({ buildId, onClose }: BuildDetailModalProps) => {
                   {renderInfoRow('방향', build.direction ? `${build.direction} (기준: ${build.directionBase})` : '-')}
                   
                   {build.themes && build.themes.length > 0 && renderInfoRow('테마', build.themes.join(', '))}
-                  {build.buildingOptions && build.buildingOptions.length > 0 && renderInfoRow('건물 옵션', build.buildingOptions.join(', '))}
                 </div>
               </div>
+
+              {build.buildingOptions && build.buildingOptions.length > 0 && (
+                <div>
+                  <h4 className="text-lg font-semibold mb-3 border-b pb-2">건물 옵션</h4>
+                  <div className="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-8 gap-4">
+                    {build.buildingOptions.map(opt => <OptionIcon key={opt} optionName={opt} />)}
+                  </div>
+                </div>
+              )}
 
               <div>
                 <h4 className="text-lg font-semibold mb-2 border-b pb-2">상세 설명</h4>
