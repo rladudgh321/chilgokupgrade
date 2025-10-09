@@ -1,8 +1,9 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { Build } from '@/app/interface/build';
 import { BuildFindOne } from '@/app/apis/build';
+import KakaoMapMarker from '@/app/components/shared/KakaoMapMarker';
+import { IBuild } from '@/app/interface/build';
 
 interface BuildDetailModalProps {
   buildId: number;
@@ -10,9 +11,10 @@ interface BuildDetailModalProps {
 }
 
 const BuildDetailModal = ({ buildId, onClose }: BuildDetailModalProps) => {
-  const [build, setBuild] = useState<Build | null>(null);
+  const [build, setBuild] = useState<IBuild | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [areaUnit, setAreaUnit] = useState<'m2' | 'pyeong'>('m2');
 
   useEffect(() => {
     const fetchBuild = async () => {
@@ -31,85 +33,104 @@ const BuildDetailModal = ({ buildId, onClose }: BuildDetailModalProps) => {
     fetchBuild();
   }, [buildId]);
 
+  const convertToPyeong = (m2: number) => (m2 / 3.305785).toFixed(2);
+
+  const renderInfoRow = (label: string, value: React.ReactNode) => (
+    <>
+      <div className="bg-gray-50 px-4 py-3 font-semibold">{label}</div>
+      <div className="px-4 py-3">{value || '-'}</div>
+    </>
+  );
+
+  const formatPrice = (price: number | string | undefined | null) => {
+    if (price === null || price === undefined) return '-';
+    const numPrice = Number(price);
+    if (isNaN(numPrice)) return '-';
+    return `${numPrice.toLocaleString()} 만원`;
+  };
+
+  const getFloorString = (floor: number | undefined | null) => {
+    if (floor === null || floor === undefined) return '-';
+    if (floor > 0) return `지상 ${floor}층`;
+    if (floor < 0) return `지하 ${Math.abs(floor)}층`;
+    return `${floor}층`;
+  };
+
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex justify-center items-center">
-      <div className="bg-white rounded-lg shadow-xl w-full max-w-2xl">
+    <div className="fixed inset-0 bg-black bg-opacity-60 z-50 flex justify-center items-center p-4" onClick={onClose}>
+      <div className="bg-white rounded-lg shadow-xl w-full max-w-4xl" onClick={(e) => e.stopPropagation()}>
         <div className="p-4 border-b flex justify-between items-center">
-          <h2 className="text-lg font-semibold">매물번호: {build?.id}</h2>
-          <button onClick={onClose} className="text-black">
-            &times;
-          </button>
+          <h2 className="text-xl font-bold">매물 상세 정보 (번호: {build?.id})</h2>
+          <button onClick={onClose} className="text-gray-500 hover:text-gray-800 text-2xl font-bold">&times;</button>
         </div>
-        <div className="p-4" style={{ maxHeight: '80vh', overflowY: 'auto' }}>
-          {loading && <p>Loading...</p>}
-          {error && <p className="text-red-500">{error}</p>}
+        <div className="p-6" style={{ maxHeight: '85vh', overflowY: 'auto' }}>
+          {loading && <div className="text-center py-10">Loading...</div>}
+          {error && <div className="text-center py-10 text-red-500">{error}</div>}
           {build && (
-            <div>
-              {build.mainImage && (
-                <img src={build.mainImage} alt={build.title} className="w-full h-64 object-cover rounded-md mb-4" />
-              )}
-              <h3 className="text-xl font-bold mb-2">{build.title}</h3>
-              <p className="text-gray-600 mb-4">{build.address}</p>
-              
-              <div className="grid grid-cols-2 gap-4 mb-4">
+            <div className="space-y-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
-                  <p className="font-semibold">매물 종류</p>
-                  <p>{build.propertyType}</p>
+                  {build.mainImage && (
+                    <img src={build.mainImage} alt={build.title} className="w-full h-80 object-cover rounded-md mb-4" />
+                  )}
+                  <h3 className="text-2xl font-bold mb-2">{build.title}</h3>
+                  <p className="text-gray-600">{build.address}</p>
                 </div>
                 <div>
-                  <p className="font-semibold">거래 종류</p>
-                  <p>{build.listingType?.name}</p>
-                </div>
-                <div>
-                  <p className="font-semibold">구매 종류</p>
-                  <p>{build.buyType?.name}</p>
+                  {build.address && <KakaoMapMarker address={build.address} />}
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-4 mb-4">
-                {build.isSalePriceEnabled && (
-                  <div>
-                    <p className="font-semibold">매매가</p>
-                    <p>{build.salePrice?.toLocaleString()}만원</p>
-                  </div>
-                )}
-                {build.isLumpSumPriceEnabled && (
-                  <div>
-                    <p className="font-semibold">전세가</p>
-                    <p>{build.lumpSumPrice?.toLocaleString()}만원</p>
-                  </div>
-                )}
-                {build.isRentalPriceEnabled && (
-                  <div>
-                    <p className="font-semibold">월세</p>
-                    <p>{build.rentalPrice?.toLocaleString()}만원</p>
-                  </div>
-                )}
-                {build.isDepositEnabled && (
-                    <div>
-                        <p className="font-semibold">보증금</p>
-                        <p>{build.deposit?.toLocaleString()}만원</p>
+              <div className="border rounded-lg overflow-hidden">
+                <div className="grid grid-cols-2">
+                  {renderInfoRow('매물 종류', build.propertyType)}
+                  {renderInfoRow('거래 종류', build.dealType)}
+                  
+                  {/* 가격 정보 */}
+                  {build.isSalePriceEnabled && renderInfoRow('매매가', formatPrice(build.salePrice))}
+                  {build.isLumpSumPriceEnabled && renderInfoRow('전세가', formatPrice(build.lumpSumPrice))}
+                  {build.isRentalPriceEnabled && renderInfoRow('월세', `${formatPrice(build.deposit)} / ${formatPrice(build.rentalPrice)}`)}
+                  {build.managementFee && renderInfoRow('관리비', `${formatPrice(build.managementFee)} (포함: ${build.managementEtc || '-'})`)}
+
+                  {renderInfoRow('층수', `${getFloorString(build.currentFloor)} / ${getFloorString(build.totalFloors)}`)}
+                  {renderInfoRow('방/화장실 수', `${build.rooms || '-'}개 / ${build.bathrooms || '-'}개`)}
+
+                  {renderInfoRow(
+                    '면적',
+                    <div className="flex items-center gap-2">
+                      <span>
+                        {areaUnit === 'm2'
+                          ? `공급 ${build.supplyArea || '-'}m² / 전용 ${build.actualArea || '-'}m²`
+                          : `공급 ${convertToPyeong(build.supplyArea || 0)}평 / 전용 ${convertToPyeong(build.actualArea || 0)}평`}
+                      </span>
+                      <button 
+                        onClick={() => setAreaUnit(areaUnit === 'm2' ? 'pyeong' : 'm2')} 
+                        className="text-xs bg-gray-200 hover:bg-gray-300 rounded px-2 py-1 transition-colors"
+                      >
+                        {areaUnit === 'm2' ? '평으로 보기' : 'm²로 보기'}
+                      </button>
                     </div>
-                )}
+                  )}
+
+                  {renderInfoRow('주차 옵션', 
+                    `총 ${build.totalParking || '-'}대 (세대당 ${build.parkingPerUnit || '-'}대), 주차비: ${formatPrice(build.parkingFee)}`
+                  )}
+                  {renderInfoRow('엘리베이터', build.elevatorType ? `${build.elevatorType} (${build.elevatorCount || '-'}대)` : '-')}
+                  {renderInfoRow('난방 방식', build.heatingType)}
+                  {renderInfoRow('입주 가능일', build.moveInDate ? `${new Date(build.moveInDate).toLocaleDateString()} (${build.moveInType})` : '-')}
+                  {renderInfoRow('건축 년도', build.constructionYear ? new Date(build.constructionYear).toLocaleDateString() : '-')}
+                  {renderInfoRow('방향', build.direction ? `${build.direction} (기준: ${build.directionBase})` : '-')}
+                  
+                  {build.themes && build.themes.length > 0 && renderInfoRow('테마', build.themes.join(', '))}
+                  {build.buildingOptions && build.buildingOptions.length > 0 && renderInfoRow('건물 옵션', build.buildingOptions.join(', '))}
+                </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-4 mb-4">
-                <div>
-                  <p className="font-semibold">공급 면적</p>
-                  <p>{build.supplyArea} m²</p>
-                </div>
-                <div>
-                  <p className="font-semibold">전용 면적</p>
-                  <p>{build.actualArea} m²</p>
-                </div>
+              <div>
+                <h4 className="text-lg font-semibold mb-2 border-b pb-2">상세 설명</h4>
+                <div className="prose max-w-none" dangerouslySetInnerHTML={{ __html: build.editorContent || '' }} />
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <p className="font-semibold">층</p>
-                  <p>{build.currentFloor} / {build.totalFloors}</p>
-                </div>
-              </div>
             </div>
           )}
         </div>

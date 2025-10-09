@@ -12,7 +12,7 @@ import Popup from "../components/root/Popup";
 import { PopupPost } from "../components/root/Popup";
 
 async function getPopupPosts(): Promise<PopupPost[]> {
-  const cookieStore = cookies();
+  const cookieStore = await cookies();
   const supabase = createClient(cookieStore);
 
   const { data, error } = await supabase
