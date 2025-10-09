@@ -61,7 +61,7 @@ const BuildDetailModal = ({ buildId, onClose }: BuildDetailModalProps) => {
   const allImages = build?.mainImage ? [build.mainImage, ...(Array.isArray(build.subImage) ? build.subImage : [])] : [];
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-20 backdrop-blur-sm z-50 flex justify-center items-center p-4" onClick={onClose}>
+    <div className="fixed inset-0 backdrop-blur-sm z-50 flex justify-center items-center p-4" onClick={onClose}>
       <div className="bg-white rounded-lg shadow-xl w-full max-w-3xl" onClick={(e) => e.stopPropagation()}>
         <div className="p-4 border-b flex justify-between items-center bg-purple-800 text-white rounded-t-lg">
           <h2 className="text-xl font-bold">매물 상세 정보 (번호: {build?.id})</h2>
