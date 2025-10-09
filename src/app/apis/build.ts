@@ -83,9 +83,20 @@ export async function BuildHardDelete(id: number, opts?: { signal?: AbortSignal 
 }
 
 export async function BuildFindOne(id: number) {
-  const res = await fetch(`${baseURL}/api/supabase/build/${id}`, { method: "GET", cache: "no-store" });
-  if (!res.ok) throw new Error(`GET /api/supabase/build/${id} 실패`);
-  return res.json(); // 서버가 단일 객체를 반환한다고 가정
+  const url = `${baseURL}/api/supabase/build/${id}`;
+  console.log(`Fetching build data from: ${url}`);
+  try {
+    const res = await fetch(url, { method: "GET", cache: "no-store" });
+    if (!res.ok) {
+      const errorText = await res.text();
+      console.error(`API Error: ${res.status} ${res.statusText}`, errorText);
+      throw new Error(`GET ${url} 실패: ${res.status} ${res.statusText}`);
+    }
+    return res.json(); // 서버가 단일 객체를 반환한다고 가정
+  } catch (error) {
+    console.error('Fetch failed for BuildFindOne:', error);
+    throw error;
+  }
 }
 
 export async function BuildUpdate(id: number, data: object) {

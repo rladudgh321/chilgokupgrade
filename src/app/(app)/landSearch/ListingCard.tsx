@@ -4,7 +4,6 @@ import {
   Square,
   Layers,
   BedDouble,
-  Bath,
   Car,
   Coins,
 } from "lucide-react";
@@ -48,7 +47,7 @@ type Props = {
 
 import { numberToKoreanWithDigits } from "@/app/utility/NumberToKoreanWithDigits";
 
-const ListingCard = ({ listing }: Props) => {
+const ListingCard = ({ listing, onClick }: Props & { onClick: (id: number) => void }) => {
   const formatPrice = (price: number | undefined) => {
     if (!price) return "";
     return numberToKoreanWithDigits(price);
@@ -70,7 +69,7 @@ const ListingCard = ({ listing }: Props) => {
   };
 
   return (
-    <div className="border bg-white rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-shadow duration-300">
+    <div onClick={() => onClick(listing.id)} className="border bg-white rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-shadow duration-300 cursor-pointer">
       <div className="flex flex-col md:flex-row">
         {/* Image Section */}
         <div className="w-full md:w-48 flex-shrink-0 relative">

@@ -5,12 +5,12 @@ import CardItem from "./CardItem"
 import SearchBar from "../landSearch/SearchBar"
 import { useRouter, useSearchParams } from "next/navigation"
 import axios from "axios"
-import { koreanToNumber } from "@/app/utility/koreanToNumber"
+import BuildDetailModal from "../../components/root/BuildDetailModal";
 
 const LIMIT = 12
 
 const fetchListings = async ({ pageParam = 1, queryKey }: any) => {
-  const [_, searchParams] = queryKey;
+  const [, searchParams] = queryKey;
   const params = new URLSearchParams();
 
   // We only pass filters that the API can handle
@@ -31,6 +31,15 @@ const fetchListings = async ({ pageParam = 1, queryKey }: any) => {
 
 
 const CardList = () => {
+  const [selectedBuildId, setSelectedBuildId] = useState<number | null>(null);
+
+  const handleCardClick = (id: number) => {
+    setSelectedBuildId(id);
+  };
+
+  const handleCloseModal = () => {
+    setSelectedBuildId(null);
+  };
   const router = useRouter()
   const searchParams = useSearchParams()
 
@@ -121,7 +130,6 @@ const CardList = () => {
           if (priceRange.includes("~")) {
             const [minStr, maxStr] = priceRange.split("~");
             const min = koreanToNumber(minStr);
-            const max = koreanToNumber(maxStr);
             let passesMin = true;
             let passesMax = true;
             if (min !== null) {
@@ -130,7 +138,6 @@ const CardList = () => {
             if (max !== null) {
               passesMax = price <= max;
             }
-            return passesMin && passesMax;
           } else if (priceRange.includes("이상")) {
             const min = koreanToNumber(priceRange.replace("이상", ""));
             if (min !== null) {
@@ -282,7 +289,7 @@ const CardList = () => {
         {/* 3열 그리드 */}
         <div className="grid grid-cols-3 gap-6">
           {displayListings.map((listing) => (
-            <CardItem key={listing.id} listing={listing} />
+            <CardItem key={listing.id} listing={listing} onClick={handleCardClick} />
           ))}
         </div>
 
@@ -308,6 +315,9 @@ const CardList = () => {
           </div>
         )}
       </div>
+      {selectedBuildId && (
+        <BuildDetailModal buildId={selectedBuildId} onClose={handleCloseModal} />
+      )}
     </div>
   )
 }

@@ -11,6 +11,7 @@ type Props = {
   fetchNextPage?: () => void;
   hasNextPage?: boolean;
   isFetchingNextPage?: boolean;
+  onCardClick: (id: number) => void;
 };
 
 const ListingList = ({
@@ -20,6 +21,7 @@ const ListingList = ({
   fetchNextPage,
   hasNextPage,
   isFetchingNextPage,
+  onCardClick,
 }: Props) => {
   const sortOptions = [
     { key: "latest", label: "최신순" },
@@ -120,7 +122,7 @@ const ListingList = ({
                       </div>
                     )
                   ) : (
-                    <ListingCard listing={listing} />
+                    <ListingCard listing={listing} onClick={onCardClick} />
                   )}
                 </div>
               );

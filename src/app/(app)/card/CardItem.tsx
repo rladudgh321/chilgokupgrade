@@ -4,7 +4,6 @@ import {
   Square,
   Layers,
   BedDouble,
-  Bath,
   Car,
   Coins,
 } from "lucide-react";
@@ -47,7 +46,7 @@ type Props = {
   };
 };
 
-const CardItem = ({ listing }: Props) => {
+const CardItem = ({ listing, onClick }: Props & { onClick: (id: number) => void }) => {
   const formatPrice = (price: number | undefined) => {
     if (price === undefined || price === null) return "";
     return numberToKoreanWithDigits(price);
@@ -72,7 +71,7 @@ const CardItem = ({ listing }: Props) => {
   };
 
   return (
-    <div className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow cursor-pointer flex flex-col">
+    <div onClick={() => onClick(listing.id)} className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow cursor-pointer flex flex-col">
       {/* 매물 이미지 */}
       <div className="relative h-48 bg-gray-200">
         {listing.mainImage ? (

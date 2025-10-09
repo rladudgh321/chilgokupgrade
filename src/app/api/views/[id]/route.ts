@@ -1,7 +1,8 @@
 import { Prisma } from '@prisma/client';
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/app/utils/supabase/server';
-import prisma from '@/lib/prisma';
+import { prisma } from '@/lib/prisma';
+import { cookies } from 'next/headers';
 
 export async function POST(request: NextRequest, { params }: { params: { id: string } }) {
   const postId = params.id;
@@ -11,7 +12,8 @@ export async function POST(request: NextRequest, { params }: { params: { id: str
   }
 
   try {
-    const supabase = createClient();
+    const cookieStore = cookies();
+    const supabase = createClient(cookieStore);
     const { data: { user }, error: authError } = await supabase.auth.getUser();
 
     if (authError || !user) {

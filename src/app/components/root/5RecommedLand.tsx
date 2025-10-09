@@ -38,7 +38,7 @@ type Listing = {
   visibility?: boolean;
 };
 
-const RecommedLand = () => {
+const RecommedLand = ({ onCardClick }: { onCardClick: (id: number) => void }) => {
   const [items, setItems] = useState<Listing[]>([]);
 
   useEffect(() => {
@@ -66,7 +66,7 @@ const RecommedLand = () => {
     <div className="text-center p-6">
       <h2 className="text-xl font-bold">이달의 인기 부동산</h2>
       <p className="text-gray-600">이 달의 인기 매물을 확인해보세요!</p>
-      <CardSlide listings={listings} />
+      <CardSlide listings={listings} onCardClick={onCardClick} />
     </div>
   );
 };

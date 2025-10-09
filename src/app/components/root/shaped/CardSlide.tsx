@@ -45,7 +45,7 @@ type Listing = {
 };
 
 
-const CardSlide = ({listings}: {listings: Listing[]}) => {
+const CardSlide = ({listings, onCardClick}: {listings: Listing[], onCardClick: (id: number) => void}) => {
   const computeSlides = () => (globalThis.innerWidth < 768 ? 2 : 4);
   const computeMaxItems = () => {
     const w = globalThis.innerWidth;
@@ -76,7 +76,7 @@ const CardSlide = ({listings}: {listings: Listing[]}) => {
       >
         {listings.slice(0, maxItems).map((listing) => (
           <SwiperSlide key={listing.id}>
-            <CardItem listing={listing} />
+            <CardItem listing={listing} onClick={onCardClick} />
           </SwiperSlide>
         ))}
       </Swiper>

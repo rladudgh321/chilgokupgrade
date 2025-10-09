@@ -2,6 +2,12 @@ import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/app/utils/supabase/server";
 import { cookies } from "next/headers";
 
+const corsHeaders = {
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, PATCH, OPTIONS",
+  "Access-Control-Allow-Headers": "Content-Type, Authorization",
+};
+
 export async function GET(
   _req: NextRequest,
   ctx: { params: Promise<{ id: string }> }
@@ -10,7 +16,7 @@ export async function GET(
     const { id } = await ctx.params;
     const idNum = Number(id);
     if (!Number.isInteger(idNum) || idNum <= 0) {
-      return NextResponse.json({ message: "유효하지 않은 ID" }, { status: 400 });
+      return NextResponse.json({ message: "유효하지 않은 ID" }, { status: 400, headers: corsHeaders });
     }
 
     const cookieStore = await cookies();
@@ -31,10 +37,10 @@ export async function GET(
       .single();
 
     if (error) {
-      return NextResponse.json({ message: error.message }, { status: 500 });
+      return NextResponse.json({ message: error.message }, { status: 500, headers: corsHeaders });
     }
     if (!data) {
-      return NextResponse.json({ message: "매물을 찾을 수 없습니다." }, { status: 404 });
+      return NextResponse.json({ message: "매물을 찾을 수 없습니다." }, { status: 404, headers: corsHeaders });
     }
 
     const result = {
@@ -47,9 +53,9 @@ export async function GET(
       bathroomOption: (data.bathroomOption as any)?.name,
     };
 
-    return NextResponse.json(result);
+    return NextResponse.json(result, { headers: corsHeaders });
   } catch (e: any) {
-    return NextResponse.json({ message: e?.message ?? "서버 오류" }, { status: 500 });
+    return NextResponse.json({ message: e?.message ?? "서버 오류" }, { status: 500, headers: corsHeaders });
   }
 }
 
@@ -61,12 +67,12 @@ export async function PATCH(
     const { id } = await ctx.params;
     const idNum = Number(id);
     if (!Number.isInteger(idNum) || idNum <= 0) {
-      return NextResponse.json({ message: "유효하지 않은 ID" }, { status: 400 });
+      return NextResponse.json({ message: "유효하지 않은 ID" }, { status: 400, headers: corsHeaders });
     }
 
     const raw = await req.json().catch(() => null);
     if (!raw || typeof raw !== "object") {
-      return NextResponse.json({ message: "잘못된 요청 본문" }, { status: 400 });
+      return NextResponse.json({ message: "잘못된 요청 본문" }, { status: 400, headers: corsHeaders });
     }
 
     const cookieStore = await cookies();
@@ -137,7 +143,7 @@ export async function PATCH(
         .eq("id", idNum);
 
     if (updateError) {
-        return NextResponse.json({ ok: false, error: updateError }, { status: 400 });
+        return NextResponse.json({ ok: false, error: updateError }, { status: 400, headers: corsHeaders });
     }
 
     if (buildingOptions && Array.isArray(buildingOptions)) {
@@ -181,9 +187,9 @@ export async function PATCH(
         dealType: (finalData as any).buyType?.name,
     };
 
-    return NextResponse.json({ message: "수정 완료", data: result });
+    return NextResponse.json({ message: "수정 완료", data: result }, { headers: corsHeaders });
   } catch (e: any) {
     console.error(e);
-    return NextResponse.json({ message: e?.message ?? "서버 오류" }, { status: 500 });
+    return NextResponse.json({ message: e?.message ?? "서버 오류" }, { status: 500, headers: corsHeaders });
   }
 }

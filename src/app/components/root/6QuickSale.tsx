@@ -38,7 +38,7 @@ type Listing = {
   visibility?: boolean;
 };
 
-const QuickSale = () => {
+const QuickSale = ({ onCardClick }: { onCardClick: (id: number) => void }) => {
   const [items, setItems] = useState<Listing[]>([]);
 
   useEffect(() => {
@@ -66,7 +66,7 @@ const QuickSale = () => {
     <div className="text-center p-6">
       <h2 className="text-xl font-bold">급매물</h2>
       <p className="text-gray-600">급매 매물 모음입니다</p>
-      <CardSlide listings={listings} />
+      <CardSlide listings={listings} onCardClick={onCardClick} />
     </div>
   );
 };

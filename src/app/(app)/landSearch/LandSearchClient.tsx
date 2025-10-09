@@ -7,7 +7,7 @@ import { useInfiniteQuery, useQuery } from "@tanstack/react-query";
 import MapView from "./MapView";
 import ListingList from "./ListingList";
 import SearchBar from "./SearchBar";
-import axios from "axios";
+import BuildDetailModal from "../../components/root/BuildDetailModal";
 
 // Assuming the type for a listing is similar to what's in MapView and ListingCard
 type Listing = {
@@ -21,7 +21,7 @@ type Props = {
 };
 
 const fetchListings = async ({ pageParam = 1, queryKey }: any) => {
-  const [_, searchParams] = queryKey;
+  const [, searchParams] = queryKey;
   const params = new URLSearchParams();
 
   Object.entries(searchParams).forEach(([key, value]) => {
@@ -36,7 +36,7 @@ const fetchListings = async ({ pageParam = 1, queryKey }: any) => {
 };
 
 const fetchMapListings = async ({ queryKey }: any) => {
-  const [_, searchParams] = queryKey;
+  const [, searchParams] = queryKey;
   const params = new URLSearchParams();
 
   Object.entries(searchParams).forEach(([key, value]) => {
@@ -50,6 +50,15 @@ const fetchMapListings = async ({ queryKey }: any) => {
 };
 
 export default function LandSearchClient({ initialListings }: Props) {
+  const [selectedBuildId, setSelectedBuildId] = useState<number | null>(null);
+
+  const handleCardClick = (id: number) => {
+    setSelectedBuildId(id);
+  };
+
+  const handleCloseModal = () => {
+    setSelectedBuildId(null);
+  };
   const router = useRouter();
   const currentSearchParams = useSearchParams();
   const sortBy = currentSearchParams.get("sortBy") ?? "latest";
@@ -65,11 +74,9 @@ export default function LandSearchClient({ initialListings }: Props) {
 
   const {
     data: paginatedData,
-    error,
     fetchNextPage,
     hasNextPage,
     isFetchingNextPage,
-    status,
   } = useInfiniteQuery({
     queryKey: ["listings", queryParams],
     queryFn: fetchListings,
@@ -286,10 +293,14 @@ export default function LandSearchClient({ initialListings }: Props) {
               fetchNextPage={fetchNextPage}
               hasNextPage={hasNextPage}
               isFetchingNextPage={isFetchingNextPage}
+              onCardClick={handleCardClick}
             />
           </div>
         </div>
       </div>
+      {selectedBuildId && (
+        <BuildDetailModal buildId={selectedBuildId} onClose={handleCloseModal} />
+      )}
     </div>
   );
 }
