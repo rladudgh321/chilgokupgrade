@@ -27,8 +27,12 @@ async function getPost(id: string): Promise<BoardPost> {
   };
 }
 
-export default async function NoticeDetailPage({ params }: { params: { id: string } }) {
-  const post = await getPost(params.id);
-
+export default async function NoticeDetailPage({
+  params,
+}: {
+  params: Promise<{id: string}>;
+}) {
+  const { id } = await params;       // ✅ 먼저 await
+  const post = await getPost(id);
   return <PostView post={post} />;
 }
