@@ -8,7 +8,7 @@ const CreatePostSchema = z.object({
   content: z.string().optional(),
   popupContent: z.string().optional(),
   representativeImage: z.string().optional(),
-  externalLink: z.string().url().optional().or(z.literal("")),
+  externalLink: z.string().optional().or(z.literal("")),
   registrationDate: z.string().optional(),
   manager: z.string().optional(),
   isAnnouncement: z.boolean().default(false),

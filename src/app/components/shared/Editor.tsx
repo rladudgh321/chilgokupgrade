@@ -15,30 +15,67 @@ const Editor = ({ value, onChange }: EditorProps) => {
 
   useEffect(() => {
     if (editorRef.current && !quillRef.current) {
-      quillRef.current = new Quill(editorRef.current, {
+      const quill = new Quill(editorRef.current, {
         theme: 'snow',
         modules: {
-          toolbar: [
-            [{ 'header': [1, 2, 3, 4, 5, 6, false] }],
-            ['bold', 'italic', 'underline', 'strike'],
-            [{ 'list': 'ordered'}, { 'list': 'bullet' }],
-            [{ 'script': 'sub'}, { 'script': 'super' }],
-            [{ 'indent': '-1'}, { 'indent': '+1' }],
-            [{ 'direction': 'rtl' }],
-            [{ 'size': ['small', false, 'large', 'huge'] }],
-            [{ 'color': [] }, { 'background': [] }],
-            [{ 'font': [] }],
-            [{ 'align': [] }],
-            ['clean'],
-            ['link', 'image', 'video']
-          ]
+          toolbar: {
+            container: [
+              [{ 'header': [1, 2, 3, 4, 5, 6, false] }],
+              ['bold', 'italic', 'underline', 'strike'],
+              [{ 'list': 'ordered'}, { 'list': 'bullet' }],
+              [{ 'script': 'sub'}, { 'script': 'super' }],
+              [{ 'indent': '-1'}, { 'indent': '+1' }],
+              [{ 'direction': 'rtl' }],
+              [{ 'size': ['small', false, 'large', 'huge'] }],
+              [{ 'color': [] }, { 'background': [] }],
+              [{ 'font': [] }],
+              [{ 'align': [] }],
+              ['clean'],
+              ['link', 'image', 'video']
+            ],
+            handlers: {
+              image: () => {
+                const input = document.createElement('input');
+                input.setAttribute('type', 'file');
+                input.setAttribute('accept', 'image/*, image/webp');
+                input.click();
+
+                input.onchange = async () => {
+                  if (input.files) {
+                    const file = input.files[0];
+                    const formData = new FormData();
+                    formData.append('file', file);
+                    formData.append('prefix', 'editor');
+
+                    try {
+                      const res = await fetch('/api/image/upload', {
+                        method: 'POST',
+                        body: formData,
+                      });
+
+                      if (res.ok) {
+                        const { url } = await res.json();
+                        const range = quill.getSelection();
+                        if (range) {
+                          quill.insertEmbed(range.index, 'image', url);
+                        }
+                      } else {
+                        console.error('Image upload failed');
+                      }
+                    } catch (error) {
+                      console.error('Error uploading image:', error);
+                    }
+                  }
+                };
+              }
+            }
+          }
         }
       });
+      quillRef.current = quill;
 
-      quillRef.current.on('text-change', () => {
-        if (quillRef.current) {
-          onChange(quillRef.current.root.innerHTML);
-        }
+      quill.on('text-change', () => {
+        onChange(quill.root.innerHTML);
       });
     }
   }, [onChange]);

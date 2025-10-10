@@ -144,7 +144,7 @@ const AdminBoardForm = ({ initialData, isEdit = false }: AdminBoardFormProps) =>
             </div>
             {formData.representativeImageUrl && (
               <div className="mt-4">
-                <Image src={formData.representativeImageUrl} alt="preview" className="max-w-xs rounded" />
+                <img src={formData.representativeImageUrl} alt="preview" className="max-w-xs rounded" />
               </div>
             )}
           </div>

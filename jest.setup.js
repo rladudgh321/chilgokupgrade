@@ -8,3 +8,5 @@ jest.mock('next/headers', () => ({
     get: jest.fn(),
   }),
 }));
+
+jest.mock('@/app/utils/supabase/server');
