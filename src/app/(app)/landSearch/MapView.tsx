@@ -33,12 +33,15 @@ const MapView = ({
   const containerRef = useRef<HTMLDivElement | null>(null);
   const mapRef = useRef<any>(null);
   const clustererRef = useRef<any>(null);
-  // const autoZoomingRef =useRef(false);
+  const onClusterClickRef = useRef(onClusterClick);
+
+  useEffect(() => {
+    onClusterClickRef.current = onClusterClick;
+  }, [onClusterClick]);
 
   const [scriptLoaded, setScriptLoaded] = useState(false);
   const [scriptError, setScriptError] = useState(false);
 
-  // 원형 숫자 뱃지 스타일
   const circleStyle = (size: number, bg: string) => ({
     width: `${size}px`,
     height: `${size}px`,
@@ -53,14 +56,12 @@ const MapView = ({
       "0 3px 10px rgba(0,0,0,0.25), inset 0 0 0 2px rgba(255,255,255,0.85)",
   });
 
-  // 마커(및 클러스터) 갱신
   const refreshMarkers = useCallback(async (items: Listing[]) => {
     const kakao = window.kakao;
     const map = mapRef.current;
     const clusterer = clustererRef.current;
     if (!kakao?.maps || !map || !clusterer) return;
 
-    // 기존 제거
     clusterer.clear();
     if (!items?.length) return;
 
@@ -68,7 +69,6 @@ const MapView = ({
 
     const toMarker = (it: Listing) =>
       new Promise<any>((resolve) => {
-        // 1) 좌표 문자열 우선
         if (it.mapLocation && it.mapLocation.includes(",")) {
           const [lat, lng] = it.mapLocation.split(",").map(Number);
           if (Number.isFinite(lat) && Number.isFinite(lng)) {
@@ -77,12 +77,11 @@ const MapView = ({
               position: pos,
               title: it.title ?? "",
             });
-            marker.listingId = it.id; // 마커에 매물 ID 저장
+            marker.listingId = it.id;
             resolve(marker);
             return;
           }
         }
-        // 2) 주소 지오코딩 (옵션)
         if (it.address) {
           geocoder.addressSearch(it.address, (result: any[], status: any) => {
             if (status === kakao.maps.services.Status.OK && result?.[0]) {
@@ -91,7 +90,7 @@ const MapView = ({
                 position: pos,
                 title: it.title ?? "",
               });
-              marker.listingId = it.id; // 마커에 매물 ID 저장
+              marker.listingId = it.id;
               resolve(marker);
             } else {
               resolve(null);
@@ -105,37 +104,40 @@ const MapView = ({
     const markers = (await Promise.all(items.map(toMarker))).filter(Boolean);
     if (!markers.length) return;
 
-    // 개별 마커 클릭 이벤트
     markers.forEach((marker) => {
       kakao.maps.event.addListener(marker, "click", () => {
-        if (onClusterClick && marker.listingId) {
-          onClusterClick([marker.listingId]);
+        if (onClusterClickRef.current && marker.listingId) {
+          onClusterClickRef.current([marker.listingId]);
         }
       });
     });
 
     clusterer.addMarkers(markers);
-    map.panTo(markers[0].getPosition());
-  }, [onClusterClick]);
+    if (markers.length > 0) {
+      map.panTo(markers[0].getPosition());
+    }
+  }, []);
 
-  // 지도/클러스터 초기화
   const initMap = useCallback(() => {
     const kakao = window.kakao;
-    if (!kakao?.maps || !containerRef.current || mapRef.current) return; // Prevent re-initialization
+    if (!kakao?.maps || !containerRef.current || mapRef.current) return;
 
     const map = new kakao.maps.Map(containerRef.current, {
-      center: new kakao.maps.LatLng(37.5665, 126.978), // 서울시청
+      center: new kakao.maps.LatLng(37.5665, 126.978),
       level: 8,
     });
     mapRef.current = map;
 
-    // 기본 컨트롤(옵션)
     const mapTypeControl = new kakao.maps.MapTypeControl();
     map.addControl(mapTypeControl, kakao.maps.ControlPosition.TOPRIGHT);
     const zoomControl = new kakao.maps.ZoomControl();
     map.addControl(zoomControl, kakao.maps.ControlPosition.RIGHT);
 
-    // 클러스터러
+    if (!kakao.maps.MarkerClusterer) {
+      console.error("Kakao Maps MarkerClusterer library is not loaded.");
+      return;
+    }
+
     const clusterer = new kakao.maps.MarkerClusterer({
       map,
       averageCenter: true,
@@ -154,29 +156,36 @@ const MapView = ({
     });
     clustererRef.current = clusterer;
 
-    // 클러스터 클릭 시 ID 목록 전달
     kakao.maps.event.addListener(clusterer, "clusterclick", (cluster: any) => {
-      if (!onClusterClick) return;
-      const markersInCluster = cluster.getMarkers();
-      const listingIds = markersInCluster.map((m: any) => m.listingId).filter(Boolean);
-      if (listingIds.length > 0) {
-        onClusterClick(listingIds);
+      if (onClusterClickRef.current) {
+        const markersInCluster = cluster.getMarkers();
+        const listingIds = markersInCluster.map((m: any) => m.listingId).filter(Boolean);
+        if (listingIds.length > 0) {
+          onClusterClickRef.current(listingIds);
+        }
       }
     });
-
-    // 최초 마커 세팅
-    void refreshMarkers(listings);
-  }, [listings, onClusterClick, refreshMarkers]);
+  }, []);
 
   useEffect(() => {
-    if (scriptLoaded && !scriptError) {
-      window.kakao.maps.load(initMap);
+    if (scriptLoaded && !scriptError && !mapRef.current) {
+      window.kakao.maps.load(() => {
+        const checkClusterer = () => {
+          if (window.kakao && window.kakao.maps && window.kakao.maps.MarkerClusterer) {
+            initMap();
+          } else {
+            setTimeout(checkClusterer, 100);
+          }
+        };
+        checkClusterer();
+      });
     }
   }, [scriptLoaded, scriptError, initMap]);
 
-  // 목록이 바뀌면 마커 갱신
   useEffect(() => {
-    void refreshMarkers(listings);
+    if (mapRef.current && clustererRef.current) {
+      void refreshMarkers(listings);
+    }
   }, [listings, refreshMarkers]);
 
   if (!KAKAO_KEY) {
