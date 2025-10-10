@@ -1,5 +1,5 @@
 "use client"
-import { useState } from "react"
+import { useState, useCallback, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import Image from "next/image"
 import dynamic from 'next/dynamic'
@@ -34,7 +34,7 @@ const AdminBoardForm = ({ initialData, isEdit = false }: AdminBoardFormProps) =>
     representativeImage: null as File | null,
     representativeImageUrl: initialData?.representativeImage || null,
     externalLink: initialData?.externalLink || "",
-    registrationDate: initialData?.registrationDate ? new Date(initialData.registrationDate).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
+    registrationDate: initialData?.registrationDate ? new Date(initialData.registrationDate).toISOString().split('T')[0] : "",
     manager: initialData?.manager || "데모",
     title: initialData?.title || "",
     content: initialData?.content || "",
@@ -45,6 +45,23 @@ const AdminBoardForm = ({ initialData, isEdit = false }: AdminBoardFormProps) =>
     popupHeight: initialData?.popupHeight?.toString() || "400",
     isPublished: initialData?.isPublished === undefined ? true : initialData.isPublished,
   })
+
+  useEffect(() => {
+    if (!isEdit) {
+      setFormData(prev => ({
+        ...prev,
+        registrationDate: new Date().toISOString().split('T')[0]
+      }));
+    }
+  }, [isEdit]);
+
+  const handleContentChange = useCallback((value: string) => {
+    setFormData(prev => ({ ...prev, content: value }))
+  }, []);
+
+  const handlePopupContentChange = useCallback((value: string) => {
+    setFormData(prev => ({ ...prev, popupContent: value }))
+  }, []);
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
@@ -243,7 +260,7 @@ const AdminBoardForm = ({ initialData, isEdit = false }: AdminBoardFormProps) =>
             <label className="block text-sm font-medium text-gray-700 mb-2">
               내용
             </label>
-            <Editor value={formData.content} onChange={(value) => setFormData(prev => ({ ...prev, content: value }))} />
+            <Editor value={formData.content} onChange={handleContentChange} />
           </div>
 
           <div className="grid grid-cols-3 gap-6">
@@ -304,7 +321,7 @@ const AdminBoardForm = ({ initialData, isEdit = false }: AdminBoardFormProps) =>
             <label className="block text-sm font-medium text-gray-700 mb-2">
               팝업내용
             </label>
-            <Editor value={formData.popupContent} onChange={(value) => setFormData(prev => ({ ...prev, popupContent: value }))} />
+            <Editor value={formData.popupContent} onChange={handlePopupContentChange} />
           </div>
 
           <div className="flex justify-end gap-4 pt-6">

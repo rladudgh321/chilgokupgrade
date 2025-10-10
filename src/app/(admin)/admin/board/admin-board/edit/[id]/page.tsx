@@ -1,7 +1,7 @@
-import AdminBoardForm from "../../components/AdminBoardForm";
 import { createClient } from "@/app/utils/supabase/server";
 import { notFound } from "next/navigation";
 import { cookies } from "next/headers";
+import AdminBoardEditClient from "./client";
 
 interface AdminBoardEditPageProps {
   params: {
@@ -30,7 +30,7 @@ const AdminBoardEditPage = async ({ params }: AdminBoardEditPageProps) => {
     updatedAt: new Date(post.updatedAt).toISOString(),
   };
 
-  return <AdminBoardForm initialData={plainPost} isEdit={true} />;
+  return <AdminBoardEditClient post={plainPost as any} />;
 };
 
 export default AdminBoardEditPage;

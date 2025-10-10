@@ -74,16 +74,17 @@ const Editor = ({ value, onChange }: EditorProps) => {
       });
       quillRef.current = quill;
 
-      quill.on('text-change', () => {
-        onChange(quill.root.innerHTML);
+      quill.on('text-change', (delta, oldDelta, source) => {
+        if (source === 'user') {
+          onChange(quill.root.innerHTML);
+        }
       });
     }
   }, [onChange]);
 
   useEffect(() => {
-    if (quillRef.current && quillRef.current.root.innerHTML !== value) {
-      const delta = quillRef.current.clipboard.convert(value);
-      quillRef.current.setContents(delta, 'silent');
+    if (quillRef.current && value !== quillRef.current.root.innerHTML) {
+      quillRef.current.clipboard.dangerouslyPasteHTML(value);
     }
   }, [value]);
 
