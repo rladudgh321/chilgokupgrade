@@ -1,8 +1,10 @@
 "use client"
-import { useState, useCallback, useEffect } from "react"
+import { useState, useCallback } from "react"
 import { useRouter } from "next/navigation"
 import Image from "next/image"
 import dynamic from 'next/dynamic'
+import DatePicker from "react-datepicker";
+import "react-datepicker/dist/react-datepicker.css";
 
 const Editor = dynamic(() => import('@/app/components/shared/Editor'), { ssr: false });
 
@@ -12,14 +14,14 @@ interface Post {
   content: string
   popupContent?: string
   representativeImage?: string | null
-  externalLink?: string | null
-  registrationDate: string
+  registrationDate: string | Date
   manager: string
   isAnnouncement: boolean
   isPopup: boolean
   popupWidth?: number
   popupHeight?: number
   isPublished: boolean
+  popupType?: 'IMAGE' | 'CONTENT'
 }
 
 interface AdminBoardFormProps {
@@ -33,8 +35,7 @@ const AdminBoardForm = ({ initialData, isEdit = false }: AdminBoardFormProps) =>
   const [formData, setFormData] = useState({
     representativeImage: null as File | null,
     representativeImageUrl: initialData?.representativeImage || null,
-    externalLink: initialData?.externalLink || "",
-    registrationDate: initialData?.registrationDate ? new Date(initialData.registrationDate).toISOString().split('T')[0] : "",
+    registrationDate: initialData?.registrationDate ? new Date(initialData.registrationDate) : new Date(),
     manager: initialData?.manager || "데모",
     title: initialData?.title || "",
     content: initialData?.content || "",
@@ -44,16 +45,8 @@ const AdminBoardForm = ({ initialData, isEdit = false }: AdminBoardFormProps) =>
     popupWidth: initialData?.popupWidth?.toString() || "400",
     popupHeight: initialData?.popupHeight?.toString() || "400",
     isPublished: initialData?.isPublished === undefined ? true : initialData.isPublished,
-  })
-
-  useEffect(() => {
-    if (!isEdit) {
-      setFormData(prev => ({
-        ...prev,
-        registrationDate: new Date().toISOString().split('T')[0]
-      }));
-    }
-  }, [isEdit]);
+    popupType: initialData?.popupType || 'IMAGE',
+  });
 
   const handleContentChange = useCallback((value: string) => {
     setFormData(prev => ({ ...prev, content: value }))
@@ -90,14 +83,14 @@ const AdminBoardForm = ({ initialData, isEdit = false }: AdminBoardFormProps) =>
         content: formData.content,
         popupContent: formData.popupContent,
         representativeImage: representativeImageUrl,
-        externalLink: formData.externalLink || undefined,
-        registrationDate: formData.registrationDate || undefined,
+        registrationDate: formData.registrationDate,
         manager: formData.manager,
         isAnnouncement: formData.isAnnouncement === "사용",
         isPopup: formData.isPopup === "사용",
         popupWidth: formData.popupWidth ? parseInt(formData.popupWidth) : undefined,
         popupHeight: formData.popupHeight ? parseInt(formData.popupHeight) : undefined,
         isPublished: formData.isPublished,
+        popupType: formData.popupType,
       }
 
       const apiUrl = isEdit ? `/api/board/posts/${initialData?.id}` : '/api/board/posts'
@@ -134,67 +127,17 @@ const AdminBoardForm = ({ initialData, isEdit = false }: AdminBoardFormProps) =>
 
       <div className="max-w-4xl mx-auto p-6">
         <form onSubmit={handleSubmit} className="space-y-6">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              대표 이미지
-            </label>
-            <p className="text-sm text-gray-500 mb-2">
-              가로 1100px 이상은 자동 리사이징 됩니다.
-            </p>
-            <div className="flex items-center gap-4">
-              <input
-                type="file"
-                id="image-upload"
-                accept="image/*"
-                onChange={handleFileSelect}
-                className="hidden"
-              />
-              <label
-                htmlFor="image-upload"
-                className="px-4 py-2 bg-gray-500 text-white rounded-lg cursor-pointer hover:bg-gray-600"
-              >
-                파일 선택
-              </label>
-              <span className="text-gray-600">
-                {formData.representativeImage ? formData.representativeImage.name : (initialData?.representativeImage ? "기존 이미지" : "선택된 파일 없음")}
-              </span>
-            </div>
-            {formData.representativeImageUrl && (
-              <div className="mt-4">
-                <img src={formData.representativeImageUrl} alt="preview" className="max-w-xs rounded" />
-              </div>
-            )}
-          </div>
-
-          <div className="grid grid-cols-3 gap-6">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                외부링크
-              </label>
-              <input
-                type="url"
-                value={formData.externalLink}
-                onChange={(e) => setFormData(prev => ({ ...prev, externalLink: e.target.value }))}
-                placeholder="http://를 포함한 주소"
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
-              />
-            </div>
-
+          <div className="grid grid-cols-2 gap-6">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 등록일
               </label>
-              <div className="relative">
-                <input
-                  type="date"
-                  value={formData.registrationDate}
-                  onChange={(e) => setFormData(prev => ({ ...prev, registrationDate: e.target.value }))}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
-                />
-                <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
-                  📅
-                </div>
-              </div>
+              <DatePicker
+                selected={formData.registrationDate}
+                onChange={(date: Date) => setFormData(prev => ({ ...prev, registrationDate: date }))}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
+                dateFormat="yyyy-MM-dd"
+              />
             </div>
 
             <div>
@@ -319,10 +262,94 @@ const AdminBoardForm = ({ initialData, isEdit = false }: AdminBoardFormProps) =>
 
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              팝업내용
+              팝업 타입
             </label>
-            <Editor value={formData.popupContent} onChange={handlePopupContentChange} />
+            <div className="flex items-center gap-4">
+              <label className="flex items-center">
+                <input
+                  type="radio"
+                  name="popupType"
+                  value="IMAGE"
+                  checked={formData.popupType === 'IMAGE'}
+                  onChange={() => setFormData(prev => ({ ...prev, popupType: 'IMAGE' }))}
+                  className="form-radio h-4 w-4 text-purple-600"
+                />
+                <span className="ml-2 text-gray-700">팝업이미지</span>
+              </label>
+              <label className="flex items-center">
+                <input
+                  type="radio"
+                  name="popupType"
+                  value="CONTENT"
+                  checked={formData.popupType === 'CONTENT'}
+                  onChange={() => setFormData(prev => ({ ...prev, popupType: 'CONTENT' }))}
+                  className="form-radio h-4 w-4 text-purple-600"
+                />
+                <span className="ml-2 text-gray-700">팝업내용</span>
+              </label>
+            </div>
           </div>
+
+          {formData.popupType === 'IMAGE' && (
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                팝업이미지
+              </label>
+              <p className="text-sm text-gray-500 mb-2">
+                가로 1100px 이상은 자동 리사이징 됩니다.
+              </p>
+              <div className="flex items-center gap-4">
+                <input
+                  type="file"
+                  id="image-upload"
+                  accept="image/*"
+                  onChange={handleFileSelect}
+                  className="hidden"
+                />
+                <label
+                  htmlFor="image-upload"
+                  className="px-4 py-2 bg-gray-500 text-white rounded-lg cursor-pointer hover:bg-gray-600"
+                >
+                  파일 선택
+                </label>
+                <span className="text-gray-600">
+                  {formData.representativeImage ? formData.representativeImage.name : (initialData?.representativeImage ? "기존 이미지" : "선택된 파일 없음")}
+                </span>
+              </div>
+              {formData.representativeImageUrl && (
+                <div className="mt-4">
+                  <img src={formData.representativeImageUrl} alt="preview" className="max-w-xs rounded" />
+                </div>
+              )}
+            </div>
+          )}
+
+          {formData.popupType === 'CONTENT' && (
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                팝업내용
+              </label>
+              <Editor value={formData.popupContent} onChange={handlePopupContentChange} />
+
+              <div className="mt-6">
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  팝업 미리보기
+                </label>
+                <div
+                  className="border-2 border-dashed border-gray-400 p-4 overflow-y-auto"
+                  style={{
+                    width: `${formData.popupWidth || 400}px`,
+                    height: `${formData.popupHeight || 400}px`,
+                  }}
+                >
+                  <div
+                    className="prose max-w-none break-words h-full"
+                    dangerouslySetInnerHTML={{ __html: formData.popupContent || '' }}
+                  />
+                </div>
+              </div>
+            </div>
+          )}
 
           <div className="flex justify-end gap-4 pt-6">
             <button

@@ -8,6 +8,8 @@ export type PopupPost = {
   representativeImage: string | null;
   popupWidth: number | null;
   popupHeight: number | null;
+  popupType?: 'IMAGE' | 'CONTENT';
+  popupContent?: string | null;
 };
 
 const Popup = ({ popups }: { popups: PopupPost[] }) => {

@@ -8,7 +8,6 @@ interface PostForForm {
   content: string;
   popupContent: string | null;
   representativeImage: string | null;
-  externalLink: string | null;
   registrationDate: string;
   manager: string;
   isAnnouncement: boolean;
@@ -16,6 +15,7 @@ interface PostForForm {
   popupWidth: number | null;
   popupHeight: number | null;
   isPublished: boolean;
+  popupType?: 'IMAGE' | 'CONTENT';
   createdAt: string;
   updatedAt: string;
   views: number;

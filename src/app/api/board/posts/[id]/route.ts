@@ -8,7 +8,6 @@ const UpdatePostSchema = z.object({
   content: z.string().optional(),
   popupContent: z.string().optional(),
   representativeImage: z.string().optional().nullable(),
-  externalLink: z.string().url().optional().or(z.literal("")).nullable(),
   registrationDate: z.string().optional(),
   manager: z.string().optional(),
   isAnnouncement: z.boolean().default(false),
@@ -16,6 +15,7 @@ const UpdatePostSchema = z.object({
   popupWidth: z.number().optional(),
   popupHeight: z.number().optional(),
   isPublished: z.boolean().default(true),
+  popupType: z.enum(['IMAGE', 'CONTENT']).optional(),
 });
 
 export async function PUT(req: NextRequest, { params }: { params: { id: string } }) {

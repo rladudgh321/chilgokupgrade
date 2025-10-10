@@ -106,13 +106,20 @@ const DraggablePopup = ({ popup, zIndex, onFocus, initialPosition }: DraggablePo
         <span className="text-sm font-bold text-gray-700">공지사항</span>
       </div>
       <div className="relative flex-grow">
-        {popup.representativeImage && (
-          <Image 
-            src={popup.representativeImage}
-            alt="Popup Image"
-            layout="fill"
-            objectFit="contain"
+        {popup.popupType === 'CONTENT' ? (
+          <div 
+            className="p-4 overflow-y-auto h-full prose max-w-none break-words"
+            dangerouslySetInnerHTML={{ __html: popup.popupContent || '' }} 
           />
+        ) : (
+          popup.representativeImage && (
+            <Image 
+              src={popup.representativeImage}
+              alt="Popup Image"
+              layout="fill"
+              objectFit="contain"
+            />
+          )
         )}
       </div>
       <div className="p-2 bg-gray-100 rounded-b-lg">

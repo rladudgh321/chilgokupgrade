@@ -9,14 +9,14 @@ interface AdminBoardEditPageProps {
   };
 }
 
-const AdminBoardEditPage = async ({ params }: AdminBoardEditPageProps) => {
+const AdminBoardEditPage = async ({ params: { id } }: AdminBoardEditPageProps) => {
   const cookieStore = await cookies();
   const supabase = createClient(cookieStore);
 
   const { data: post, error } = await supabase
     .from("BoardPost")
     .select("*")
-    .eq("id", params.id)
+    .eq("id", id)
     .single();
 
   if (error || !post) {

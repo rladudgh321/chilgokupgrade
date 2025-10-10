@@ -11,13 +11,15 @@ import Institue from "../components/root/9Institue";
 import Popup from "../components/root/Popup";
 import { PopupPost } from "../components/root/Popup";
 
+export const revalidate = 0;
+
 async function getPopupPosts(): Promise<PopupPost[]> {
   const cookieStore = await cookies();
   const supabase = createClient(cookieStore);
 
   const { data, error } = await supabase
     .from('BoardPost')
-    .select('id, representativeImage, popupWidth, popupHeight')
+    .select('id, representativeImage, popupWidth, popupHeight, popupType, popupContent')
     .eq('isPopup', true);
 
   if (error) {

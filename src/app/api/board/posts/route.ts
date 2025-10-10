@@ -8,7 +8,6 @@ const CreatePostSchema = z.object({
   content: z.string().optional(),
   popupContent: z.string().optional(),
   representativeImage: z.string().optional(),
-  externalLink: z.string().optional().or(z.literal("")),
   registrationDate: z.string().optional(),
   manager: z.string().optional(),
   isAnnouncement: z.boolean().default(false),
@@ -16,6 +15,7 @@ const CreatePostSchema = z.object({
   popupWidth: z.number().optional(),
   popupHeight: z.number().optional(),
   isPublished: z.boolean().default(true),
+  popupType: z.enum(['IMAGE', 'CONTENT']).optional(),
 });
 
 export async function POST(req: NextRequest) {

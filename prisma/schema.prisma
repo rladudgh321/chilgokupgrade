@@ -113,23 +113,35 @@ model Contact {
 
 // /admin/board/admin-board/ 게시판관리
 model BoardPost {
-  id                  Int       @id @default(autoincrement())
+  id                  Int            @id @default(autoincrement())
   title               String
   content             String?
   popupContent        String?
   representativeImage String?
-  externalLink        String?
   registrationDate    DateTime?
   manager             String?
-  isAnnouncement      Boolean   @default(false)
-  isPopup             Boolean   @default(false)
+  isPopup             Boolean        @default(false)
   popupWidth          Int?
   popupHeight         Int?
-  isPublished         Boolean   @default(true)
-  views               Int       @default(0)
-  createdAt           DateTime  @default(now())
-  updatedAt           DateTime  @default(now()) @updatedAt
+  isPublished         Boolean        @default(true)
+  views               Int            @default(0)
+  popupType           PopupType      @default(IMAGE)
+  createdAt           DateTime       @default(now())
+  updatedAt           DateTime       @default(now()) @updatedAt
   deletedAt           DateTime?
+  categoryId          Int?
+  category            BoardCategory? @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+
+  @@index([categoryId])
+}
+
+model BoardCategory {
+  id        Int         @id @default(autoincrement())
+  name      String      @unique
+  order     Int?        @default(0)
+  posts     BoardPost[]
+  createdAt DateTime    @default(now())
+  updatedAt DateTime    @default(now()) @updatedAt
 }
 
 // 테마 이미지 관리
@@ -290,4 +302,9 @@ model SearchBarSetting {
   showBathrooms       Boolean @default(true)
   showSubwayLine      Boolean @default(true)
   updatedAt           DateTime @updatedAt
+}
+
+enum PopupType {
+  IMAGE
+  CONTENT
 }
