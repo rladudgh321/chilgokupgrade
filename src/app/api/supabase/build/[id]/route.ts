@@ -27,11 +27,12 @@ export async function GET(
       .select(`
         *,
         label:Label(name),
-        buildingOptions:BuildingOption(id, name),
+        buildingOptions:BuildingOption(id, name, imageUrl, imageName),
         listingType:ListingType(name),
         buyType:BuyType(name),
-        roomOption:RoomOption(name),
-        bathroomOption:BathroomOption(name)
+        roomOption:RoomOption(id, name, imageUrl, imageName),
+        bathroomOption:BathroomOption(id, name, imageUrl, imageName),
+        floorOption:FloorOption(id, name, imageUrl, imageName)
       `)
       .eq("id", idNum)
       .single();
@@ -46,11 +47,8 @@ export async function GET(
     const result = {
       ...data,
       label: (data.label as any)?.name,
-      buildingOptions: (data.buildingOptions as any[]).map((o: any) => o.name),
       propertyType: (data.listingType as any)?.name,
       dealType: (data.buyType as any)?.name,
-      roomOption: (data.roomOption as any)?.name,
-      bathroomOption: (data.bathroomOption as any)?.name,
     };
 
     return NextResponse.json(result, { headers: corsHeaders });

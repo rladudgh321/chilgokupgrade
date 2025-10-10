@@ -1,14 +1,7 @@
-import ListManager from "@adminShared/ListManager";
+import OptionsSettings from '@/app/(admin)/shared/OptionsSettings';
 
-const OptionsSettings = () => {
-  return (
-    <ListManager
-      title="옵션 설정"
-      placeholder="새로운 옵션"
-      buttonText="옵션 등록"
-      apiEndpoint="/api/building-options"
-    />
-  );
+const Page = () => {
+  return <OptionsSettings />;
 };
 
-export default OptionsSettings;
+export default Page;

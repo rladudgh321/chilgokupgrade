@@ -40,7 +40,10 @@ export interface IBuild {
   buildingArea?: number;
   totalArea?: number;
   themes?: string[]; // Json → any[] 또는 Record<string, any>
-  buildingOptions?: string[]; // Json
+  buildingOptions?: { id: number; name: string; imageUrl?: string; imageName?: string }[];
+  roomOption?: { id: number; name: string; imageUrl?: string; imageName?: string };
+  bathroomOption?: { id: number; name: string; imageUrl?: string; imageName?: string };
+  floorOption?: { id: number; name: string; imageUrl?: string; imageName?: string };
   constructionYear?: Date | string | null;
   permitDate?: Date | string | null;
   approvalDate?: Date | string | null;

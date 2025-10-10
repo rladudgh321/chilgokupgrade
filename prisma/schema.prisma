@@ -161,6 +161,8 @@ model BuildingOption {
   name      String   @unique
   order     Int?     @default(0)
   builds    Build[]
+  imageUrl  String?
+  imageName String?
   createdAt DateTime @default(now())
   updatedAt DateTime @default(now()) @updatedAt
 }
@@ -238,6 +240,8 @@ model RoomOption {
   id        Int      @id @default(autoincrement())
   name      String   @unique
   order     Int?     @default(0)
+  imageUrl  String?
+  imageName String?
   createdAt DateTime @default(now())
   updatedAt DateTime @default(now()) @updatedAt
   builds    Build[]
@@ -247,6 +251,8 @@ model BathroomOption {
   id        Int      @id @default(autoincrement())
   name      String   @unique
   order     Int?     @default(0)
+  imageUrl  String?
+  imageName String?
   createdAt DateTime @default(now())
   updatedAt DateTime @default(now()) @updatedAt
   builds    Build[]
@@ -256,6 +262,8 @@ model FloorOption {
   id        Int      @id @default(autoincrement())
   name      String   @unique
   order     Int?     @default(0)
+  imageUrl  String?
+  imageName String?
   createdAt DateTime @default(now())
   updatedAt DateTime @default(now()) @updatedAt
   builds    Build[]

@@ -210,11 +210,7 @@ const ListManager = ({ title, placeholder, buttonText, apiEndpoint='', enableIma
 
     try {
       setLoading(true);
-      const isBuyTypes = apiEndpoint === '/api/buy-types';
-      const queryParam = isBuyTypes ? 'name' : 'label';
-      const queryValue = isBuyTypes ? name : name;
-
-      const response = await fetch(`${apiEndpoint}?${queryParam}=${encodeURIComponent(queryValue)}`, {
+      const response = await fetch(`${apiEndpoint}?id=${id}`, {
         method: 'DELETE',
       });
 

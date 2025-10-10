@@ -4,7 +4,10 @@ import React from 'react';
 import Image from 'next/image';
 
 interface OptionIconProps {
-  optionName: string;
+  option: {
+    name: string;
+    imageUrl?: string;
+  };
 }
 
 const iconMap: Record<string, string> = {
@@ -23,16 +26,16 @@ const iconMap: Record<string, string> = {
   '엘리베이터': '/img/2/upper.png', // Placeholder, as I don't have a specific elevator icon
 };
 
-const OptionIcon = ({ optionName }: OptionIconProps) => {
-  const iconSrc = Object.keys(iconMap).find(key => optionName.includes(key));
-  const iconPath = iconSrc ? iconMap[iconSrc] : null;
+const OptionIcon = ({ option }: OptionIconProps) => {
+  const iconSrc = Object.keys(iconMap).find(key => option.name.includes(key));
+  const iconPath = option.imageUrl || (iconSrc ? iconMap[iconSrc] : null);
 
   if (!iconPath) {
     // Render a default representation if no icon is found
     return (
       <div className="flex flex-col items-center justify-center text-center">
         <div className="w-12 h-12 rounded-full bg-gray-200 mb-1" />
-        <span className="text-xs text-gray-700">{optionName}</span>
+        <span className="text-xs text-gray-700">{option.name}</span>
       </div>
     );
   }
@@ -40,9 +43,9 @@ const OptionIcon = ({ optionName }: OptionIconProps) => {
   return (
     <div className="flex flex-col items-center justify-center text-center">
       <div className="relative w-12 h-12 mb-1">
-        <Image src={iconPath} alt={optionName} layout="fill" objectFit="contain" />
+        <Image src={iconPath} alt={option.name} layout="fill" objectFit="contain" />
       </div>
-      <span className="text-xs text-gray-700">{optionName}</span>
+      <span className="text-xs text-gray-700">{option.name}</span>
     </div>
   );
 };
