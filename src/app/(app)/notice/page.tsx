@@ -10,7 +10,7 @@ async function getPosts() {
 
   const { data, error } = await supabase
     .from('BoardPost')
-    .select('id, title, content, isAnnouncement, views, createdAt, registrationDate')
+    .select('id, title, content, views, createdAt, registrationDate, BoardCategory(name)')
     .eq('isPublished', true)
     .order('createdAt', { ascending: false });
 
@@ -28,7 +28,7 @@ function serializePosts(posts: any[]): BoardPost[] {
     id: post.id,
     title: post.title,
     content: post.content,
-    isAnnouncement: post.isAnnouncement,
+    categoryName: post.BoardCategory?.name,
     views: post.views,
     createdAt: new Date(post.createdAt).toISOString(),
     registrationDate: post.registrationDate ? new Date(post.registrationDate).toISOString() : undefined,

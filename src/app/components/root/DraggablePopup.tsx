@@ -5,6 +5,8 @@ import { useState, useEffect, MouseEvent } from 'react';
 import Image from 'next/image';
 import { PopupPost } from './Popup';
 
+import { useRouter } from 'next/navigation';
+
 // Re-using cookie functions from Popup.tsx, assuming they are co-located or imported
 const setCookie = (name: string, value: string, days: number) => {
   let expires = '';
@@ -35,6 +37,7 @@ interface DraggablePopupProps {
 }
 
 const DraggablePopup = ({ popup, zIndex, onFocus, initialPosition }: DraggablePopupProps) => {
+  const router = useRouter();
   const [visible, setVisible] = useState(false);
   const [dontShowToday, setDontShowToday] = useState(false);
   const [position, setPosition] = useState(initialPosition);
@@ -47,6 +50,10 @@ const DraggablePopup = ({ popup, zIndex, onFocus, initialPosition }: DraggablePo
       setVisible(true);
     }
   }, [popup.id]);
+
+  const handleContentClick = () => {
+    router.push(`/notice/${popup.id}`);
+  };
 
   const handleMouseDown = (e: MouseEvent<HTMLDivElement>) => {
     onFocus();
@@ -105,7 +112,7 @@ const DraggablePopup = ({ popup, zIndex, onFocus, initialPosition }: DraggablePo
       >
         <span className="text-sm font-bold text-gray-700">공지사항</span>
       </div>
-      <div className="relative flex-grow">
+      <div onClick={handleContentClick} style={{ cursor: 'pointer' }} className="relative flex-grow">
         {popup.popupType === 'CONTENT' ? (
           <div 
             className="p-4 overflow-y-auto h-full prose max-w-none break-words"

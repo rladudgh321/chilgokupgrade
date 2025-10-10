@@ -9,7 +9,7 @@ export type BoardPost = {
   id: number;
   title: string;
   content?: string;
-  isAnnouncement: boolean;
+  categoryName?: string;
   views: number;
   createdAt: string;
   registrationDate?: string;
@@ -30,8 +30,8 @@ const NoticeClient = ({ initialPosts }: { initialPosts: BoardPost[] }) => {
     post.title.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
-  const announcements = filteredPosts.filter(p => p.isAnnouncement);
-  const normalPosts = filteredPosts.filter(p => !p.isAnnouncement);
+  const announcements = filteredPosts.filter(p => p.categoryName === '공지');
+  const normalPosts = filteredPosts.filter(p => p.categoryName !== '공지');
 
   const sortedPosts = [...announcements, ...normalPosts];
 
@@ -82,11 +82,11 @@ const NoticeClient = ({ initialPosts }: { initialPosts: BoardPost[] }) => {
             paginatedPosts.map((post, index) => (
               <tr 
                 key={post.id} 
-                className={`${post.isAnnouncement ? 'bg-yellow-100' : (index % 2 === 0 ? 'bg-slate-200' : 'bg-slate-300')} cursor-pointer hover:bg-gray-400`}
+                className={`${post.categoryName === '공지' ? 'bg-yellow-100' : (index % 2 === 0 ? 'bg-slate-200' : 'bg-slate-300')} cursor-pointer hover:bg-gray-400`}
                 onClick={() => handlePostClick(post.id)}
               >
                 <td className="p-2 text-center">
-                  {post.isAnnouncement ? '공지' : post.id}
+                  {post.categoryName || post.id}
                 </td>
                 <td className="p-2">
                   <div className="max-w-xs truncate" title={post.title}>
