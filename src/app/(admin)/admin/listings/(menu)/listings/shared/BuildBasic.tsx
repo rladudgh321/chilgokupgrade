@@ -15,8 +15,8 @@ const getButtonStyle = (activeState: string | null | boolean, item?: string) => 
     backgroundColor: activeState === item ? "#2b6cb0" : "white",
     color: activeState === item ? "white" : "gray",
     borderColor: "#cbd5e0",
-    padding: "0.5rem 1rem",
-    fontSize: "0.875rem",
+    padding: "0.4rem 0.8rem",
+    fontSize: "0.75rem",
     fontWeight: 500,
     borderRadius: "0.375rem",
     cursor: "pointer",
@@ -118,10 +118,10 @@ const SelectField = ({
         render={({ field }) => (
           <select
             {...field}
-            className={clsx(
-              "mt-1 block w-full p-3 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500",
-              className
-            )}
+              className={clsx(
+                "mt-1 block w-full p-2 sm:p-3 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500",
+                className
+              )}
           >
             {options.map((op) => (
               <option key={op} value={op}>
@@ -316,7 +316,7 @@ const BuildBasic = () => {
   };
 
   return (
-    <div className="p-4 space-y-6 bg-slate-100">
+    <div className="p-2 sm:p-4 space-y-4 sm:space-y-6 bg-slate-100">
       {/* 인기/급매 */}
       <div className="flex flex-col">
         <label className="block text-sm font-medium text-gray-700">
@@ -349,7 +349,7 @@ const BuildBasic = () => {
       </div>
 
       {/* 층수 */}
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <SelectField label="층수" name="floorType" options={["지상", "지하", "반지하", "옥탑"]} />
         <InputField label="현재층" name="currentFloor" type="number" placeholder="숫자만 입력하세요" />
         <InputField label="전체층" name="totalFloors" type="number" placeholder="숫자만 입력하세요" />
@@ -358,7 +358,7 @@ const BuildBasic = () => {
       </div>
 
       {/* 방수/화장실수 */}
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div className="flex flex-col">
           <label className="block text-sm font-medium text-gray-700">방수</label>
           <div className="flex space-x-0 mt-2 flex-wrap gap-y-4">
@@ -398,7 +398,7 @@ const BuildBasic = () => {
       </div>
 
       {/* 면적 */}
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <InputField label="실면적" name="actualArea" type="number" placeholder="m² 단위 숫자" />
         <InputField label="공급면적" name="supplyArea" type="number" placeholder="m² 단위 숫자" />
         <InputField label="대지면적" name="landArea" type="number" placeholder="m² 단위 숫자" />
@@ -464,7 +464,7 @@ const BuildBasic = () => {
       </div>
 
       {/* 주차 숫자 */}
-      <div className="grid grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <InputField label="세대당 주차수" name="parkingPerUnit" type="number" />
         <InputField label="전체주차수" name="totalParking" type="number" />
         <InputField label="주차비" name="parkingFee" type="number" />
@@ -534,24 +534,24 @@ const BuildBasic = () => {
       </div>
 
       {/* 토지건축물정보 */}
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <SelectField label="용도지역" name="landUse" options={["상업지구", "주거지구"]} />
         <SelectField label="지목" name="landType" options={["대지", "전"]} />
         <InputField label="건축물용도" name="buildingUse" />
       </div>
 
       {/* 담당자 및 고객 */}
-      <div>
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <SelectField label="담당자" name="staff" options={["권오길", "다른사람A", "다른사람B"]} />
         <SelectField label="고객 종류" name="customerType" options={["매도자", "매수자", "임대인"]} />
         <InputField label="고객 이름" name="customerName" />
       </div>
 
       {/* 버튼 */}
-      <div className="flex space-x-4">
-        <Button type="submit" label="고객 등록" className="bg-blue-500 text-white" onClick={onClickCustomer} />
-        <Button type="button" label="고객 관리" className="bg-gray-500 text-white" onClick={onClickCustomer} />
-        <Button type="button" label="담당자 관리" className="bg-gray-500 text-white" onClick={onClickCustomer} />
+      <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-4">
+        <Button type="submit" label="고객 등록" className="bg-blue-500 text-white w-full sm:w-auto" onClick={onClickCustomer} />
+        <Button type="button" label="고객 관리" className="bg-gray-500 text-white w-full sm:w-auto" onClick={onClickCustomer} />
+        <Button type="button" label="담당자 관리" className="bg-gray-500 text-white w-full sm:w-auto" onClick={onClickCustomer} />
       </div>
     </div>
   );

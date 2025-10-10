@@ -262,18 +262,28 @@ export default function LandSearchClient({ initialListings }: Props) {
     setFilteredIds(null);
   };
 
+  const [view, setView] = useState('list'); // 'map' or 'list'
+
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="bg-white shadow-sm border-b">
         <SearchBar />
       </div>
 
-      <div className="flex h-[calc(100vh-120px)]">
-        <div className="flex-1 min-w-0">
+      {/* Mobile view toggle */}
+      <div className="sm:hidden p-2 bg-white border-b">
+        <div className="flex justify-center gap-4">
+          <button onClick={() => setView('list')} className={`px-4 py-2 rounded-lg ${view === 'list' ? 'bg-blue-500 text-white' : 'bg-gray-200'}`}>목록</button>
+          <button onClick={() => setView('map')} className={`px-4 py-2 rounded-lg ${view === 'map' ? 'bg-blue-500 text-white' : 'bg-gray-200'}`}>지도</button>
+        </div>
+      </div>
+
+      <div className="flex flex-col sm:flex-row h-[calc(100vh-120px)]">
+        <div className={`flex-1 min-w-0 ${view === 'list' && 'hidden sm:block'}`}>
           <MapView listings={mapListings} onClusterClick={handleClusterClick} />
         </div>
 
-        <div className="w-[480px] flex-shrink-0 bg-white border-l flex flex-col h-full">
+        <div className={`w-full sm:w-[480px] flex-shrink-0 bg-white border-l flex flex-col h-full ${view === 'map' && 'hidden sm:block'}`}>
           {filteredIds !== null && (
             <div className="p-2 text-center border-b">
               <button
@@ -303,4 +313,3 @@ export default function LandSearchClient({ initialListings }: Props) {
       )}
     </div>
   );
-}

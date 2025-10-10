@@ -46,35 +46,34 @@ type Listing = {
 
 
 const CardSlide = ({listings, onCardClick}: {listings: Listing[], onCardClick: (id: number) => void}) => {
-  const computeSlides = () => (globalThis.innerWidth < 768 ? 2 : 4);
-  const computeMaxItems = () => {
-    const w = globalThis.innerWidth;
-    if (w >= 1024) return 10; // PC
-    if (w >= 768) return 7;   // Tablet
-    return 5;                 // Mobile
-  };
-
-  const [slidesPerView, setSlidesPerView] = useState(computeSlides);
-  const [maxItems, setMaxItems] = useState(computeMaxItems);
-  useEffect(() => {
-    const handleResize = () => {
-      setSlidesPerView(computeSlides());
-      setMaxItems(computeMaxItems());
-    };
-    window.addEventListener("resize", handleResize);
-    return () => window.removeEventListener("resize", handleResize);
-  }, []);
   return (
     <Swiper
         modules={[Navigation, Pagination, Scrollbar, A11y]}
         spaceBetween={10}
-        slidesPerView={slidesPerView}
         navigation
         pagination={{ clickable: true }}
         scrollbar={{ draggable: true }}
         className="mt-6"
+        breakpoints={{
+          320: {
+            slidesPerView: 1,
+            spaceBetween: 10
+          },
+          480: {
+            slidesPerView: 2,
+            spaceBetween: 20
+          },
+          768: {
+            slidesPerView: 3,
+            spaceBetween: 30
+          },
+          1024: {
+            slidesPerView: 4,
+            spaceBetween: 40
+          }
+        }}
       >
-        {listings.slice(0, maxItems).map((listing) => (
+        {listings.map((listing) => (
           <SwiperSlide key={listing.id}>
             <CardItem listing={listing} onClick={onCardClick} />
           </SwiperSlide>

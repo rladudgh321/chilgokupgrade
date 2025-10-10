@@ -28,7 +28,7 @@ const LocationCard = () => {
   };
 
   return (
-    <div className="p-4 space-y-6 bg-slate-100">
+    <div className="p-2 sm:p-4 space-y-4 sm:space-y-6 bg-slate-100">
       {/* 주소 */}
       <div className="flex flex-col">
         <label htmlFor="address" className="block text-sm font-medium text-gray-700">
@@ -39,13 +39,13 @@ const LocationCard = () => {
           id="address"
           {...register("address", { required: "주소를 입력해주세요" })}
           placeholder="상세주소 입력하세요"
-          className="mt-1 block w-full p-3 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="mt-1 block w-full p-2 sm:p-3 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
         />
         {errors.address && <p className="text-red-500 text-xs">{errors.address.message as string}</p>}
       </div>
 
       {/* 동/호 */}
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div className="flex flex-col">
           <label htmlFor="dong" className="block text-sm font-medium text-gray-700">동</label>
           <input
@@ -53,7 +53,7 @@ const LocationCard = () => {
             id="dong"
             {...register("dong")}
             placeholder="동"
-            className="mt-1 block w-full p-3 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="mt-1 block w-full p-2 sm:p-3 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
         </div>
 
@@ -64,7 +64,7 @@ const LocationCard = () => {
             id="ho"
             {...register("ho")}
             placeholder="호수"
-            className="mt-1 block w-full p-3 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="mt-1 block w-full p-2 sm:p-3 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
         </div>
       </div>
@@ -77,7 +77,7 @@ const LocationCard = () => {
           id="etc"
           {...register("etc")}
           placeholder="기타사항"
-          className="mt-1 block w-full p-3 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="mt-1 block w-full p-2 sm:p-3 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
         />
       </div>
 
@@ -99,7 +99,7 @@ const LocationCard = () => {
           id="mapLocation"
           {...register("mapLocation", { required: "지도 URL을 입력해주세요" })}
           placeholder="https://maps.google.com/..."
-          className="mt-1 block w-full p-3 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="mt-1 block w-full p-2 sm:p-3 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
         />
         {errors.mapLocation && <p className="text-red-500 text-xs">{errors.mapLocation.message as string}</p>}
       </div>

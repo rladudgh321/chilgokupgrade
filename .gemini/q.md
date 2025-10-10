@@ -1,21 +1,2 @@
-Unhandled Runtime Error
-Server
-
-
-Error: Event handlers cannot be passed to Client Component props.
-  <button onClick={function onClick} className=... children=...>
-                  ^^^^^^^^^^^^^^^^^^
-If you need interactivity, consider converting part of this to a Client Component.
-
-Call Stack
-4
-
-Hide 4 ignore-listed frame(s)
-resolveErrorDev
-.next\static\chunks\node_modules_next_dist_compiled_2ce9398a._.js (17512:48)
-processFullStringRow
-.next\static\chunks\node_modules_next_dist_compiled_2ce9398a._.js (17728:23)
-processFullBinaryRow
-.next\static\chunks\node_modules_next_dist_compiled_2ce9398a._.js (17716:9)
-progress
-.next\static\chunks\node_modules_next_dist_compiled_2ce9398a._.js (17862:102)
+`src/app/components/admin/nav/index.tsx` 의 경로의 컴포넌트도 pc형 테블릿형 모바일형으로 반응형으로 해줘.
+나는 모바일형에는 위쪽 상단에 버튼을 둬서 네비게이션 할 수 있게끔 하는게 낫다고 봐

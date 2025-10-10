@@ -2,10 +2,10 @@ import Image from "next/image";
 
 const ChairmanMessage = () => {
   return (
-    <section className="relative bg-gray-800 text-white px-6 py-16">
-      <div className="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
+    <section className="relative bg-gray-800 text-white p-4 sm:p-8 md:px-6 md:py-16">
+      <div className="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-8 sm:gap-12 items-center">
         {/* 왼쪽 텍스트 */}
-        <div className="space-y-6 leading-relaxed">
+        <div className="space-y-6 leading-relaxed text-sm sm:text-base">
           <p>
             부동산 시장은 언제나 쉽지 않았습니다. 규제와 경기 변동,
             정보 비대칭이 반복되는 환경 속에서도, 우리는 위축되지 않고
@@ -35,18 +35,17 @@ const ChairmanMessage = () => {
         </div>
 
         {/* 오른쪽 이미지 */}
-        <div className="flex justify-center">
+        <div className="flex justify-center md:order-last order-first">
           <Image
             src="/father2.jpg"
             alt="권오길 대표"
             width={400}
             height={400}
-            className="rounded-lg shadow-lg"
+            className="rounded-lg shadow-lg w-full max-w-xs sm:max-w-sm md:max-w-md"
           />
         </div>
       </div>
     </section>
   );
-};
 
 export default ChairmanMessage;

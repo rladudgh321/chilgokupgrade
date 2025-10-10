@@ -263,9 +263,9 @@ const CardList = () => {
       </div>
 
       {/* 메인 콘텐츠 */}
-      <div className="p-6">
+      <div className="p-2 sm:p-4 md:p-6">
         {/* 정렬 탭 */}
-        <div className="flex border-b bg-white mb-6">
+        <div className="flex border-b bg-white mb-6 overflow-x-auto">
           {[
             { key: "latest", label: "최신순" },
             { key: "popular", label: "인기순" },
@@ -275,7 +275,7 @@ const CardList = () => {
             <button
               key={option.key}
               onClick={() => handleSortChange(option.key)}
-              className={`px-4 py-3 text-sm font-medium border-b-2 transition-colors ${
+              className={`px-4 py-3 text-sm font-medium border-b-2 transition-colors whitespace-nowrap ${
                 sortBy === option.key
                   ? "border-blue-500 text-blue-600"
                   : "border-transparent text-gray-500 hover:text-gray-700"
@@ -286,8 +286,8 @@ const CardList = () => {
           ))}
         </div>
 
-        {/* 3열 그리드 */}
-        <div className="grid grid-cols-3 gap-6">
+        {/* 반응형 그리드 */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
           {displayListings.map((listing) => (
             <CardItem key={listing.id} listing={listing} onClick={handleCardClick} />
           ))}

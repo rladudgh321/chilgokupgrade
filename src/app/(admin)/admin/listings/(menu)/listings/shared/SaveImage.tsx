@@ -182,14 +182,14 @@ const SaveImage: React.FC = () => {
   };
 
   return (
-    <div className="max-w-4xl mx-auto p-4">
+    <div className="max-w-4xl mx-auto p-2 sm:p-4">
       {/* 대표 사진 */}
       <div className="mb-6">
-        <label className="block text-xl font-semibold">매물 대표 사진</label>
+        <label className="block text-lg sm:text-xl font-semibold">매물 대표 사진</label>
         <input type="file" accept="image/*" onChange={onPickMain} className="mt-2" />
         {mainImage && isValidImgSrc(mainImage) && (
           <div className="mt-3 flex items-center gap-3">
-            <Image src={mainImage} alt="대표 사진" width={300} height={300} />
+            <Image src={mainImage} alt="대표 사진" width={300} height={300} className="w-full max-w-[300px] h-auto" />
             <button
               type="button"
               className="px-3 py-1 rounded bg-red-500 text-white"
@@ -203,13 +203,13 @@ const SaveImage: React.FC = () => {
 
       {/* 매물 사진들 */}
       <div className="mb-6">
-        <label className="block text-xl font-semibold">매물 사진들</label>
+        <label className="block text-lg sm:text-xl font-semibold">매물 사진들</label>
         <input type="file" accept="image/*" multiple onChange={onPickSubs} className="mt-2" />
         {propertyImages.length > 0 && (
           <div className="mt-3 grid grid-cols-2 md:grid-cols-3 gap-3">
             {propertyImages.filter(isValidImgSrc).map((img, idx) => (
               <div key={img + idx} className="relative">
-                <Image src={img} alt={`매물 ${idx + 1}`} width={300} height={300} />
+                <Image src={img} alt={`매물 ${idx + 1}`} width={300} height={300} className="w-full h-auto" />
                 <button
                   type="button"
                   className="absolute top-2 right-2 bg-black/60 text-white px-2 py-1 rounded"
@@ -225,13 +225,13 @@ const SaveImage: React.FC = () => {
 
       {/* 관리자 전용 사진들 */}
       <div className="mb-2">
-        <label className="block text-xl font-semibold">관리자만 볼 수 있는 사진들</label>
+        <label className="block text-lg sm:text-xl font-semibold">관리자만 볼 수 있는 사진들</label>
         <input type="file" accept="image/*" multiple onChange={onPickAdmins} className="mt-2" />
         {adminImages.length > 0 && (
           <div className="mt-3 grid grid-cols-2 md:grid-cols-3 gap-3">
             {adminImages.filter(isValidImgSrc).map((img, idx) => (
               <div key={img + idx} className="relative">
-                <Image src={img} alt={`관리자 ${idx + 1}`} width={300} height={300} />
+                <Image src={img} alt={`관리자 ${idx + 1}`} width={300} height={300} className="w-full h-auto" />
                 <button
                   type="button"
                   className="absolute top-2 right-2 bg-black/60 text-white px-2 py-1 rounded"

@@ -2,8 +2,8 @@ import Image from "next/image";
 
 const IntroContent = () => {
   return (
-    <section className="relative bg-gradient-to-r from-red-900 to-slate-800 text-white px-6 py-16">
-      <div className="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
+    <section className="relative bg-gradient-to-r from-red-900 to-slate-800 text-white p-4 sm:p-8 md:px-6 md:py-16">
+      <div className="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-8 sm:gap-12 items-center">
         {/* 왼쪽 이미지 */}
         <div className="flex justify-center">
           <Image
@@ -11,12 +11,12 @@ const IntroContent = () => {
             alt="대표 프로필"
             width={400}
             height={400}
-            className="rounded-lg shadow-lg"
+            className="rounded-lg shadow-lg w-full max-w-xs sm:max-w-sm md:max-w-md"
           />
         </div>
 
         {/* 오른쪽 텍스트 */}
-        <div className="space-y-6 leading-relaxed">
+        <div className="space-y-6 leading-relaxed text-sm sm:text-base">
           <p>
             권오길 부동산은 토지 중개에 특화된 지역 전문가로서, 고객의
             생활과 투자 목적에 맞춘 맞춤형 컨설팅을 지향합니다. 우리는
@@ -34,6 +34,5 @@ const IntroContent = () => {
       </div>
     </section>
   );
-};
 
 export default IntroContent;

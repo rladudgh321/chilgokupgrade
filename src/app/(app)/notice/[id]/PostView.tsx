@@ -41,11 +41,11 @@ export default function PostView({ post }: { post: BoardPost }) {
   }, [post.id]);
 
   return (
-    <div className="p-6">
+    <div className="p-4 sm:p-6">
       <div className="max-w-4xl mx-auto bg-white shadow-md rounded-lg overflow-hidden">
-        <div className="p-8">
-          <h1 className="text-3xl font-bold mb-4">{post.title}</h1>
-          <div className="flex justify-between items-center text-sm text-gray-600 mb-6">
+        <div className="p-4 sm:p-8">
+          <h1 className="text-2xl sm:text-3xl font-bold mb-4">{post.title}</h1>
+          <div className="flex flex-col sm:flex-row sm:justify-between items-start sm:items-center text-sm text-gray-600 mb-6">
             <span>
               등록일: {new Date(post.registrationDate || post.createdAt).toLocaleDateString('ko-KR')}
             </span>
@@ -57,7 +57,7 @@ export default function PostView({ post }: { post: BoardPost }) {
           />
         </div>
         <div className="p-4 bg-gray-50 text-right">
-          <Link href="/notice" className="px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600">
+          <Link href="/notice" className="px-3 py-1 sm:px-4 sm:py-2 bg-gray-500 text-white rounded hover:bg-gray-600">
             목록으로
           </Link>
         </div>

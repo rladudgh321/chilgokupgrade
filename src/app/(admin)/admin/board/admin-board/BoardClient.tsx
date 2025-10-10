@@ -128,17 +128,17 @@ const BoardClient = ({ initialPosts }: { initialPosts: BoardPost[] }) => {
   }
 
   return (
-    <div className="p-6">
-      <div className="flex justify-between items-center mb-4">
-        <div className="text-xl font-semibold">
+    <div className="p-2 sm:p-4 md:p-6">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 gap-2">
+        <div className="text-lg sm:text-xl font-semibold">
           게시물: {filteredPosts.length}
         </div>
-        <div className="flex space-x-4">
+        <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-4 w-full sm:w-auto">
           {/* 카테고리 선택 */}
           <select
             value={selectedCategory}
             onChange={(e) => setSelectedCategory(e.target.value)}
-            className="p-2 border rounded"
+            className="p-2 border rounded w-full sm:w-auto"
           >
             <option value="전체">전체</option>
             <option value="공지사항">공지사항</option>
@@ -153,107 +153,109 @@ const BoardClient = ({ initialPosts }: { initialPosts: BoardPost[] }) => {
             placeholder="제목 검색"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="p-2 border rounded"
+            className="p-2 border rounded w-full sm:w-auto"
           />
 
           {/* 글쓰기 버튼 */}
           <button 
             onClick={handleCreatePost}
-            className="p-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+            className="p-2 bg-blue-500 text-white rounded hover:bg-blue-600 w-full sm:w-auto"
           >
             글쓰기
           </button>
         </div>
       </div>
 
-      <table className="min-w-full table-auto border-collapse">
-        <thead className="bg-gray-100">
-          <tr>
-            <th className="p-2 text-center">번호</th>
-            {/* 카테고리 컬럼 삭제 */}
-            <th className="p-2 text-center">제목</th>
-            <th className="p-2 text-center">담당자</th>
-            <th className="p-2 text-center">등록일</th>
-            <th className="p-2 text-center">조회수</th>
-            <th className="p-2 text-center">공지 / 일반</th>
-            <th className="p-2 text-center">팝업여부</th>
-            <th className="p-2 text-center">게시</th>
-            <th className="p-2 text-center">비고</th>
-          </tr>
-        </thead>
-        <tbody>
-          {paginatedPosts.length === 0 ? (
+      <div className="overflow-x-auto">
+        <table className="min-w-full table-auto border-collapse">
+          <thead className="bg-gray-100">
             <tr>
-              <td colSpan={10} className="p-8 text-center text-gray-500">
-                게시물이 없습니다.
-              </td>
+              <th className="p-2 text-center text-xs sm:text-sm">번호</th>
+              {/* 카테고리 컬럼 삭제 */}
+              <th className="p-2 text-center text-xs sm:text-sm">제목</th>
+              <th className="p-2 text-center text-xs sm:text-sm">담당자</th>
+              <th className="p-2 text-center text-xs sm:text-sm">등록일</th>
+              <th className="p-2 text-center text-xs sm:text-sm">조회수</th>
+              <th className="p-2 text-center text-xs sm:text-sm">공지 / 일반</th>
+              <th className="p-2 text-center text-xs sm:text-sm">팝업여부</th>
+              <th className="p-2 text-center text-xs sm:text-sm">게시</th>
+              <th className="p-2 text-center text-xs sm:text-sm">비고</th>
             </tr>
-          ) : (
-            paginatedPosts.map((post, index) => (
-              <tr key={post.id} className={index % 2 === 0 ? 'bg-slate-200' : 'bg-slate-300'}>
-                <td className="p-2 text-center">{post.id}</td>
-                <td className="p-2">
-                  <div className="max-w-xs truncate" title={post.title}>
-                    {post.title}
-                  </div>
-                </td>
-                <td className="p-2 text-center">{post.manager || '미지정'}</td>
-                <td className="p-2 text-center">
-                  {post.registrationDate 
-                    ? new Date(post.registrationDate).toLocaleDateString('ko-KR')
-                    : new Date(post.createdAt).toLocaleDateString('ko-KR')
-                  }
-                </td>
-                <td className="p-2 text-center">{post.views}</td>
-                <td className="p-2 text-center">
-                  <span className={`px-2 py-1 rounded text-xs ${
-                    post.isAnnouncement 
-                      ? 'bg-red-100 text-red-800' 
-                      : 'bg-gray-100 text-gray-600'
-                  }`}>
-                    {post.isAnnouncement ? '공지' : '일반'}
-                  </span>
-                </td>
-                <td className="p-2 text-center">
-                  <span className={`px-2 py-1 rounded text-xs ${
-                    post.isPopup 
-                      ? 'bg-blue-100 text-blue-800' 
-                      : 'bg-gray-100 text-gray-600'
-                  }`}>
-                    {post.isPopup ? '팝업' : '일반'}
-                  </span>
-                </td>
-                <td className="p-2 text-center">
-                  <span className={`px-2 py-1 rounded text-xs ${
-                    post.isPublished 
-                      ? 'bg-green-100 text-green-800' 
-                      : 'bg-red-100 text-red-800'
-                  }`}>
-                    {post.isPublished ? '게시' : '비공개'}
-                  </span>
-                </td>
-                <td className="p-2 text-center">
-                  <div className="flex justify-center gap-2">
-                    <HoverContent content={post.content} />
-                    <button
-                      onClick={() => handleEditPost(post.id)}
-                      className="px-2 py-1 bg-blue-500 text-white text-xs rounded hover:bg-blue-600"
-                    >
-                      수정
-                    </button>
-                    <button
-                      onClick={() => handleDeletePost(post.id)}
-                      className="px-2 py-1 bg-red-500 text-white text-xs rounded hover:bg-red-600"
-                    >
-                      삭제
-                    </button>
-                  </div>
+          </thead>
+          <tbody>
+            {paginatedPosts.length === 0 ? (
+              <tr>
+                <td colSpan={10} className="p-8 text-center text-gray-500">
+                  게시물이 없습니다.
                 </td>
               </tr>
-            ))
-          )}
-        </tbody>
-      </table>
+            ) : (
+              paginatedPosts.map((post, index) => (
+                <tr key={post.id} className={index % 2 === 0 ? 'bg-slate-200' : 'bg-slate-300'}>
+                  <td className="p-2 text-center text-xs sm:text-sm">{post.id}</td>
+                  <td className="p-2 text-xs sm:text-sm">
+                    <div className="max-w-xs truncate" title={post.title}>
+                      {post.title}
+                    </div>
+                  </td>
+                  <td className="p-2 text-center text-xs sm:text-sm">{post.manager || '미지정'}</td>
+                  <td className="p-2 text-center text-xs sm:text-sm">
+                    {post.registrationDate 
+                      ? new Date(post.registrationDate).toLocaleDateString('ko-KR')
+                      : new Date(post.createdAt).toLocaleDateString('ko-KR')
+                    }
+                  </td>
+                  <td className="p-2 text-center text-xs sm:text-sm">{post.views}</td>
+                  <td className="p-2 text-center">
+                    <span className={`px-2 py-1 rounded text-xs ${
+                      post.isAnnouncement 
+                        ? 'bg-red-100 text-red-800' 
+                        : 'bg-gray-100 text-gray-600'
+                    }`}>
+                      {post.isAnnouncement ? '공지' : '일반'}
+                    </span>
+                  </td>
+                  <td className="p-2 text-center">
+                    <span className={`px-2 py-1 rounded text-xs ${
+                      post.isPopup 
+                        ? 'bg-blue-100 text-blue-800' 
+                        : 'bg-gray-100 text-gray-600'
+                    }`}>
+                      {post.isPopup ? '팝업' : '일반'}
+                    </span>
+                  </td>
+                  <td className="p-2 text-center">
+                    <span className={`px-2 py-1 rounded text-xs ${
+                      post.isPublished 
+                        ? 'bg-green-100 text-green-800' 
+                        : 'bg-red-100 text-red-800'
+                    }`}>
+                      {post.isPublished ? '게시' : '비공개'}
+                    </span>
+                  </td>
+                  <td className="p-2 text-center">
+                    <div className="flex justify-center gap-2">
+                      <HoverContent content={post.content} />
+                      <button
+                        onClick={() => handleEditPost(post.id)}
+                        className="px-2 py-1 bg-blue-500 text-white text-xs rounded hover:bg-blue-600"
+                      >
+                        수정
+                      </button>
+                      <button
+                        onClick={() => handleDeletePost(post.id)}
+                        className="px-2 py-1 bg-red-500 text-white text-xs rounded hover:bg-red-600"
+                      >
+                        삭제
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              ))
+            )}
+          </tbody>
+        </table>
+      </div>
       <div className="flex justify-center mt-4">
         <Pagination 
           currentPage={currentPage} 

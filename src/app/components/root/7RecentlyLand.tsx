@@ -63,9 +63,9 @@ const RecentlyLand = ({ onCardClick }: { onCardClick: (id: number) => void }) =>
   const listings = useMemo(() => items, [items]);
 
   return (
-    <div className="text-center p-6">
-      <h2 className="text-xl font-bold">최신매물</h2>
-      <p className="text-gray-600">최신매물을 만나보세요</p>
+    <div className="text-center p-4 sm:p-6">
+      <h2 className="text-lg sm:text-xl font-bold">최신매물</h2>
+      <p className="text-sm sm:text-base text-gray-600">최신매물을 만나보세요</p>
       <CardSlide listings={listings} onCardClick={onCardClick} />
     </div>
   );

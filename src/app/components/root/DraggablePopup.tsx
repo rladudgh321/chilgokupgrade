@@ -4,6 +4,7 @@
 import { useState, useEffect, MouseEvent } from 'react';
 import Image from 'next/image';
 import { PopupPost } from './Popup';
+import useWindowSize from '@/app/hooks/useWindowSize';
 
 import { useRouter } from 'next/navigation';
 
@@ -38,6 +39,8 @@ interface DraggablePopupProps {
 
 const DraggablePopup = ({ popup, zIndex, onFocus, initialPosition }: DraggablePopupProps) => {
   const router = useRouter();
+  const { width: windowWidth } = useWindowSize();
+  const isMobile = windowWidth < 768;
   const [visible, setVisible] = useState(false);
   const [dontShowToday, setDontShowToday] = useState(false);
   const [position, setPosition] = useState(initialPosition);
@@ -56,6 +59,7 @@ const DraggablePopup = ({ popup, zIndex, onFocus, initialPosition }: DraggablePo
   };
 
   const handleMouseDown = (e: MouseEvent<HTMLDivElement>) => {
+    if (isMobile) return;
     onFocus();
     setIsDragging(true);
     setDragOffset({
@@ -65,7 +69,7 @@ const DraggablePopup = ({ popup, zIndex, onFocus, initialPosition }: DraggablePo
   };
 
   const handleMouseMove = (e: MouseEvent<HTMLDivElement>) => {
-    if (isDragging) {
+    if (isDragging && !isMobile) {
       setPosition({
         x: e.clientX - dragOffset.x,
         y: e.clientY - dragOffset.y,
@@ -91,16 +95,29 @@ const DraggablePopup = ({ popup, zIndex, onFocus, initialPosition }: DraggablePo
   const width = popup.popupWidth || 400;
   const height = popup.popupHeight || 600;
 
+  const mobileStyles = {
+    width: '90vw',
+    height: 'auto',
+    maxHeight: '80vh',
+    top: '50%',
+    left: '50%',
+    transform: 'translate(-50%, -50%)',
+  };
+
+  const desktopStyles = {
+    width: `${width}px`,
+    height: `${height}px`,
+    top: `${position.y}px`,
+    left: `${position.x}px`,
+  };
+
   return (
     <div
       className="fixed bg-white rounded-lg shadow-2xl flex flex-col border-2 border-gray-300"
-      style={{ 
-        width: `${width}px`, 
-        height: `${height}px`, 
-        top: `${position.y}px`, 
-        left: `${position.x}px`,
+      style={{
+        ...(isMobile ? mobileStyles : desktopStyles),
         zIndex,
-        cursor: isDragging ? 'grabbing' : 'grab',
+        cursor: isDragging ? 'grabbing' : (isMobile ? 'default' : 'grab'),
       }}
       onMouseMove={handleMouseMove}
       onMouseUp={handleMouseUp}
@@ -112,10 +129,10 @@ const DraggablePopup = ({ popup, zIndex, onFocus, initialPosition }: DraggablePo
       >
         <span className="text-sm font-bold text-gray-700">공지사항</span>
       </div>
-      <div onClick={handleContentClick} style={{ cursor: 'pointer' }} className="relative flex-grow">
+      <div onClick={handleContentClick} style={{ cursor: 'pointer' }} className="relative flex-grow overflow-y-auto">
         {popup.popupType === 'CONTENT' ? (
           <div 
-            className="p-4 overflow-y-auto h-full prose max-w-none break-words"
+            className="p-4 prose max-w-none break-words"
             dangerouslySetInnerHTML={{ __html: popup.popupContent || '' }} 
           />
         ) : (
@@ -130,8 +147,8 @@ const DraggablePopup = ({ popup, zIndex, onFocus, initialPosition }: DraggablePo
         )}
       </div>
       <div className="p-2 bg-gray-100 rounded-b-lg">
-        <div className="flex items-center justify-between">
-          <label className="flex items-center space-x-2 text-xs text-gray-600">
+        <div className="flex flex-col sm:flex-row items-center justify-between">
+          <label className="flex items-center space-x-2 text-xs text-gray-600 mb-2 sm:mb-0">
             <input 
               type="checkbox" 
               checked={dontShowToday}
@@ -142,7 +159,7 @@ const DraggablePopup = ({ popup, zIndex, onFocus, initialPosition }: DraggablePo
           </label>
           <button 
             onClick={handleClose} 
-            className="px-3 py-1 bg-gray-600 text-white text-xs rounded-md hover:bg-gray-700"
+            className="px-3 py-1 bg-gray-600 text-white text-xs rounded-md hover:bg-gray-700 w-full sm:w-auto"
           >
             닫기
           </button>

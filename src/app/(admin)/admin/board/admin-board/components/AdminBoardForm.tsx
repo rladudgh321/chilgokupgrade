@@ -143,13 +143,13 @@ const AdminBoardForm = ({ initialData, isEdit = false }: AdminBoardFormProps) =>
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <div className="bg-purple-600 text-white py-4 px-6">
-        <h1 className="text-2xl font-bold">{isEdit ? '글수정' : '글쓰기'}</h1>
+      <div className="bg-purple-600 text-white py-3 sm:py-4 px-4 sm:px-6">
+        <h1 className="text-xl sm:text-2xl font-bold">{isEdit ? '글수정' : '글쓰기'}</h1>
       </div>
 
-      <div className="max-w-4xl mx-auto p-6">
+      <div className="max-w-4xl mx-auto p-4 sm:p-6">
         <form onSubmit={handleSubmit} className="space-y-6">
-          <div className="grid grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 등록일
@@ -228,7 +228,7 @@ const AdminBoardForm = ({ initialData, isEdit = false }: AdminBoardFormProps) =>
             <Editor value={formData.content} onChange={handleContentChange} />
           </div>
 
-          <div className="grid grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-6">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 공지여부
@@ -263,23 +263,27 @@ const AdminBoardForm = ({ initialData, isEdit = false }: AdminBoardFormProps) =>
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 팝업크기
               </label>
-              <div className="flex gap-2">
-                <input
-                  type="number"
-                  value={formData.popupWidth}
-                  onChange={(e) => setFormData(prev => ({ ...prev, popupWidth: e.target.value }))}
-                  className="w-20 px-2 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
-                  placeholder="400"
-                />
-                <span className="flex items-center text-gray-500">px</span>
-                <input
-                  type="number"
-                  value={formData.popupHeight}
-                  onChange={(e) => setFormData(prev => ({ ...prev, popupHeight: e.target.value }))}
-                  className="w-20 px-2 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
-                  placeholder="400"
-                />
-                <span className="flex items-center text-gray-500">px</span>
+              <div className="flex flex-col sm:flex-row gap-2">
+                <div className="flex items-center gap-1">
+                  <input
+                    type="number"
+                    value={formData.popupWidth}
+                    onChange={(e) => setFormData(prev => ({ ...prev, popupWidth: e.target.value }))}
+                    className="w-full sm:w-20 px-2 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
+                    placeholder="400"
+                  />
+                  <span className="flex items-center text-gray-500">px</span>
+                </div>
+                <div className="flex items-center gap-1">
+                  <input
+                    type="number"
+                    value={formData.popupHeight}
+                    onChange={(e) => setFormData(prev => ({ ...prev, popupHeight: e.target.value }))}
+                    className="w-full sm:w-20 px-2 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
+                    placeholder="400"
+                  />
+                  <span className="flex items-center text-gray-500">px</span>
+                </div>
               </div>
             </div>
           </div>
@@ -322,7 +326,7 @@ const AdminBoardForm = ({ initialData, isEdit = false }: AdminBoardFormProps) =>
               <p className="text-sm text-gray-500 mb-2">
                 가로 1100px 이상은 자동 리사이징 됩니다.
               </p>
-              <div className="flex items-center gap-4">
+              <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
                 <input
                   type="file"
                   id="image-upload"
@@ -342,7 +346,7 @@ const AdminBoardForm = ({ initialData, isEdit = false }: AdminBoardFormProps) =>
               </div>
               {formData.representativeImageUrl && (
                 <div className="mt-4">
-                  <img src={formData.representativeImageUrl} alt="preview" className="max-w-xs rounded" />
+                  <img src={formData.representativeImageUrl} alt="preview" className="w-full max-w-xs rounded" />
                 </div>
               )}
             </div>
@@ -360,10 +364,10 @@ const AdminBoardForm = ({ initialData, isEdit = false }: AdminBoardFormProps) =>
                   팝업 미리보기
                 </label>
                 <div
-                  className="border-2 border-dashed border-gray-400 p-4 overflow-y-auto"
+                  className="border-2 border-dashed border-gray-400 p-4 overflow-y-auto w-full h-auto"
                   style={{
-                    width: `${formData.popupWidth || 400}px`,
-                    height: `${formData.popupHeight || 400}px`,
+                    maxWidth: `${formData.popupWidth || 400}px`,
+                    maxHeight: `${formData.popupHeight || 400}px`,
                   }}
                 >
                   <div
@@ -375,17 +379,17 @@ const AdminBoardForm = ({ initialData, isEdit = false }: AdminBoardFormProps) =>
             </div>
           )}
 
-          <div className="flex justify-end gap-4 pt-6">
+          <div className="flex flex-col sm:flex-row justify-end gap-4 pt-6">
             <button
               type="button"
               onClick={() => router.push("/admin/board/admin-board")}
-              className="px-6 py-2 bg-white border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50"
+              className="px-6 py-2 bg-white border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 w-full sm:w-auto"
             >
               목록
             </button>
             <button
               type="submit"
-              className="px-6 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700"
+              className="px-6 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 w-full sm:w-auto"
             >
               {isEdit ? '수정' : '저장'}
             </button>

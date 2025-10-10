@@ -253,33 +253,33 @@ const SearchBar = () => {
   }
 
   return (
-    <div className="p-4">
+    <div className="p-2 sm:p-4">
       {settings?.showKeyword && (
-        <div className="flex items-center gap-4 mb-4">
-          <div className="flex-1">
+        <div className="flex flex-col sm:flex-row items-center gap-2 sm:gap-4 mb-4">
+          <div className="flex-1 w-full">
             <input
               type="text"
               placeholder="관심지역 또는 매물번호를 입력"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-3 sm:px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
           </div>
           <button
             onClick={handleReset}
-            className="px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition-colors"
+            className="px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition-colors w-full sm:w-auto"
           >
             초기화
           </button>
         </div>
       )}
 
-      <div className="grid grid-cols-5 gap-4">
+      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-2 sm:gap-4">
         {settings?.showPropertyType && (
           <select
             value={propertyType}
             onChange={(e) => setPropertyType(e.target.value)}
-            className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="px-2 py-1 sm:px-3 sm:py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-xs sm:text-sm"
           >
             <option value="">매물 종류</option>
             {(propertyTypeOptions && propertyTypeOptions.length > 0
@@ -294,7 +294,7 @@ const SearchBar = () => {
           <select
             value={dealType}
             onChange={(e) => setDealType(e.target.value)}
-            className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="px-2 py-1 sm:px-3 sm:py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-xs sm:text-sm"
           >
             <option value="">거래유형</option>
             {buyTypeOptions.map((opt) => (
@@ -307,7 +307,7 @@ const SearchBar = () => {
           <select
             value={priceRange}
             onChange={(e) => setPriceRange(e.target.value)}
-            className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="px-2 py-1 sm:px-3 sm:py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-xs sm:text-sm"
             disabled={!dealType || pricePresets.length === 0}
           >
             <option value="">금액</option>
@@ -321,7 +321,7 @@ const SearchBar = () => {
           <select
             value={areaRange}
             onChange={(e) => setAreaRange(e.target.value)}
-            className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="px-2 py-1 sm:px-3 sm:py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-xs sm:text-sm"
           >
             <option value="">면적</option>
             {areaOptions.map((opt) => (
@@ -334,7 +334,7 @@ const SearchBar = () => {
           <select
             value={theme}
             onChange={(e) => setTheme(e.target.value)}
-            className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="px-2 py-1 sm:px-3 sm:py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-xs sm:text-sm"
           >
             <option value="">테마</option>
             {themeOptions.map((label) => (
@@ -347,7 +347,7 @@ const SearchBar = () => {
           <select
             value={rooms}
             onChange={(e) => setRooms(e.target.value)}
-            className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="px-2 py-1 sm:px-3 sm:py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-xs sm:text-sm"
           >
             <option value="">방</option>
             {roomOptions.map((opt) => (
@@ -364,7 +364,7 @@ const SearchBar = () => {
               console.log("Selected floor:", newFloor);
               setFloor(newFloor);
             }}
-            className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="px-2 py-1 sm:px-3 sm:py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-xs sm:text-sm"
           >
             <option value="">층수</option>
             {floorOptions.map((opt) => (
@@ -377,7 +377,7 @@ const SearchBar = () => {
           <select
             value={bathrooms}
             onChange={(e) => setBathrooms(e.target.value)}
-            className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="px-2 py-1 sm:px-3 sm:py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-xs sm:text-sm"
           >
             <option value="">화장실</option>
             {bathroomOptions.map((opt) => (
@@ -390,7 +390,7 @@ const SearchBar = () => {
           <select
             value={subwayLine}
             onChange={(e) => setSubwayLine(e.target.value)}
-            className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="px-2 py-1 sm:px-3 sm:py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-xs sm:text-sm"
           >
             <option value="">호선 검색</option>
             <option value="1">1호선</option>

@@ -25,7 +25,7 @@ const PriceInput = ({ name, label, enabledName }) => {
           id={name}
           type="number"
           {...register(name, { setValueAs: v => v === "" ? 0 : Number(v) })}
-          className={`mt-1 block w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${!isEnabled ? 'bg-gray-100 cursor-not-allowed' : ''}`}
+          className={`mt-1 block w-full p-2 sm:p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${!isEnabled ? 'bg-gray-100 cursor-not-allowed' : ''}`}
           placeholder="숫자로만 입력"
           disabled={!isEnabled}
         />
@@ -77,8 +77,8 @@ const LandInfo = () => {
       backgroundColor: active ? "#2b6cb0" : "white",
       color:          active ? "white"    : "gray",
       borderColor: "#cbd5e0",
-      padding: "0.5rem 1rem",
-      fontSize: "0.875rem",
+      padding: "0.4rem 0.8rem",
+      fontSize: "0.75rem",
       fontWeight: 500,
       borderRadius: "0.375rem",
       cursor: "pointer",
@@ -134,7 +134,7 @@ const LandInfo = () => {
   }, []);
 
   return (
-    <div className="p-4 space-y-6 bg-slate-100">
+    <div className="p-2 sm:p-4 space-y-4 sm:space-y-6 bg-slate-100">
       {/* 매물종류 */}
       <div className="flex flex-col">
         <label className="block text-sm font-medium text-gray-700">매물종류</label>

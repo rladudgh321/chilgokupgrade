@@ -31,16 +31,16 @@ const WhatTypeLand = () => {
   }, []);
 
   return (
-    <div className="grid grid-cols-3 gap-2 p-4">
+    <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-2 sm:gap-4 p-4">
       {items.map((property, index) => {
         const href = `/landSearch?propertyType=${encodeURIComponent(property.name)}`;
         return (
           <Link href={href} key={`${property.name}-${index}`} className="bg-white border border-gray-300 rounded-lg shadow-md overflow-hidden block">
             <div
               style={{ backgroundImage: `url(${property.imageUrl})` }}
-              className="h-[115px] bg-center bg-cover"
+              className="h-[80px] sm:h-[100px] md:h-[115px] bg-center bg-cover"
             />
-            <div className="text-center py-2 font-semibold">{property.name}</div>
+            <div className="text-center py-2 font-semibold text-sm sm:text-base">{property.name}</div>
           </Link>
         );
       })}

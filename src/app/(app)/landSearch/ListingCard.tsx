@@ -90,28 +90,28 @@ const ListingCard = ({ listing, onClick }: Props & { onClick: (id: number) => vo
         </div>
 
         {/* Content Section */}
-        <div className="p-4 flex flex-col flex-grow">
+        <div className="p-3 sm:p-4 flex flex-col flex-grow">
           {/* Labels */}
           <div className="flex flex-wrap gap-2 mb-2">
             {listing.label && (
-              <span className="px-2.5 py-0.5 bg-red-100 text-red-700 text-xs font-semibold rounded-full">
+              <span className="px-2 py-0.5 text-xs bg-red-100 text-red-700 font-semibold rounded-full">
                 {listing.label}
               </span>
             )}
             {listing.popularity && (
-              <span className="px-2.5 py-0.5 bg-amber-100 text-amber-700 text-xs font-semibold rounded-full">
+              <span className="px-2 py-0.5 text-xs bg-amber-100 text-amber-700 font-semibold rounded-full">
                 {listing.popularity}
               </span>
             )}
           </div>
 
           {/* Title */}
-          <h3 className="text-lg font-bold text-gray-800 leading-snug mb-1 line-clamp-2">
+          <h3 className="text-base sm:text-lg font-bold text-gray-800 leading-snug mb-1 line-clamp-2">
             {listing.title || "제목 없음"}
           </h3>
 
           {/* Address */}
-          <p className="text-sm text-gray-500 mb-3 line-clamp-1">
+          <p className="text-xs sm:text-sm text-gray-500 mb-3 line-clamp-1">
             {listing.address || "주소 정보 없음"}
           </p>
 
@@ -126,7 +126,7 @@ const ListingCard = ({ listing, onClick }: Props & { onClick: (id: number) => vo
           </div>
 
           {/* Details Grid */}
-          <div className="grid grid-cols-2 gap-x-4 gap-y-2 text-sm text-gray-600 border-t pt-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-2 sm:gap-x-4 gap-y-1 sm:gap-y-2 text-xs sm:text-sm text-gray-600 border-t pt-2 sm:pt-3">
             <div className="flex items-center gap-1.5">
               <Building2 className="w-4 h-4 text-gray-500 flex-shrink-0" />
               <span>{listing.propertyType || "타입 미정"}</span>

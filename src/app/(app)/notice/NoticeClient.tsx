@@ -46,64 +46,66 @@ const NoticeClient = ({ initialPosts }: { initialPosts: BoardPost[] }) => {
   };
 
   return (
-    <div className="p-6">
-      <div className="flex justify-between items-center mb-4">
-        <div className="text-xl font-semibold">
+    <div className="p-2 sm:p-4 md:p-6">
+      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-4">
+        <div className="text-lg sm:text-xl font-semibold mb-2 sm:mb-0">
           공지사항: {filteredPosts.length}
         </div>
-        <div className="flex space-x-4">
+        <div className="flex space-x-2 sm:space-x-4">
           <input
             type="text"
             placeholder="제목 검색"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="p-2 border rounded"
+            className="p-2 border rounded w-full sm:w-auto"
           />
         </div>
       </div>
 
-      <table className="min-w-full table-auto border-collapse">
-        <thead className="bg-gray-100">
-          <tr>
-            <th className="p-2 text-center">번호</th>
-            <th className="p-2 text-center">제목</th>
-            <th className="p-2 text-center">등록일</th>
-            <th className="p-2 text-center">조회수</th>
-          </tr>
-        </thead>
-        <tbody>
-          {paginatedPosts.length === 0 ? (
+      <div className="overflow-x-auto">
+        <table className="min-w-full table-auto border-collapse">
+          <thead className="bg-gray-100">
             <tr>
-              <td colSpan={4} className="p-8 text-center text-gray-500">
-                게시물이 없습니다.
-              </td>
+              <th className="p-2 text-center text-sm sm:text-base">번호</th>
+              <th className="p-2 text-center text-sm sm:text-base">제목</th>
+              <th className="p-2 text-center text-xs sm:text-sm">등록일</th>
+              <th className="p-2 text-center text-xs sm:text-sm">조회수</th>
             </tr>
-          ) : (
-            paginatedPosts.map((post, index) => (
-              <tr 
-                key={post.id} 
-                className={`${post.categoryName === '공지' ? 'bg-yellow-100' : (index % 2 === 0 ? 'bg-slate-200' : 'bg-slate-300')} cursor-pointer hover:bg-gray-400`}
-                onClick={() => handlePostClick(post.id)}
-              >
-                <td className="p-2 text-center">
-                  {post.categoryName || post.id}
+          </thead>
+          <tbody>
+            {paginatedPosts.length === 0 ? (
+              <tr>
+                <td colSpan={4} className="p-8 text-center text-gray-500">
+                  게시물이 없습니다.
                 </td>
-                <td className="p-2">
-                  <div className="max-w-xs truncate" title={post.title}>
-                    {post.title}
-                  </div>
-                </td>
-                <td className="p-2 text-center">
-                  {post.registrationDate
-                    ? new Date(post.registrationDate).toLocaleDateString('ko-KR')
-                    : new Date(post.createdAt).toLocaleDateString('ko-KR')}
-                </td>
-                <td className="p-2 text-center">{post.views}</td>
               </tr>
-            ))
-          )}
-        </tbody>
-      </table>
+            ) : (
+              paginatedPosts.map((post, index) => (
+                <tr 
+                  key={post.id} 
+                  className={`${post.categoryName === '공지' ? 'bg-yellow-100' : (index % 2 === 0 ? 'bg-slate-200' : 'bg-slate-300')} cursor-pointer hover:bg-gray-400`}
+                  onClick={() => handlePostClick(post.id)}
+                >
+                  <td className="p-2 text-center text-sm sm:text-base">
+                    {post.categoryName || post.id}
+                  </td>
+                  <td className="p-2 text-sm sm:text-base">
+                    <div className="max-w-xs truncate" title={post.title}>
+                      {post.title}
+                    </div>
+                  </td>
+                  <td className="p-2 text-center text-xs sm:text-sm">
+                    {post.registrationDate
+                      ? new Date(post.registrationDate).toLocaleDateString('ko-KR')
+                      : new Date(post.createdAt).toLocaleDateString('ko-KR')}
+                  </td>
+                  <td className="p-2 text-center text-xs sm:text-sm">{post.views}</td>
+                </tr>
+              ))
+            )}
+          </tbody>
+        </table>
+      </div>
       <div className="flex justify-center mt-4">
         <Pagination
           currentPage={currentPage}

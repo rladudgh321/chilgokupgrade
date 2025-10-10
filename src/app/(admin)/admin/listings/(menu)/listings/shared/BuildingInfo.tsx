@@ -52,8 +52,8 @@ const BuildingInfo = () => {
     backgroundColor: current === item ? "#2b6cb0" : "white",
     color: current === item ? "white" : "gray",
     borderColor: "#cbd5e0",
-    padding: "0.5rem 1rem",
-    fontSize: "0.875rem",
+    padding: "0.4rem 0.8rem",
+    fontSize: "0.75rem",
     fontWeight: 500,
     borderRadius: "0.375rem",
     cursor: "pointer",
@@ -62,7 +62,7 @@ const BuildingInfo = () => {
   });
 
   return (
-    <div className="px-4 space-y-6 bg-slate-100">
+    <div className="p-2 sm:p-4 space-y-4 sm:space-y-6 bg-slate-100">
 
       {/* 엘리베이터 */}
       <div className="flex flex-col">
@@ -95,7 +95,7 @@ const BuildingInfo = () => {
               {...register("elevatorCount", {
                 setValueAs: (v) => v === "" || v == null ? 0 : Number(v),
               })}
-              className="mt-1 block w-full p-3 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="mt-1 block w-full p-2 sm:p-3 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
           </div>
         )}

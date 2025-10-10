@@ -136,113 +136,113 @@ const OrderList = ({ initialOrders, totalPages, currentPage }: OrderListProps) =
   });
 
   return (
-    <div className="p-6">
-      <div className="flex justify-between items-center mb-4">
-        <div className="text-xl font-semibold">
+    <div className="p-2 sm:p-4 md:p-6">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 gap-2">
+        <div className="text-lg sm:text-xl font-semibold">
           의뢰수: {filteredOrders.length}건
         </div>
-        <div>
+        <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
           <select
             value={categoryFilter}
             onChange={(e) => setCategoryFilter(e.target.value as '전체' | '구해요' | '팔아요' | '기타')}
-            className="p-2 border rounded"
+            className="p-2 border rounded w-full sm:w-auto"
           >
             <option value="전체">전체</option>
             <option value="구해요">구해요</option>
             <option value="팔아요">팔아요</option>
           </select>
-        </div>
-        <div className="flex space-x-2">
           <input
             type="text"
             placeholder="연락처 또는 제목 검색"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="p-2 border rounded"
+            className="p-2 border rounded w-full sm:w-auto"
           />
           <button
             onClick={() => {}}
-            className="p-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+            className="p-2 bg-blue-500 text-white rounded hover:bg-blue-600 w-full sm:w-auto"
           >
             검색
           </button>
         </div>
       </div>
 
-      <table className="min-w-full table-auto border-collapse">
-        <thead className="bg-gray-100">
-          <tr>
-            <th className="p-2">번호</th>
-            <th className="p-2">확인여부</th>
-            <th className="p-2">구분</th>
-            <th className="p-2">거래유형</th>
-            <th className="p-2">작성자</th>
-            <th className="p-2">매물종류</th>
-            <th className="p-2">견적금액</th>
-            <th className="p-2">연락처</th>
-            <th className="p-2">IP주소</th>
-            <th className="p-2">의뢰지역</th>
-            <th className="p-2">제목</th>
-            <th className="p-2">상세내용</th>
-            <th className="p-2">등록일</th>
-            <th className="p-2">비고</th>
-          </tr>
-        </thead>
-        <tbody>
-          {filteredOrders.map((order, index) => (
-            <tr key={order.id} className={index % 2 === 0 ? 'bg-slate-200' : 'bg-slate-300'}>
-              <td className="p-2">{order.id}</td>
-              <td className="p-2">
-                <ToggleSwitch
-                  toggle={order.confirm}
-                  id={String(order.id)}
-                  onToggle={(value) => handleToggleChange(order.id, value)}
-                />
-              </td>
-              <td className="p-2">{order.category}</td>
-              <td className="p-2">{order.transactionType}</td>
-              <td className="p-2">{order.author}</td>
-              <td className="p-2">{order.propertyType}</td>
-              <td className="p-2">{order.estimatedAmount}</td>
-              <td className="p-2">{order.contact}</td>
-              <td className="p-2">{order.ipAddress}</td>
-              <td className="p-2">{order.region}</td>
-              <td className="p-2">
-                <p className="border p-2">{order.title}</p>
-                <textarea
-                  value={notes[order.id] || ''}
-                  onChange={(e) => handleNoteChange(order.id, e.target.value)}
-                  placeholder="관리용메모"
-                  className="p-2 border rounded w-full mt-2"
-                />
-                <button
-                  onClick={() => handleSaveNote(order.id)}
-                  className="mt-2 p-2 bg-green-500 text-white rounded hover:bg-green-600"
-                >
-                  메모저장
-                </button>
-              </td>
-              <td className="p-2">
-                <button
-                  className="p-2 bg-blue-500 text-white rounded"
-                  onClick={() => alert(`내용 보기: ${order.description}`)}
-                >
-                  내용보기
-                </button>
-              </td>
-              <td className="p-2">{new Date(order.createdAt).toLocaleDateString()}</td>
-              <td className="p-2">
-                <button
-                  className="p-2 bg-red-500 text-white rounded"
-                  onClick={() => handleDelete(order.id)}
-                >
-                  삭제
-                </button>
-              </td>
+      <div className="overflow-x-auto">
+        <table className="min-w-full table-auto border-collapse">
+          <thead className="bg-gray-100">
+            <tr>
+              <th className="p-2 text-xs sm:text-sm">번호</th>
+              <th className="p-2 text-xs sm:text-sm">확인여부</th>
+              <th className="p-2 text-xs sm:text-sm">구분</th>
+              <th className="p-2 text-xs sm:text-sm">거래유형</th>
+              <th className="p-2 text-xs sm:text-sm">작성자</th>
+              <th className="p-2 text-xs sm:text-sm">매물종류</th>
+              <th className="p-2 text-xs sm:text-sm">견적금액</th>
+              <th className="p-2 text-xs sm:text-sm">연락처</th>
+              <th className="p-2 text-xs sm:text-sm">IP주소</th>
+              <th className="p-2 text-xs sm:text-sm">의뢰지역</th>
+              <th className="p-2 text-xs sm:text-sm">제목</th>
+              <th className="p-2 text-xs sm:text-sm">상세내용</th>
+              <th className="p-2 text-xs sm:text-sm">등록일</th>
+              <th className="p-2 text-xs sm:text-sm">비고</th>
             </tr>
-          ))}
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            {filteredOrders.map((order, index) => (
+              <tr key={order.id} className={index % 2 === 0 ? 'bg-slate-200' : 'bg-slate-300'}>
+                <td className="p-2 text-xs sm:text-sm">{order.id}</td>
+                <td className="p-2">
+                  <ToggleSwitch
+                    toggle={order.confirm}
+                    id={String(order.id)}
+                    onToggle={(value) => handleToggleChange(order.id, value)}
+                  />
+                </td>
+                <td className="p-2 text-xs sm:text-sm">{order.category}</td>
+                <td className="p-2 text-xs sm:text-sm">{order.transactionType}</td>
+                <td className="p-2 text-xs sm:text-sm">{order.author}</td>
+                <td className="p-2 text-xs sm:text-sm">{order.propertyType}</td>
+                <td className="p-2 text-xs sm:text-sm">{order.estimatedAmount}</td>
+                <td className="p-2 text-xs sm:text-sm">{order.contact}</td>
+                <td className="p-2 text-xs sm:text-sm">{order.ipAddress}</td>
+                <td className="p-2 text-xs sm:text-sm">{order.region}</td>
+                <td className="p-2 text-xs sm:text-sm">
+                  <p className="border p-2">{order.title}</p>
+                  <textarea
+                    value={notes[order.id] || ''}
+                    onChange={(e) => handleNoteChange(order.id, e.target.value)}
+                    placeholder="관리용메모"
+                    className="p-2 border rounded w-full mt-2"
+                  />
+                  <button
+                    onClick={() => handleSaveNote(order.id)}
+                    className="mt-2 p-2 bg-green-500 text-white rounded hover:bg-green-600 w-full"
+                  >
+                    메모저장
+                  </button>
+                </td>
+                <td className="p-2 text-xs sm:text-sm">
+                  <button
+                    className="p-2 bg-blue-500 text-white rounded w-full"
+                    onClick={() => alert(`내용 보기: ${order.description}`)}
+                  >
+                    내용보기
+                  </button>
+                </td>
+                <td className="p-2 text-xs sm:text-sm">{new Date(order.createdAt).toLocaleDateString()}</td>
+                <td className="p-2 text-xs sm:text-sm">
+                  <button
+                    className="p-2 bg-red-500 text-white rounded w-full"
+                    onClick={() => handleDelete(order.id)}
+                  >
+                    삭제
+                  </button>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
       <Pagination 
         totalPages={totalPages} 
         currentPage={currentPage} 

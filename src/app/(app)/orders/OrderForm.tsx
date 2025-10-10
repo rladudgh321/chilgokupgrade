@@ -71,10 +71,10 @@ const OrderForm = ({ propertyTypes, buyTypes }: OrderFormProps) => {
   };
 
   return (
-    <form onSubmit={handleSubmit} className="max-w-2xl mx-auto bg-white p-8 rounded-lg shadow-md">
+    <form onSubmit={handleSubmit} className="max-w-4xl mx-auto bg-white p-4 sm:p-6 md:p-8 rounded-lg shadow-md">
       <div className="mb-6">
         <label className="block text-gray-700 font-bold mb-2">구분</label>
-        <div className="flex gap-4">
+        <div className="flex flex-col sm:flex-row flex-wrap gap-4">
           <label className="flex items-center">
             <input
               type="radio"
@@ -120,7 +120,7 @@ const OrderForm = ({ propertyTypes, buyTypes }: OrderFormProps) => {
             name="author"
             value={formData.author}
             onChange={handleChange}
-            className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full px-3 py-2 sm:px-4 sm:py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
             required
           />
         </div>
@@ -132,7 +132,7 @@ const OrderForm = ({ propertyTypes, buyTypes }: OrderFormProps) => {
             name="contact"
             value={formData.contact}
             onChange={handleChange}
-            className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full px-3 py-2 sm:px-4 sm:py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
             placeholder="'-' 없이 숫자만 입력"
             required
           />
@@ -147,7 +147,7 @@ const OrderForm = ({ propertyTypes, buyTypes }: OrderFormProps) => {
           name="region"
           value={formData.region}
           onChange={handleChange}
-          className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="w-full px-3 py-2 sm:px-4 sm:py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
           placeholder="예: 칠곡군 석적읍"
           required
                   />
@@ -161,7 +161,7 @@ const OrderForm = ({ propertyTypes, buyTypes }: OrderFormProps) => {
                     name="estimatedAmount"
                     value={formData.estimatedAmount}
                     onChange={handleChange}
-                    className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-3 py-2 sm:px-4 sm:py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                     placeholder="예: 3억 5천만원"
                     required
                   />
@@ -174,7 +174,7 @@ const OrderForm = ({ propertyTypes, buyTypes }: OrderFormProps) => {
             name="propertyType"
             value={formData.propertyType}
             onChange={handleChange}
-            className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full px-3 py-2 sm:px-4 sm:py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
             required
           >
             <option value="" disabled>선택하세요</option>
@@ -190,7 +190,7 @@ const OrderForm = ({ propertyTypes, buyTypes }: OrderFormProps) => {
             name="transactionType"
             value={formData.transactionType}
             onChange={handleChange}
-            className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full px-3 py-2 sm:px-4 sm:py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
             required
           >
             <option value="" disabled>선택하세요</option>
@@ -209,7 +209,7 @@ const OrderForm = ({ propertyTypes, buyTypes }: OrderFormProps) => {
           name="title"
           value={formData.title}
           onChange={handleChange}
-          className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="w-full px-3 py-2 sm:px-4 sm:py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
           required
         />
       </div>
@@ -222,7 +222,7 @@ const OrderForm = ({ propertyTypes, buyTypes }: OrderFormProps) => {
           value={formData.description}
           onChange={handleChange}
           rows={6}
-          className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="w-full px-3 py-2 sm:px-4 sm:py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
           required
         ></textarea>
       </div>

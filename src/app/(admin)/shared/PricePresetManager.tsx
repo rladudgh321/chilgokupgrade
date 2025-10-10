@@ -169,7 +169,7 @@ const PricePresetManager = ({ buyTypeId }: PricePresetManagerProps) => {
   };
 
   return (
-    <div className="p-4 border rounded-lg mt-4">
+    <div className="p-2 sm:p-4 border rounded-lg mt-4">
       {error && (
         <div className="mb-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded">
           {error}

@@ -16,7 +16,7 @@ const InputWithButton = ({
   disabled = false,
 }: InputWithButtonProps) => {
   return (
-    <div className="flex space-x-2 mb-4">
+    <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-2 mb-4">
       <input
         type="text"
         value={value}
@@ -30,7 +30,7 @@ const InputWithButton = ({
       <button
         onClick={onAdd}
         disabled={disabled}
-        className={`p-2 bg-blue-500 text-white rounded-lg ${
+        className={`p-2 bg-blue-500 text-white rounded-lg w-full sm:w-auto ${
           disabled ? 'opacity-50 cursor-not-allowed' : 'hover:bg-blue-600'
         }`}
       >

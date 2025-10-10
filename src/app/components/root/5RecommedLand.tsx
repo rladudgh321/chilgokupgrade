@@ -63,9 +63,9 @@ const RecommedLand = ({ onCardClick }: { onCardClick: (id: number) => void }) =>
   const listings = useMemo(() => items, [items]);
 
   return (
-    <div className="text-center p-6">
-      <h2 className="text-xl font-bold">이달의 인기 부동산</h2>
-      <p className="text-gray-600">이 달의 인기 매물을 확인해보세요!</p>
+    <div className="text-center p-4 sm:p-6">
+      <h2 className="text-lg sm:text-xl font-bold">이달의 인기 부동산</h2>
+      <p className="text-sm sm:text-base text-gray-600">이 달의 인기 매물을 확인해보세요!</p>
       <CardSlide listings={listings} onCardClick={onCardClick} />
     </div>
   );

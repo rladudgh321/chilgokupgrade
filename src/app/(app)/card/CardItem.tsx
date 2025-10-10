@@ -73,7 +73,7 @@ const CardItem = ({ listing, onClick }: Props & { onClick: (id: number) => void 
   return (
     <div onClick={() => onClick(listing.id)} className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow cursor-pointer flex flex-col">
       {/* 매물 이미지 */}
-      <div className="relative h-48 bg-gray-200">
+      <div className="relative h-32 sm:h-40 md:h-48 bg-gray-200">
         {listing.mainImage ? (
           <Image
             src={listing.mainImage}
@@ -83,12 +83,12 @@ const CardItem = ({ listing, onClick }: Props & { onClick: (id: number) => void 
           />
         ) : (
           <div className="w-full h-full bg-gray-300 flex items-center justify-center text-gray-500">
-            <Building2 className="w-12 h-12 text-gray-400" />
+            <Building2 className="w-10 h-10 sm:w-12 sm:h-12 text-gray-400" />
           </div>
         )}
 
         {/* 라벨들 (Existing from CardItem) */}
-        <div className="absolute top-3 left-3 flex flex-wrap gap-1">
+        <div className="absolute top-2 left-2 sm:top-3 sm:left-3 flex flex-wrap gap-1">
           {listing.label && (
             <span className="px-2 py-1 bg-red-500 text-white text-xs rounded-full">
               {listing.label}
@@ -107,25 +107,25 @@ const CardItem = ({ listing, onClick }: Props & { onClick: (id: number) => void 
         </div>
 
         {/* 매물 ID (Existing from CardItem) */}
-        <div className="absolute top-3 right-3 bg-black bg-opacity-75 text-white text-xs px-2 py-1 rounded">
+        <div className="absolute top-2 right-2 sm:top-3 sm:right-3 bg-black bg-opacity-75 text-white text-xs px-2 py-1 rounded">
           #{listing.id}
         </div>
       </div>
 
       {/* 매물 정보 */}
-      <div className="p-4 flex flex-col flex-grow">
+      <div className="p-3 sm:p-4 flex flex-col flex-grow">
         {/* Title */}
-        <h3 className="text-lg font-bold text-gray-800 leading-snug mb-1 line-clamp-2 h-14">
+        <h3 className="text-base sm:text-lg font-bold text-gray-800 leading-snug mb-1 line-clamp-2 h-12 sm:h-14">
           {listing.title || "제목 없음"}
         </h3>
 
         {/* Address */}
-        <p className="text-sm text-gray-500 mb-3 line-clamp-1">
+        <p className="text-xs sm:text-sm text-gray-500 mb-2 sm:mb-3 line-clamp-1">
           {listing.address || "주소 정보 없음"}
         </p>
 
         {/* Price */}
-        <div className="mb-4 space-y-1 border-t pt-3">
+        <div className="mb-3 sm:mb-4 space-y-1 border-t pt-2 sm:pt-3">
             {listing.isSalePriceEnabled && renderPrice("매매", listing.salePrice)}
             {listing.isLumpSumPriceEnabled && renderPrice("전세", listing.lumpSumPrice)}
             {listing.isActualEntryCostEnabled && renderPrice("실입주금", listing.actualEntryCost)}
@@ -135,7 +135,7 @@ const CardItem = ({ listing, onClick }: Props & { onClick: (id: number) => void 
         </div>
 
         {/* Details Grid */}
-        <div className="grid grid-cols-2 gap-x-4 gap-y-2 text-sm text-gray-600 border-t pt-3 mt-auto">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-2 sm:gap-x-4 gap-y-1 sm:gap-y-2 text-xs sm:text-sm text-gray-600 border-t pt-2 sm:pt-3 mt-auto">
             <div className="flex items-center gap-1.5">
               <Building2 className="w-4 h-4 text-gray-500 flex-shrink-0" />
               <span>{listing.propertyType || "타입 미정"}</span>

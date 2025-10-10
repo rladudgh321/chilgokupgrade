@@ -99,12 +99,12 @@ const DraggableItem = ({ id, name, imageUrl, imageName, moveItem, onEdit, onDele
   return (
     <div
       ref={ref}
-      className={`p-4 mb-2 border rounded-lg transition-all ${
+      className={`p-2 sm:p-4 mb-2 border rounded-lg transition-all ${
         disabled ? 'bg-gray-50 opacity-50' : 'bg-gray-100 hover:bg-gray-200'
       } ${isEditing ? 'bg-blue-50 border-blue-300' : ''}`}
     >
-      <div className="flex items-center justify-between">
-        <div className="flex items-center space-x-4 flex-1">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center space-y-2 sm:space-y-0 sm:space-x-4 flex-1 w-full">
           {/* 이미지 표시 */}
           {imageUrl && (
             <div className="w-16 h-16 flex-shrink-0">
@@ -117,7 +117,7 @@ const DraggableItem = ({ id, name, imageUrl, imageName, moveItem, onEdit, onDele
           )}
           
           {/* 텍스트 편집 */}
-          <div className="flex-1">
+          <div className="flex-1 w-full">
             {isEditing ? (
               <input
                 type="text"
@@ -163,20 +163,20 @@ const DraggableItem = ({ id, name, imageUrl, imageName, moveItem, onEdit, onDele
           </div>
         </div>
         
-        <div className="flex space-x-2 ml-4">
+        <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-2 mt-2 sm:mt-0 w-full sm:w-auto">
           {isEditing ? (
             <>
               <button
                 onClick={handleEdit}
                 disabled={disabled}
-                className="px-3 py-1 bg-green-500 text-white rounded text-sm hover:bg-green-600 disabled:opacity-50"
+                className="px-3 py-1 bg-green-500 text-white rounded text-sm hover:bg-green-600 disabled:opacity-50 w-full sm:w-auto"
               >
                 저장
               </button>
               <button
                 onClick={handleCancel}
                 disabled={disabled}
-                className="px-3 py-1 bg-gray-500 text-white rounded text-sm hover:bg-gray-600 disabled:opacity-50"
+                className="px-3 py-1 bg-gray-500 text-white rounded text-sm hover:bg-gray-600 disabled:opacity-50 w-full sm:w-auto"
               >
                 취소
               </button>
@@ -186,7 +186,7 @@ const DraggableItem = ({ id, name, imageUrl, imageName, moveItem, onEdit, onDele
               <button
                 onClick={handleEdit}
                 disabled={disabled}
-                className="px-3 py-1 bg-blue-500 text-white rounded text-sm hover:bg-blue-600 disabled:opacity-50"
+                className="px-3 py-1 bg-blue-500 text-white rounded text-sm hover:bg-blue-600 disabled:opacity-50 w-full sm:w-auto"
               >
                 수정
               </button>
@@ -194,7 +194,7 @@ const DraggableItem = ({ id, name, imageUrl, imageName, moveItem, onEdit, onDele
                 <button
                   onClick={() => setIsImageEditing(!isImageEditing)}
                   disabled={disabled}
-                  className="px-3 py-1 bg-purple-500 text-white rounded text-sm hover:bg-purple-600 disabled:opacity-50"
+                  className="px-3 py-1 bg-purple-500 text-white rounded text-sm hover:bg-purple-600 disabled:opacity-50 w-full sm:w-auto"
                 >
                   이미지 {isImageEditing ? '취소' : (imageUrl ? '변경' : '추가')}
                 </button>
@@ -203,7 +203,7 @@ const DraggableItem = ({ id, name, imageUrl, imageName, moveItem, onEdit, onDele
                 <button
                   onClick={() => onDelete(id, name)}
                   disabled={disabled}
-                  className="px-3 py-1 bg-red-500 text-white rounded text-sm hover:bg-red-600 disabled:opacity-50"
+                  className="px-3 py-1 bg-red-500 text-white rounded text-sm hover:bg-red-600 disabled:opacity-50 w-full sm:w-auto"
                 >
                   삭제
                 </button>

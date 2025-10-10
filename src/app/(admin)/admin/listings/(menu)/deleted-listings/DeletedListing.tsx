@@ -137,19 +137,19 @@ const DeletedListings = ({ DeletedData, sortKey }: DeletedListingsProps) => {
   return (
     <FormProvider {...methods}>
       {/* 상단바 */}
-      <div className="flex justify-between items-center">
-        <div className="mb-4 max-w-4xl flex items-center">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 mb-4">
+        <div className="w-full sm:max-w-xs flex items-center">
           <form className="flex h-8 w-full" onSubmit={onSubmit}>
             <div className="border border-slate-500 rounded-l-xl w-full">
               <input
                 {...register("keyword")}
                 type="text"
                 placeholder="매물번호 또는 주소"
-                className="h-full px-2 w-full"
+                className="h-full px-2 w-full rounded-l-xl"
               />
             </div>
             <button type="submit">
-              <SearchIcon className="w-8 bg-slate-400 rounded-r-xl p-1" />
+              <SearchIcon className="w-8 bg-slate-400 rounded-r-xl p-1 h-full" />
             </button>
           </form>
         </div>
@@ -161,17 +161,17 @@ const DeletedListings = ({ DeletedData, sortKey }: DeletedListingsProps) => {
         <table className="min-w-full table-auto text-center">
           <thead>
             <tr className="bg-slate-600 text-white">
-              <th className="p-3 text-sm font-medium">매물번호</th>
-              <th className="p-3 text-sm font-medium">공개/거래</th>
-              <th className="p-3 text-sm font-medium">거래종류</th>
-              <th className="p-3 text-sm font-medium">매물종류</th>
-              <th className="p-3 text-sm font-medium">주소</th>
-              <th className="p-3 text-sm font-medium">매물정보</th>
-              <th className="p-3 text-sm font-medium">금액</th>
-              <th className="p-3 text-sm font-medium">조회수</th>
-              <th className="p-3 text-sm font-medium">등록일<br />(수정일)</th>
-              <th className="p-3 text-sm font-medium">삭제일</th>
-              <th className="p-3 text-sm font-medium">비고</th>
+              <th className="p-2 sm:p-3 text-xs sm:text-sm font-medium">매물번호</th>
+              <th className="p-2 sm:p-3 text-xs sm:text-sm font-medium">공개/거래</th>
+              <th className="p-2 sm:p-3 text-xs sm:text-sm font-medium">거래종류</th>
+              <th className="p-2 sm:p-3 text-xs sm:text-sm font-medium">매물종류</th>
+              <th className="p-2 sm:p-3 text-xs sm:text-sm font-medium">주소</th>
+              <th className="p-2 sm:p-3 text-xs sm:text-sm font-medium">매물정보</th>
+              <th className="p-2 sm:p-3 text-xs sm:text-sm font-medium">금액</th>
+              <th className="p-2 sm:p-3 text-xs sm:text-sm font-medium">조회수</th>
+              <th className="p-2 sm:p-3 text-xs sm:text-sm font-medium">등록일<br />(수정일)</th>
+              <th className="p-2 sm:p-3 text-xs sm:text-sm font-medium">삭제일</th>
+              <th className="p-2 sm:p-3 text-xs sm:text-sm font-medium">비고</th>
             </tr>
           </thead>
 
@@ -190,9 +190,9 @@ const DeletedListings = ({ DeletedData, sortKey }: DeletedListingsProps) => {
                     index % 2 === 0 ? "bg-slate-100" : "bg-slate-200",
                   )}
                 >
-                  <td className="p-3">{id}</td>
+                  <td className="p-2 sm:p-3 text-xs sm:text-sm">{id}</td>
 
-                  <td className="p-3">
+                  <td className="p-2 sm:p-3 text-xs sm:text-sm">
                     <AddressVisibility
                       activeAddressPublic={listing.isAddressPublic as "public" | "private" | "exclude"}
                       listingId={id}
@@ -210,38 +210,38 @@ const DeletedListings = ({ DeletedData, sortKey }: DeletedListingsProps) => {
                     />
                   </td>
 
-                  <td className="p-3">{listing.dealType}</td>
-                  <td className="p-3">{listing.propertyType}</td>
-                  <td className="p-3"><CopyText text={listing.address ?? ""} /></td>
+                  <td className="p-2 sm:p-3 text-xs sm:text-sm">{listing.dealType}</td>
+                  <td className="p-2 sm:p-3 text-xs sm:text-sm">{listing.propertyType}</td>
+                  <td className="p-2 sm:p-3 text-xs sm:text-sm"><CopyText text={listing.address ?? ""} /></td>
 
-                  <td className="p-3">
+                  <td className="p-2 sm:p-3 text-xs sm:text-sm">
                     <div>{listing.title}</div>
                     <div>방 {listing.rooms} / 화장실 {listing.bathrooms}</div>
                     <div>실면적 {listing.actualArea}평 / 공급면적 {listing.supplyArea}평</div>
                     <div>{listing.direction} / 지상 {listing.currentFloor}/{listing.totalFloors}층</div>
                   </td>
 
-                  <td className="p-3">
+                  <td className="p-2 sm:p-3 text-xs sm:text-sm">
                     {listing.salePrice && <div>분: {formatFullKoreanMoney(Number(listing.salePrice))}</div>}
                     {listing.rentalPrice && <div>전: {formatFullKoreanMoney(Number(listing.rentalPrice))}</div>}
                     {listing.actualEntryCost && <div>실: {formatFullKoreanMoney(Number(listing.actualEntryCost))}</div>}
                     {listing.managementFee && <div>관: {formatFullKoreanMoney(Number(listing.managementFee))}</div>}
                   </td>
 
-                  <td className="p-3">{listing?.views ?? 0}</td>
+                  <td className="p-2 sm:p-3 text-xs sm:text-sm">{listing?.views ?? 0}</td>
 
-                  <td className="p-3">
+                  <td className="p-2 sm:p-3 text-xs sm:text-sm">
                     <div>{createdAt.toLocaleDateString()}</div>
                     {showUpdated && (
                       <div>({updatedAt!.toLocaleDateString()})</div>
                     )}
                   </td>
 
-                  <td className="p-3">
+                  <td className="p-2 sm:p-3 text-xs sm:text-sm">
                     {listing?.deletedAt ? new Date(String(listing.deletedAt)).toLocaleDateString() : "-"}
                   </td>
 
-                  <td className="p-3">
+                  <td className="p-2 sm:p-3 text-xs sm:text-sm">
                     <div className="flex gap-2 justify-center flex-col">
                       <button
                         onClick={() => {

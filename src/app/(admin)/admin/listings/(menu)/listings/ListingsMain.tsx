@@ -492,19 +492,19 @@ const ListingsMain = ({ ListingsData, sortKey }: ListingsMainProps) => {
 
   return (
     <FormProvider {...methods}>
-      <div className="flex justify-between items-center">
-        <div className="mb-4 max-w-4xl flex items-center">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 mb-4">
+        <div className="w-full sm:max-w-xs flex items-center">
           <form className="flex h-8 w-full" onSubmit={onSubmit}>
             <div className="border border-slate-500 rounded-l-xl w-full">
               <input
                 {...register("keyword")}
                 type="text"
                 placeholder="매물번호 또는 주소"
-                className="h-full px-2 w-full"
+                className="h-full px-2 w-full rounded-l-xl"
               />
             </div>
             <button type="submit">
-              <SearchIcon className="w-8 bg-slate-400 rounded-r-xl p-1" />
+              <SearchIcon className="w-8 bg-slate-400 rounded-r-xl p-1 h-full" />
             </button>
           </form>
         </div>
@@ -514,7 +514,7 @@ const ListingsMain = ({ ListingsData, sortKey }: ListingsMainProps) => {
             onClick={handleBulkDelete}
             disabled={isDeleting || selectedIds.length === 0}
             className={clsx(
-              "text-sm text-white px-3 py-1 rounded-lg shadow transition duration-200",
+              "text-sm text-white px-3 py-2 rounded-lg shadow transition duration-200 w-full sm:w-auto",
               selectedIds.length === 0
                 ? "bg-gray-400 cursor-not-allowed"
                 : "bg-red-500 hover:bg-red-400"
@@ -529,7 +529,7 @@ const ListingsMain = ({ ListingsData, sortKey }: ListingsMainProps) => {
         <table className="min-w-full table-auto text-center">
           <thead>
             <tr className="bg-slate-600 text-white">
-              <th className="p-3 text-sm font-medium">
+              <th className="p-2 sm:p-3 text-xs sm:text-sm font-medium">
                 <input
                   type="checkbox"
                   checked={allOnThisPageChecked}
@@ -541,17 +541,17 @@ const ListingsMain = ({ ListingsData, sortKey }: ListingsMainProps) => {
                   aria-label="이 페이지 전체 선택"
                 />
               </th>
-              <th className="p-3 text-sm font-medium">매물번호</th>
-              <th className="p-3 text-sm font-medium">공개/거래</th>
-              <th className="p-3 text-sm font-medium">거래종류</th>
-              <th className="p-3 text-sm font-medium">매물종류</th>
-              <th className="p-3 text-sm font-medium">주소</th>
-              <th className="p-3 text-sm font-medium">매물정보</th>
-              <th className="p-3 text-sm font-medium">금액</th>
-              <th className="p-3 text-sm font-medium">조회수</th>
-              <th className="p-3 text-sm font-medium">등록일</th>
-              <th className="p-3 text-sm font-medium">기능</th>
-              <th className="p-3 text-sm font-medium">비고</th>
+              <th className="p-2 sm:p-3 text-xs sm:text-sm font-medium">매물번호</th>
+              <th className="p-2 sm:p-3 text-xs sm:text-sm font-medium">공개/거래</th>
+              <th className="p-2 sm:p-3 text-xs sm:text-sm font-medium">거래종류</th>
+              <th className="p-2 sm:p-3 text-xs sm:text-sm font-medium">매물종류</th>
+              <th className="p-2 sm:p-3 text-xs sm:text-sm font-medium">주소</th>
+              <th className="p-2 sm:p-3 text-xs sm:text-sm font-medium">매물정보</th>
+              <th className="p-2 sm:p-3 text-xs sm:text-sm font-medium">금액</th>
+              <th className="p-2 sm:p-3 text-xs sm:text-sm font-medium">조회수</th>
+              <th className="p-2 sm:p-3 text-xs sm:text-sm font-medium">등록일</th>
+              <th className="p-2 sm:p-3 text-xs sm:text-sm font-medium">기능</th>
+              <th className="p-2 sm:p-3 text-xs sm:text-sm font-medium">비고</th>
             </tr>
           </thead>
 
@@ -572,10 +572,10 @@ const ListingsMain = ({ ListingsData, sortKey }: ListingsMainProps) => {
                   key={id}
                   className={clsx(
                     "hover:bg-slate-300 transition-colors duration-300",
-                    index % 2 === 0 ? "bg-slate-100" : "bg-slate-200"
+                    index % 2 === 0 ? "bg-slate-100" : "bg-slate-200",
                   )}
                 >
-                  <td className="p-3 text-center">
+                  <td className="p-2 sm:p-3 text-center">
                     <input
                       type="checkbox"
                       checked={selectedIds.includes(id)}
@@ -584,9 +584,9 @@ const ListingsMain = ({ ListingsData, sortKey }: ListingsMainProps) => {
                     />
                   </td>
 
-                  <td className="p-3">{id}</td>
+                  <td className="p-2 sm:p-3 text-xs sm:text-sm">{id}</td>
 
-                  <td className="p-3">
+                  <td className="p-2 sm:p-3 text-xs sm:text-sm">
                     <AddressVisibility
                       activeAddressPublic={
                         (listing.isAddressPublic as "public" | "private" | "exclude")
@@ -620,10 +620,10 @@ const ListingsMain = ({ ListingsData, sortKey }: ListingsMainProps) => {
                     />
                   </td>
 
-                  <td className="p-3">{listing.dealType}</td>
-                  <td className="p-3">{listing.propertyType}</td>
+                  <td className="p-2 sm:p-3 text-xs sm:text-sm">{listing.dealType}</td>
+                  <td className="p-2 sm:p-3 text-xs sm:text-sm">{listing.propertyType}</td>
 
-                  <td className="p-3">
+                  <td className="p-2 sm:p-3 text-xs sm:text-sm">
                     <div className="max-w-[260px] mx-auto">
                       <span title={listing.address ?? ""}>
                         {listing.address ?? ""}
@@ -631,7 +631,7 @@ const ListingsMain = ({ ListingsData, sortKey }: ListingsMainProps) => {
                     </div>
                   </td>
 
-                  <td className="p-3">
+                  <td className="p-2 sm:p-3 text-xs sm:text-sm">
                     <div>{listing.title}</div>
                     <div>
                       방 {listing.rooms} / 화장실 {listing.bathrooms}
@@ -645,7 +645,7 @@ const ListingsMain = ({ ListingsData, sortKey }: ListingsMainProps) => {
                     </div>
                   </td>
 
-                  <td className="p-3">
+                  <td className="p-2 sm:p-3 text-xs sm:text-sm">
                     {listing.salePrice && (
                       <div>분: {formatFullKoreanMoney(Number(listing.salePrice))}</div>
                     )}
@@ -664,9 +664,9 @@ const ListingsMain = ({ ListingsData, sortKey }: ListingsMainProps) => {
                     )}
                   </td>
 
-                  <td className="p-3">{listing?.views ?? 0}</td>
+                  <td className="p-2 sm:p-3 text-xs sm:text-sm">{listing?.views ?? 0}</td>
 
-                  <td className="p-3">
+                  <td className="p-2 sm:p-3 text-xs sm:text-sm">
                     <div>{new Date(String(listing.createdAt)).toLocaleDateString()}</div>
 
                     {hasUpdate && (
@@ -680,12 +680,12 @@ const ListingsMain = ({ ListingsData, sortKey }: ListingsMainProps) => {
                     </div>
                   </td>
 
-                  <td className="p-3 relative">
+                  <td className="p-2 sm:p-3 text-xs sm:text-sm relative">
                     <div className="flex flex-col gap-y-2 justify-center items-center">
                       {/* 프린트 드롭다운 트리거 */}
                       <button
                         type="button"
-                        className="text-sm text-white bg-blue-500 px-3 py-1 rounded-lg shadow hover:bg-blue-400 transition duration-200"
+                        className="text-xs sm:text-sm text-white bg-blue-500 px-2 sm:px-3 py-1 rounded-lg shadow hover:bg-blue-400 transition duration-200 w-full"
                         onClick={() =>
                           setPrintMenuRowId((p) => (p === id ? null : id))
                         }
@@ -723,7 +723,7 @@ const ListingsMain = ({ ListingsData, sortKey }: ListingsMainProps) => {
                       {!confirmDate ? (
                         <button
                           onClick={() => addConfirmDate(id)}
-                          className="text-sm text-white bg-blue-500 px-3 py-1 rounded-lg shadow hover:bg-blue-400 transition duration-200"
+                          className="text-xs sm:text-sm text-white bg-blue-500 px-2 sm:px-3 py-1 rounded-lg shadow hover:bg-blue-400 transition duration-200 w-full"
                         >
                           확인일 추가
                         </button>
@@ -733,7 +733,7 @@ const ListingsMain = ({ ListingsData, sortKey }: ListingsMainProps) => {
                             onClick={() =>
                               setMenuRowId((prev) => (prev === id ? null : id))
                             }
-                            className="text-sm text-white bg-blue-500 px-3 py-1 rounded-lg shadow hover:bg-blue-400 transition duration-200"
+                            className="text-xs sm:text-sm text-white bg-blue-500 px-2 sm:px-3 py-1 rounded-lg shadow hover:bg-blue-400 transition duration-200 w-full"
                           >
                             확인일 갱신
                           </button>
@@ -765,11 +765,11 @@ const ListingsMain = ({ ListingsData, sortKey }: ListingsMainProps) => {
                     </div>
                   </td>
 
-                  <td className="p-3">
+                  <td className="p-2 sm:p-3 text-xs sm:text-sm">
                     <div className="flex flex-col gap-y-2 justify-center items-center">
                       <Link
                         href={`/admin/listings/listings/${id}/edit`}
-                        className="text-sm text-white bg-green-500 px-3 py-1 rounded-lg shadow hover:bg-green-400 transition duration-200"
+                        className="text-xs sm:text-sm text-white bg-green-500 px-2 sm:px-3 py-1 rounded-lg shadow hover:bg-green-400 transition duration-200 w-full text-center"
                       >
                         수정
                       </Link>
@@ -777,7 +777,7 @@ const ListingsMain = ({ ListingsData, sortKey }: ListingsMainProps) => {
                         onClick={() => handleDelete(id)}
                         disabled={isDeleting}
                         className={clsx(
-                          "text-sm text-white px-3 py-1 rounded-lg shadow transition duration-200",
+                          "text-xs sm:text-sm text-white px-2 sm:px-3 py-1 rounded-lg shadow transition duration-200 w-full",
                           isDeleting
                             ? "bg-red-300 cursor-not-allowed"
                             : "bg-red-500 hover:bg-red-400"

@@ -63,9 +63,9 @@ const QuickSale = ({ onCardClick }: { onCardClick: (id: number) => void }) => {
   const listings = useMemo(() => items, [items]);
 
   return (
-    <div className="text-center p-6">
-      <h2 className="text-xl font-bold">급매물</h2>
-      <p className="text-gray-600">급매 매물 모음입니다</p>
+    <div className="text-center p-4 sm:p-6">
+      <h2 className="text-lg sm:text-xl font-bold">급매물</h2>
+      <p className="text-sm sm:text-base text-gray-600">급매 매물 모음입니다</p>
       <CardSlide listings={listings} onCardClick={onCardClick} />
     </div>
   );
