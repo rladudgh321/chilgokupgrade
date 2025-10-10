@@ -32,7 +32,7 @@ export async function POST(request: NextRequest) {
     const { label } = await request.json();
     if (!label || typeof label !== "string" || label.trim() === "") {
       return NextResponse.json(
-        { ok: false, error: { message: "카테고리는 필수입니다." } },
+        { ok: false, error: { message: "카테고리 이름은 필수입니다." } },
         { status: 400 }
       );
     }
@@ -73,7 +73,7 @@ export async function PUT(request: NextRequest) {
     const { oldLabel, newLabel } = await request.json();
     if (!oldLabel || !newLabel || typeof oldLabel !== "string" || typeof newLabel !== "string") {
       return NextResponse.json(
-        { ok: false, error: { message: "기존 카테고리와 새 카테고리가 필요합니다." } },
+        { ok: false, error: { message: "기존 카테고리와 새 카테고리 이름이 필요합니다." } },
         { status: 400 }
       );
     }
@@ -116,7 +116,7 @@ export async function DELETE(request: NextRequest) {
     const label = searchParams.get("label");
     if (!label) {
       return NextResponse.json(
-        { ok: false, error: { message: "삭제할 카테고리가 필요합니다." } },
+        { ok: false, error: { message: "삭제할 카테고리 라벨이 필요합니다." } },
         { status: 400 }
       );
     }

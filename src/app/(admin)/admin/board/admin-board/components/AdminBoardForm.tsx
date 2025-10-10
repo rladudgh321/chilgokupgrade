@@ -1,5 +1,5 @@
 "use client"
-import { useState, useCallback } from "react"
+import { useState, useCallback, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import Image from "next/image"
 import dynamic from 'next/dynamic'
@@ -16,12 +16,17 @@ interface Post {
   representativeImage?: string | null
   registrationDate: string | Date
   manager: string
-  isAnnouncement: boolean
   isPopup: boolean
   popupWidth?: number
   popupHeight?: number
   isPublished: boolean
   popupType?: 'IMAGE' | 'CONTENT'
+  categoryId?: number
+}
+
+interface Category {
+  id: number;
+  name: string;
 }
 
 interface AdminBoardFormProps {
@@ -31,6 +36,7 @@ interface AdminBoardFormProps {
 
 const AdminBoardForm = ({ initialData, isEdit = false }: AdminBoardFormProps) => {
   const router = useRouter()
+  const [categories, setCategories] = useState<Category[]>([]);
   
   const [formData, setFormData] = useState({
     representativeImage: null as File | null,
@@ -40,13 +46,29 @@ const AdminBoardForm = ({ initialData, isEdit = false }: AdminBoardFormProps) =>
     title: initialData?.title || "",
     content: initialData?.content || "",
     popupContent: initialData?.popupContent || "",
-    isAnnouncement: initialData?.isAnnouncement ? "사용" : "미사용",
+    categoryId: initialData?.categoryId || undefined,
     isPopup: initialData?.isPopup ? "사용" : "미사용",
     popupWidth: initialData?.popupWidth?.toString() || "400",
     popupHeight: initialData?.popupHeight?.toString() || "400",
     isPublished: initialData?.isPublished === undefined ? true : initialData.isPublished,
     popupType: initialData?.popupType || 'IMAGE',
   });
+
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        const response = await fetch('/api/categories');
+        if (!response.ok) {
+          throw new Error('Failed to fetch categories');
+        }
+        const data = await response.json();
+        setCategories(data);
+      } catch (error) {
+        console.error(error);
+      }
+    };
+    fetchCategories();
+  }, []);
 
   const handleContentChange = useCallback((value: string) => {
     setFormData(prev => ({ ...prev, content: value }))
@@ -85,7 +107,7 @@ const AdminBoardForm = ({ initialData, isEdit = false }: AdminBoardFormProps) =>
         representativeImage: representativeImageUrl,
         registrationDate: formData.registrationDate,
         manager: formData.manager,
-        isAnnouncement: formData.isAnnouncement === "사용",
+        categoryId: formData.categoryId ? parseInt(String(formData.categoryId)) : undefined,
         isPopup: formData.isPopup === "사용",
         popupWidth: formData.popupWidth ? parseInt(formData.popupWidth) : undefined,
         popupHeight: formData.popupHeight ? parseInt(formData.popupHeight) : undefined,
@@ -212,12 +234,14 @@ const AdminBoardForm = ({ initialData, isEdit = false }: AdminBoardFormProps) =>
                 공지여부
               </label>
               <select
-                value={formData.isAnnouncement}
-                onChange={(e) => setFormData(prev => ({ ...prev, isAnnouncement: e.target.value }))}
+                value={formData.categoryId}
+                onChange={(e) => setFormData(prev => ({ ...prev, categoryId: parseInt(e.target.value) }))}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
               >
-                <option value="미사용">미사용</option>
-                <option value="사용">사용</option>
+                <option value="">선택</option>
+                {categories.map(category => (
+                  <option key={category.id} value={category.id}>{category.name}</option>
+                ))}
               </select>
             </div>
 

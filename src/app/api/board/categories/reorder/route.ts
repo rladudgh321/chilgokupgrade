@@ -1,23 +1,39 @@
 import { NextRequest, NextResponse } from "next/server";
+import { createClient } from "@/app/utils/supabase/server";
+import { cookies } from "next/headers";
 
-// This is a mock API. In a real implementation, this would need to access
-// the same data store as the main API route to update the order of categories.
-
-export async function POST(req: NextRequest) {
+export async function POST(request: NextRequest) {
   try {
-    const body = await req.json();
-    const { orderedIds } = body;
-
+    const { orderedIds } = await request.json();
     if (!Array.isArray(orderedIds)) {
-      return NextResponse.json({ ok: false, error: { message: "orderedIds 배열이 필요합니다." } }, { status: 400 });
+      return NextResponse.json(
+        { ok: false, error: { message: "orderedIds must be an array." } },
+        { status: 400 }
+      );
     }
 
-    console.log("Reordering categories (mock):", orderedIds);
-    // In a real app, you'd update the 'order' field for each category here.
+    const cookieStore = await cookies();
+    const supabase = createClient(cookieStore);
 
-    return NextResponse.json({ ok: true, message: "순서가 저장되었습니다." });
+    const updates = orderedIds.map((id, index) =>
+      supabase
+        .from("BoardCategory")
+        .update({ order: index })
+        .eq("id", id)
+    );
 
-  } catch (e) {
-    return NextResponse.json({ ok: false, error: { message: "잘못된 요청입니다." } }, { status: 400 });
+    const results = await Promise.all(updates);
+    const errorResult = results.find(res => res.error);
+
+    if (errorResult) {
+      return NextResponse.json({ ok: false, error: errorResult.error }, { status: 400 });
+    }
+
+    return NextResponse.json({ ok: true }, { status: 200 });
+  } catch (e: any) {
+    return NextResponse.json(
+      { ok: false, error: { message: e?.message ?? "Unknown error" } },
+      { status: 500 }
+    );
   }
 }

@@ -10,7 +10,7 @@ const CreatePostSchema = z.object({
   representativeImage: z.string().optional(),
   registrationDate: z.string().optional(),
   manager: z.string().optional(),
-  isAnnouncement: z.boolean().default(false),
+  categoryId: z.number().optional(),
   isPopup: z.boolean().default(false),
   popupWidth: z.number().optional(),
   popupHeight: z.number().optional(),
