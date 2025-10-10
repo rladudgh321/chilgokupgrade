@@ -116,9 +116,9 @@ const BuildDetailModal = ({ buildId, onClose }: BuildDetailModalProps) => {
                 <h4 className="text-lg font-semibold mb-3 text-purple-800">옵션 정보</h4>
                 <div className="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-8 gap-4 pt-2">
                   {build.buildingOptions && build.buildingOptions.map(opt => <OptionIcon key={`building-${opt.id}`} option={opt} />)}
-                  {build.roomOption && <OptionIcon key={`room-${build.roomOption.id}`} option={build.roomOption} />}
-                  {build.bathroomOption && <OptionIcon key={`bathroom-${build.bathroomOption.id}`} option={build.bathroomOption} />}
-                  {build.floorOption && <OptionIcon key={`floor-${build.floorOption.id}`} option={build.floorOption} />}
+                  {/* {build.roomOption && build.roomOption.id && <OptionIcon key={`room-${build.roomOption.id}`} option={build.roomOption} />} */}
+                  {/* {build.bathroomOption && build.bathroomOption.id && <OptionIcon key={`bathroom-${build.bathroomOption.id}`} option={build.bathroomOption} />} */}
+                  {build.floorOption && build.floorOption.id && <OptionIcon key={`floor-${build.floorOption.id}`} option={build.floorOption} />}
                 </div>
               </div>
 
