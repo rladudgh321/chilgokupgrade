@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import ToggleSwitch from '@/app/components/admin/listings/ToggleSwitch';
 import Pagination from '@/app/components/shared/Pagination';
+import IpActions from '@/app/(admin)/shared/IpActions';
 
 type Order = {
   id: number;
@@ -204,7 +205,14 @@ const OrderList = ({ initialOrders, totalPages, currentPage }: OrderListProps) =
                 <td className="p-2 text-xs sm:text-sm">{order.propertyType}</td>
                 <td className="p-2 text-xs sm:text-sm">{order.estimatedAmount}</td>
                 <td className="p-2 text-xs sm:text-sm">{order.contact}</td>
-                <td className="p-2 text-xs sm:text-sm">{order.ipAddress}</td>
+                <td className="p-2 text-xs sm:text-sm">
+                  <IpActions
+                    ipAddress={order.ipAddress}
+                    itemId={String(order.id)}
+                    type="order"
+                    onItemDeleted={(deletedItemId) => setOrders((prev) => prev.filter((o) => String(o.id) !== deletedItemId))}
+                  />
+                </td>
                 <td className="p-2 text-xs sm:text-sm">{order.region}</td>
                 <td className="p-2 text-xs sm:text-sm">
                   <p className="border p-2">{order.title}</p>

@@ -103,6 +103,16 @@ model Build {
   confirmDate      DateTime?
 }
 
+model BannedIp {
+  id        Int      @id @default(autoincrement())
+  ipAddress String   @unique
+  reason    String?
+  contact   String?
+  details   String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
 model Contact {
   id                  Int      @id @default(autoincrement())
   customerText        String

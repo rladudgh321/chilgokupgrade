@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import ToggleSwitch from '@/app/components/admin/listings/ToggleSwitch';
 import Pagination from '@/app/components/shared/Pagination';
+import IpActions from '@/app/(admin)/shared/IpActions';
 
 type Request = {
   id: number;
@@ -144,7 +145,14 @@ const ContactRequestList = ({ initialRequests, totalPages, currentPage }: Contac
                 </td>
                 <td className="p-2 text-xs sm:text-sm">{request.author}</td>
                 <td className="p-2 text-xs sm:text-sm">{request.contact}</td>
-                <td className="p-2 text-xs sm:text-sm">{request.ipAddress}</td>
+                <td className="p-2 text-xs sm:text-sm">
+                  <IpActions
+                    ipAddress={request.ipAddress}
+                    itemId={String(request.id)}
+                    type="contact-request"
+                    onItemDeleted={(deletedItemId) => setRequests((prev) => prev.filter((r) => String(r.id) !== deletedItemId))}
+                  />
+                </td>
                 <td className="p-2 text-xs sm:text-sm">{request.description}</td>
                 <td className="p-2">
                   <textarea
