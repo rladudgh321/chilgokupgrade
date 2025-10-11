@@ -46,7 +46,7 @@ const NoticeClient = ({ initialPosts }: { initialPosts: BoardPost[] }) => {
   };
 
   return (
-    <div className="p-2 sm:p-4 md:p-6">
+    <div className="mx-auto max-w-7xl p-2 sm:p-4 md:p-6 mt-14">
       <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-4">
         <div className="text-lg sm:text-xl font-semibold mb-2 sm:mb-0">
           공지사항: {filteredPosts.length}

@@ -253,7 +253,7 @@ const SearchBar = () => {
   }
 
   return (
-    <div className="p-2 sm:p-4">
+    <div className="mx-auto max-w-7xl p-2 sm:p-4">
       {settings?.showKeyword && (
         <div className="flex flex-col sm:flex-row items-center gap-2 sm:gap-4 mb-4">
           <div className="flex-1 w-full">

@@ -308,3 +308,16 @@ enum PopupType {
   IMAGE
   CONTENT
 }
+
+model WorkInfo {
+  id           String   @id @default("main")
+  companyName  String?
+  phone        String?
+  mobile       String?
+  email        String?
+  owner        String?
+  businessId   String?
+  address      String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
