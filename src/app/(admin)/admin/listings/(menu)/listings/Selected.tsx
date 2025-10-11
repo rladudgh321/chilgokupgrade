@@ -1,5 +1,7 @@
+"use client";
+
 import Link from "next/link";
-import { clsx } from "clsx";
+import clsx from "clsx";
 
 type SortKey = "recent" | "views" | "price" | "totalArea";
 

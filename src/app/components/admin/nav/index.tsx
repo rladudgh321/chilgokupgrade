@@ -61,23 +61,34 @@ const otherData = [
 
 // 메뉴 설정
 const totalMenu = [
-  { menu: "listings", title: "매물관리", data: listingsData, component: ListingsMenu },
-  { menu: "inquiries", title: "문의관리", data: inquiriesData, component: InquiriesMenu },
-  { menu: "board", title: "게시판 관리", data: boardData, component: BoardMenu },
-  { menu: "websiteSettings", title: "홈페이지 설정", data: websiteSettingsData, component: WebsiteSettingsMenu },
-  { menu: "webView", title: "홈페이지 화면 설정", data: webViewData, component: WebViewMenu },
-  { menu: "other", title: "기타", data: otherData, component: OtherMenu },
+  { menu: "listings", title: "매물관리", data: listingsData, component: ListingsMenu, icon: "🏠" },
+  { menu: "inquiries", title: "문의관리", data: inquiriesData, component: InquiriesMenu, icon: "📞" },
+  { menu: "board", title: "게시판 관리", data: boardData, component: BoardMenu, icon: "📋" },
+  { menu: "websiteSettings", title: "홈페이지 설정", data: websiteSettingsData, component: WebsiteSettingsMenu, icon: "⚙️" },
+  { menu: "webView", title: "홈페이지 화면 설정", data: webViewData, component: WebViewMenu, icon: "🖼️" },
+  { menu: "customers", title: "고객관리", data: [], component: null, icon: "👥" },
+  { menu: "other", title: "기타", data: otherData, component: OtherMenu, icon: "🔧" },
 ];
 
-const AdminNav = () => {
+interface AdminNavProps {
+  isOpen: boolean;
+  setIsOpen: (isOpen: boolean) => void;
+}
+
+const AdminNav = ({ isOpen, setIsOpen }: AdminNavProps) => {
   const router = useRouter();
   const [openMenu, setOpenMenu] = useState<string | null>(null);
 
   const handleNavigation = (path: string) => {
     router.push(path);
+    setIsOpen(false);
   };
 
   const toggleMenu = (menu: string) => {
+    if (menu === 'customers') {
+      handleNavigation('/admin/customers');
+      return;
+    }
     setOpenMenu((prev) => (prev === menu ? null : menu));
 
     const menuData = totalMenu.find((item) => item.menu === menu);
@@ -94,52 +105,58 @@ const AdminNav = () => {
     title,
     data,
     Component,
+    icon,
   }: {
     menu: string;
     title: string;
     data: { title: string; url: string }[];
-    Component: ComponentType<{ data: { title: string; url: string }[] }>;
+    Component: ComponentType<{ data: { title: string; url: string }[] }> | null;
+    icon: string;
   }) => (
-    <li>
+    <li className={clsx({ "text-center": !isOpen })}>
       <button
         onClick={() => toggleMenu(menu)}
-        className="w-full text-left hover:bg-gray-700 p-2 rounded-md flex justify-between items-center"
+        className={clsx(
+          "w-full text-left hover:bg-gray-700 p-2 rounded-md flex items-center",
+          { "justify-center": !isOpen }
+        )}
       >
-        {title}
-        <span
-          className={clsx("ml-2 transform transition-transform duration-700", {
-            "rotate-180": openMenu === menu,
+        <span className="text-xl">{icon}</span>
+        {isOpen && <span className="ml-4">{title}</span>}
+        {isOpen && Component && (
+          <span
+            className={clsx("ml-auto transform transition-transform duration-700", {
+              "rotate-180": openMenu === menu,
+            })}
+          >
+            ▼
+          </span>
+        )}
+      </button>
+      {isOpen && (
+        <div
+          className={clsx("transition-all duration-500", {
+            "opacity-100 scale-100": openMenu === menu,
+            "opacity-0 scale-95": openMenu !== menu,
           })}
         >
-          ▼
-        </span>
-      </button>
-      <div
-        className={clsx("transition-all duration-500", {
-          "opacity-100 scale-100": openMenu === menu,
-          "opacity-0 scale-95": openMenu !== menu,
-        })}
-      >
-        {openMenu === menu && <Component data={data} />}
-      </div>
+          {openMenu === menu && Component && <Component data={data} />}
+        </div>
+      )}
     </li>
   );
 
   return (
-    <nav className="fixed top-14 left-0 w-64 h-full bg-gray-700 text-white p-4 z-20">
-      <ul className="space-y-4">
-        {totalMenu.map(({ menu, title, data, component }) => (
-          <MenuItem key={menu} menu={menu} title={title} data={data} Component={component} />
+    <nav
+      className={clsx(
+        "h-full bg-gray-700 text-white p-4 z-20 transform transition-transform duration-300 ease-in-out mt-14",
+        { "translate-x-0": isOpen, "-translate-x-full sm:translate-x-0": !isOpen }
+      )}
+    >
+      <ul className="space-y-4 mt-10 sm:mt-0">
+        {totalMenu.map(({ menu, title, data, component, icon }) => (
+          <MenuItem key={menu} menu={menu} title={title} data={data} Component={component} icon={icon} />
         ))}
-        {/* 고객관리 메뉴 */}
-        <li>
-          <button
-            onClick={() => handleNavigation("/admin/customers")}
-            className="w-full text-left hover:bg-gray-700 p-2 rounded-md"
-          >
-            고객관리
-          </button>
-        </li>
       </ul>
     </nav>
   );
