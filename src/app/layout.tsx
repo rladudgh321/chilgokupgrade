@@ -17,11 +17,11 @@ const geistMono = Geist_Mono({
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="ko" suppressHydrationWarning>
+    <html lang="ko" suppressHydrationWarning className="h-full">
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+        className={`${geistSans.variable} ${geistMono.variable} antialiased h-full flex flex-col`}
       >
-        <TanstackProvider>{children}
+        <TanstackProvider>{children}</TanstackProvider>
 
         {/* 카카오맵 SDK */}
         <Script
@@ -29,7 +29,6 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           src={`//dapi.kakao.com/v2/maps/sdk.js?appkey=${process.env.NEXT_PUBLIC_KAKAO_MAP_KEY}&libraries=services&autoload=false`}
         />
 
-        </TanstackProvider>
       </body>
     </html>
   );

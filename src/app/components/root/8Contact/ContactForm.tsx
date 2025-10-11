@@ -87,7 +87,7 @@ const ContactForm = () => {
 
       <button
         type="submit"
-        className="inline-block p-2 bg-purple-500 text-white rounded-md hover:bg-purple-600 focus:outline-none focus:ring-2 focus:ring-purple-500 w-full sm:w-auto"
+        className="inline-block p-2 bg-purple-500 text-white rounded-md hover:bg-purple-600 focus:outline-none focus:ring-2 focus:ring-purple-500 w-full sm:w-auto float-right "
       >
         보내기
       </button>

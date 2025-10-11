@@ -47,5 +47,6 @@ const ChairmanMessage = () => {
       </div>
     </section>
   );
+}
 
 export default ChairmanMessage;

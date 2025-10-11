@@ -34,5 +34,6 @@ const IntroContent = () => {
       </div>
     </section>
   );
+}
 
 export default IntroContent;
