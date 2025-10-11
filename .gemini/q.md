@@ -1,11 +1,5 @@
-const MainPicture = () => {
-  return (
-    <section 
-      className="w-full h-[120px] sm:h-[150px] md:h-[180px] bg-center bg-cover bg-no-repeat bg-[url(/img/main.png)]">
-    </section>
-  );
-};
+`/admin/inquiries/contact-requests`페이지와
+`/admin/inquiries/orders` 페이지에서 IP주소 항목이 있는데 그 아래에 버튼을 만들어서, IP주소에 해당되는 컴퓨터를 차단시켜서 더이상의 POST요청을 못 하도록 api를 구현해줘.
+그리고 버튼을 누를 때 `전부 삭제`, 해당 `항목 삭제`, `차단 취소` 항목을 만들어서 각각의 기능에 따라 supabase로 처리해줘.
 
-export default MainPicture;
----------
-컴포넌트에서 가로폭은 100wh를 유지한채로 세로 비율은 이미지의 고유 비율대로 늘려줘
+그리고 차단했으면 차단한 사람의 최근일자를 `등록일`과 `차단 IP주소`와 `연락처`와 `상세내용`을 `BanPage`에 디자인을 `/admin/inquiries/contact-requests` 페이지를 참고하여 만들어줘
