@@ -1,17 +1,6 @@
 import { NextResponse } from "next/server";
-import { createClient } from '@/app/utils/supabase/server';
+import { createClient } from "@/app/utils/supabase/server";
 import { cookies } from "next/headers";
-import { z } from "zod";
-
-const workInfoSchema = z.object({
-  companyName: z.string().optional().nullable(),
-  phone: z.string().optional().nullable(),
-  mobile: z.string().optional().nullable(),
-  email: z.string().email().optional().nullable().or(z.literal('')),
-  owner: z.string().optional().nullable(),
-  businessId: z.string().optional().nullable(),
-  address: z.string().optional().nullable(),
-});
 
 export async function GET() {
   const cookieStore = await cookies();
@@ -24,45 +13,47 @@ export async function GET() {
       .eq("id", "main")
       .single();
 
-    // PGRST116: single row not found, which is a valid case on first load.
-    if (error && error.code !== 'PGRST116') {
-      console.error("Error fetching work info from Supabase:", error);
-      throw error;
-    }
+    if (error && error.code !== 'PGRST116') { throw error; }
 
     return NextResponse.json(data);
   } catch (error) {
-    return NextResponse.json(
-      { error: "Failed to fetch data from Supabase" },
-      { status: 500 }
-    );
+    console.error("GET /api/admin/website-info error:", error);
+    return NextResponse.json({ error: "Failed to fetch data from Supabase" }, { status: 500 });
   }
 }
 
 export async function POST(request: Request) {
-  const cookieStore = await cookies();
-    const supabase = createClient(cookieStore);
-
   try {
+    const cookieStore = await cookies();
+    const supabase = createClient(cookieStore);
     const body = await request.json();
-    const validatedData = workInfoSchema.parse(body);
+
+    // DB가 관리하는 필드 제거 (createdAt/updatedAt은 서버에서 세팅)
+    const { id, created_at, createdAt, updatedAt, ...rest } = body;
+
+    const now = new Date().toISOString();
 
     const { data, error } = await supabase
       .from("WorkInfo")
-      .upsert({ id: "main", ...validatedData }, { onConflict: 'id' });
+      .upsert(
+        {
+          id: "main",
+          ...rest,
+          // 새로 생성될 수도, 갱신될 수도 있으니 updatedAt은 항상 세팅
+          updatedAt: now,
+          // createdAt은 DB DEFAULT가 있으면 생략 권장
+        },
+        { onConflict: "id" }
+      )
+      .select()
+      .single();
 
-    if (error) {
-      console.error("Error saving work info to Supabase:", error);
-      throw error;
-    }
-
+    if (error) throw error;
     return NextResponse.json(data);
-  } catch (error) {
-    if (error instanceof z.ZodError) {
-      return NextResponse.json({ error: error.issues }, { status: 400 });
-    }
+  } catch (err: any) {
+    console.error("POST /api/admin/website-info error:", err);
     return NextResponse.json(
-      { error: "Failed to save data to Supabase" },
+      { error: err?.message ?? "Failed to save data to Supabase" },
       { status: 500 }
     );
   }
