@@ -76,12 +76,11 @@ export async function PATCH(
     const cookieStore = await cookies();
     const supabase = createClient(cookieStore);
 
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { label, buildingOptions, propertyType, dealType, id: rawId, ...restOfBody } = raw as any;
 
     let labelId: number | null = null;
     if (label) {
-        let { data: labelRec } = await supabase.from("Label").select("id").eq("name", label).single();
+        const { data: labelRec } = await supabase.from("Label").select("id").eq("name", label).single();
         if (!labelRec) {
             const { data: newLabel } = await supabase.from("Label").insert({ name: label }).select("id").single();
             if (newLabel) labelId = newLabel.id;
@@ -92,7 +91,7 @@ export async function PATCH(
 
     let listingTypeId: number | null = null;
     if (propertyType) {
-        let { data: typeRec } = await supabase.from("ListingType").select("id").eq("name", propertyType).single();
+        const { data: typeRec } = await supabase.from("ListingType").select("id").eq("name", propertyType).single();
         if (!typeRec) {
             const { data: newType } = await supabase.from("ListingType").insert({ name: propertyType }).select("id").single();
             if (newType) listingTypeId = newType.id;
@@ -103,7 +102,7 @@ export async function PATCH(
 
     let buyTypeId: number | null = null;
     if (dealType) {
-        let { data: typeRec } = await supabase.from("BuyType").select("id").eq("name", dealType).single();
+        const { data: typeRec } = await supabase.from("BuyType").select("id").eq("name", dealType).single();
         if (!typeRec) {
             const { data: newType } = await supabase.from("BuyType").insert({ name: dealType }).select("id").single();
             if (newType) buyTypeId = newType.id;
@@ -149,7 +148,7 @@ export async function PATCH(
 
         const optionIds = [];
         for (const optionName of buildingOptions) {
-            let { data: optionRec } = await supabase.from("BuildingOption").select("id").eq("name", optionName).single();
+            const { data: optionRec } = await supabase.from("BuildingOption").select("id").eq("name", optionName).single();
             if (!optionRec) {
                 const { data: newOption } = await supabase.from("BuildingOption").insert({ name: optionName }).select("id").single();
                 if (newOption) optionIds.push(newOption.id);

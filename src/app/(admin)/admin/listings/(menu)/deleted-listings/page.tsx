@@ -1,3 +1,5 @@
+export const dynamic = 'force-dynamic';
+
 import { BuildFindAllDeleted } from "@/app/apis/build";
 import DeletedShell from "./DeletedShell";
 

@@ -22,7 +22,7 @@ const PricePresetManager = ({ buyTypeId }: PricePresetManagerProps) => {
 
   const apiEndpoint = `/api/price-presets`;
 
-  const handleSaveOrder = async (orderedItems: Preset[]) => {
+  const handleSaveOrder = useCallback(async (orderedItems: Preset[]) => {
     try {
       const response = await fetch(`${apiEndpoint}/reorder`, {
         method: 'POST',
@@ -40,7 +40,7 @@ const PricePresetManager = ({ buyTypeId }: PricePresetManagerProps) => {
     } catch {
       setError('네트워크 오류가 발생했습니다.');
     }
-  };
+  }, [apiEndpoint]);
 
   const debouncedSaveOrder = useCallback((orderedItems: Preset[]) => {
     if (debounceTimer.current) {
@@ -49,7 +49,7 @@ const PricePresetManager = ({ buyTypeId }: PricePresetManagerProps) => {
     debounceTimer.current = setTimeout(() => {
       handleSaveOrder(orderedItems);
     }, 500);
-  }, [apiEndpoint]);
+  }, [handleSaveOrder]);
 
 
   const loadItems = useCallback(async () => {

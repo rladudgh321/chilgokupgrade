@@ -8,7 +8,6 @@ export interface Paginated<T> {
   data: T[];
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export type Build = Record<string, any>;
 
 export async function BuildFindAll(

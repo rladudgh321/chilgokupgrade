@@ -1,5 +1,6 @@
 "use client"
 
+import Image from 'next/image';
 import { useRef, useState } from 'react';
 import { useDrag, useDrop } from 'react-dnd';
 
@@ -108,9 +109,11 @@ const DraggableItem = ({ id, name, imageUrl, imageName, moveItem, onEdit, onDele
           {/* 이미지 표시 */}
           {imageUrl && (
             <div className="w-16 h-16 flex-shrink-0">
-              <img
+              <Image
                 src={imageUrl}
                 alt={name}
+                width={64}
+                height={64}
                 className="w-full h-full object-cover rounded border"
               />
             </div>

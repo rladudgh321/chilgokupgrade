@@ -20,7 +20,7 @@ const ListManager = ({ title, placeholder, buttonText, apiEndpoint='', enableIma
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const debounceTimer = useRef<NodeJS.Timeout | null>(null);
 
-  const handleSaveOrder = async (orderedItems: typeof items) => {
+  const handleSaveOrder = useCallback(async (orderedItems: typeof items) => {
     try {
       // setLoading(true); // Optional: show loading indicator during save
       const orderedIds = orderedItems.map(item => item.id);
@@ -48,7 +48,7 @@ const ListManager = ({ title, placeholder, buttonText, apiEndpoint='', enableIma
     } finally {
       // setLoading(false);
     }
-  };
+  }, [apiEndpoint]);
 
   const debouncedSaveOrder = useCallback((orderedItems: typeof items) => {
     if (debounceTimer.current) {
@@ -57,7 +57,7 @@ const ListManager = ({ title, placeholder, buttonText, apiEndpoint='', enableIma
     debounceTimer.current = setTimeout(() => {
       handleSaveOrder(orderedItems);
     }, 500); // 500ms delay
-  }, [apiEndpoint]);
+  }, [handleSaveOrder]);
 
 
   // 데이터 로드

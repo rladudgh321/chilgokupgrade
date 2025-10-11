@@ -9,14 +9,15 @@ interface AdminBoardEditPageProps {
   };
 }
 
-const AdminBoardEditPage = async ({ params: { id } }: AdminBoardEditPageProps) => {
+export default async function AdminBoardEditPage({ params }: AdminBoardEditPageProps) {
+  const { id } = params;
   const cookieStore = await cookies();
   const supabase = createClient(cookieStore);
 
   const { data: post, error } = await supabase
     .from("BoardPost")
     .select("*")
-    .eq("id", id)
+    .eq("id", Number(id))
     .single();
 
   if (error || !post) {
@@ -30,7 +31,5 @@ const AdminBoardEditPage = async ({ params: { id } }: AdminBoardEditPageProps) =
     updatedAt: new Date(post.updatedAt).toISOString(),
   };
 
-  return <AdminBoardEditClient post={plainPost as any} />;
+  return <AdminBoardEditClient post={plainPost} />;
 };
-
-export default AdminBoardEditPage;

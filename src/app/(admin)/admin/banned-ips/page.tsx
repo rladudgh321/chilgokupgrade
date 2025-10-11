@@ -1,3 +1,6 @@
+export const dynamic = 'force-dynamic';
+
+
 import { createClient } from "@/app/utils/supabase/server";
 import { cookies } from "next/headers";
 import BannedIpList from "./BannedIpList";

@@ -19,7 +19,7 @@ export function numberToKoreanWithDigits(num: number): string {
     return str;
   };
 
-  let result = [];
+  const result = [];
   let unitIndex = 0;
 
   while (num > 0) {

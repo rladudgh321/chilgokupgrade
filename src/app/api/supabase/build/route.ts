@@ -183,6 +183,7 @@ export async function GET(req: NextRequest) {
     const { data, error, count } = await q;
 
     if (error) {
+      console.error('Supabase error:', error);
       return NextResponse.json({ ok: false, error }, { status: 400 });
     }
 
@@ -212,7 +213,6 @@ export async function GET(req: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const raw = await request.json();
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { label, buildingOptions, propertyType, dealType, id, ...restOfBody } = raw as any;
 
     const cookieStore = await cookies();
@@ -220,7 +220,7 @@ export async function POST(request: NextRequest) {
 
     let labelId: number | null = null;
     if (label) {
-      let { data: labelRec } = await supabase.from("Label").select("id").eq("name", label).single();
+      const { data: labelRec } = await supabase.from("Label").select("id").eq("name", label).single();
       if (!labelRec) {
         const { data: newLabel } = await supabase.from("Label").insert({ name: label }).select("id").single();
         if (newLabel) labelId = newLabel.id;
@@ -231,7 +231,7 @@ export async function POST(request: NextRequest) {
 
     let listingTypeId: number | null = null;
     if (propertyType) {
-        let { data: typeRec } = await supabase.from("ListingType").select("id").eq("name", propertyType).single();
+        const { data: typeRec } = await supabase.from("ListingType").select("id").eq("name", propertyType).single();
         if (!typeRec) {
             const { data: newType } = await supabase.from("ListingType").insert({ name: propertyType }).select("id").single();
             if (newType) listingTypeId = newType.id;
@@ -242,7 +242,7 @@ export async function POST(request: NextRequest) {
 
     let buyTypeId: number | null = null;
     if (dealType) {
-        let { data: typeRec } = await supabase.from("BuyType").select("id").eq("name", dealType).single();
+        const { data: typeRec } = await supabase.from("BuyType").select("id").eq("name", dealType).single();
         if (!typeRec) {
             const { data: newType } = await supabase.from("BuyType").insert({ name: dealType }).select("id").single();
             if (newType) buyTypeId = newType.id;
@@ -265,6 +265,7 @@ export async function POST(request: NextRequest) {
         .single();
 
     if (buildError) {
+      console.error('Supabase error:', buildError);
         return NextResponse.json({ ok: false, error: buildError }, { status: 400 });
     }
     if (!newBuild) {
@@ -274,7 +275,7 @@ export async function POST(request: NextRequest) {
     if (buildingOptions && Array.isArray(buildingOptions)) {
         const optionIds = [];
         for (const optionName of buildingOptions) {
-            let { data: optionRec } = await supabase.from("BuildingOption").select("id").eq("name", optionName).single();
+            const { data: optionRec } = await supabase.from("BuildingOption").select("id").eq("name", optionName).single();
             if (!optionRec) {
                 const { data: newOption } = await supabase.from("BuildingOption").insert({ name: optionName }).select("id").single();
                 if (newOption) optionIds.push(newOption.id);

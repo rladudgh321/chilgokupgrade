@@ -9,7 +9,7 @@ import "react-datepicker/dist/react-datepicker.css";
 const Editor = dynamic(() => import('@/app/components/shared/Editor'), { ssr: false });
 
 interface Post {
-  id?: string
+  id?: number
   title: string
   content: string
   popupContent?: string
@@ -346,7 +346,7 @@ const AdminBoardForm = ({ initialData, isEdit = false }: AdminBoardFormProps) =>
               </div>
               {formData.representativeImageUrl && (
                 <div className="mt-4">
-                  <img src={formData.representativeImageUrl} alt="preview" className="w-full max-w-xs rounded" />
+                  <Image src={formData.representativeImageUrl} alt="preview" className="w-full max-w-xs rounded" width={320} height={240} style={{ objectFit: 'contain' }} />
                 </div>
               )}
             </div>

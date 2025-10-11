@@ -35,7 +35,6 @@ export async function GET() {
       return NextResponse.json({ data: DEFAULT_SETTINGS });
     }
 
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { id, updatedAt, ...rest } = settings;
     return NextResponse.json({ data: rest });
   } catch (error: any) {
@@ -79,7 +78,6 @@ export async function PUT(request: Request) {
         throw error;
     }
 
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { id, updatedAt, ...rest } = updatedSettings;
     return NextResponse.json({ data: rest });
   } catch (error: any) {

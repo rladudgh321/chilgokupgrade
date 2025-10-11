@@ -60,7 +60,6 @@ describe('/api/property-types API 라우트', () => {
   // GET
   describe('GET 핸들러', () => {
     test('모든 PropertyType을 성공적으로 가져와야 합니다.', async () => {
-      const { createClient } = require('@/app/utils/supabase/server');
       const fromMock = jest.fn().mockImplementation((tableName: string) => {
         if (tableName === 'Build') {
           return {

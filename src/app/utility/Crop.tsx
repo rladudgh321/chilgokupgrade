@@ -36,7 +36,6 @@ const ImgCrop = () => {
   });
 
   // 이미지 크롭 상태 관리
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const onCropChange = (cropper: any) => {
     const canvas = cropper.getCanvas();
     if (canvas) {
@@ -44,7 +43,6 @@ const ImgCrop = () => {
       setCroppedImage(croppedBase64);
 
       // Blob URL로 변환
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       canvas.toBlob((blob: any) => {
         if (blob) {
           const url = URL.createObjectURL(blob);
