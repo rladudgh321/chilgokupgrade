@@ -148,9 +148,8 @@ const ContactRequestList = ({ initialRequests, totalPages, currentPage }: Contac
                 <td className="p-2 text-xs sm:text-sm">
                   <IpActions
                     ipAddress={request.ipAddress}
-                    itemId={String(request.id)}
-                    type="contact-request"
-                    onItemDeleted={(deletedItemId) => setRequests((prev) => prev.filter((r) => String(r.id) !== deletedItemId))}
+                    contact={request.contact}
+                    details={request.description}
                   />
                 </td>
                 <td className="p-2 text-xs sm:text-sm">{request.description}</td>

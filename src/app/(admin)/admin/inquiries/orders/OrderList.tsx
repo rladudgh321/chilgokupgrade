@@ -208,9 +208,8 @@ const OrderList = ({ initialOrders, totalPages, currentPage }: OrderListProps) =
                 <td className="p-2 text-xs sm:text-sm">
                   <IpActions
                     ipAddress={order.ipAddress}
-                    itemId={String(order.id)}
-                    type="order"
-                    onItemDeleted={(deletedItemId) => setOrders((prev) => prev.filter((o) => String(o.id) !== deletedItemId))}
+                    contact={order.contact}
+                    details={order.description}
                   />
                 </td>
                 <td className="p-2 text-xs sm:text-sm">{order.region}</td>

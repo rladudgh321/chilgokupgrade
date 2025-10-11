@@ -1,5 +1,6 @@
 "use client"
 import { useForm, SubmitHandler, SubmitErrorHandler } from "react-hook-form"
+import { useState, useEffect } from 'react';
 
 type ContactRequestInput = {
   author: string
@@ -9,13 +10,33 @@ type ContactRequestInput = {
 }
 
 const ContactForm = () => {
+  const [isBanned, setIsBanned] = useState(false);
   const {
     register,
     handleSubmit,
     reset,
   } = useForm<ContactRequestInput>()
 
+  useEffect(() => {
+    const checkIpStatus = async () => {
+      try {
+        const res = await fetch('/api/ip-status');
+        const data = await res.json();
+        if (data.isBanned) {
+          setIsBanned(true);
+        }
+      } catch (error) {
+        console.error("Could not verify IP status:", error);
+      }
+    };
+    checkIpStatus();
+  }, []);
+
   const onSubmit: SubmitHandler<ContactRequestInput> = async (data) => {
+    if (isBanned) {
+      alert('귀하는 문의를 제출할 수 없습니다.');
+      return;
+    }
     try {
       const payload = {
         confirm: false,
@@ -85,12 +106,18 @@ const ContactForm = () => {
         {...register("description", { required: true })}
       />
 
-      <button
-        type="submit"
-        className="inline-block p-2 bg-purple-500 text-white rounded-md hover:bg-purple-600 focus:outline-none focus:ring-2 focus:ring-purple-500 w-full sm:w-auto float-right "
-      >
-        보내기
-      </button>
+      <div className="text-right">
+        {isBanned && (
+            <p className="text-red-500 text-sm float-left py-2">귀하는 문의를 제출할 수 없습니다.</p>
+        )}
+        <button
+          type="submit"
+          className="inline-block p-2 bg-purple-500 text-white rounded-md hover:bg-purple-600 focus:outline-none focus:ring-2 focus:ring-purple-500 w-full sm:w-auto disabled:bg-gray-400"
+          disabled={isBanned}
+        >
+          보내기
+        </button>
+      </div>
     </form>
   )
 }

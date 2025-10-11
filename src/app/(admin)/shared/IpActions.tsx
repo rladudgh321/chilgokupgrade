@@ -5,87 +5,45 @@ import { useRouter } from 'next/navigation';
 
 interface IpActionsProps {
   ipAddress: string;
-  itemId: string; // ID of the contact request or order
-  type: 'contact-request' | 'order';
-  onItemDeleted?: (itemId: string) => void; // Callback for when an item is deleted
+  contact: string;
+  details: string;
 }
 
-const IpActions = ({ ipAddress, itemId, type, onItemDeleted }: IpActionsProps) => {
+const IpActions = ({ ipAddress, contact, details }: IpActionsProps) => {
   const [isOpen, setIsOpen] = useState(false);
   const router = useRouter();
 
-  const handleBanIp = async () => {
-    const reason = prompt('IP를 차단하는 이유를 입력하세요:');
-    if (reason === null) return; // User cancelled
+  const handleBan = async (deleteAll: boolean) => {
+    const confirmMessage = deleteAll
+      ? `다음 IP를 차단하고 모든 관련 항목을 삭제하시겠습니까?\nIP: ${ipAddress}`
+      : `다음 IP를 차단하시겠습니까?\nIP: ${ipAddress}`;
+
+    if (!window.confirm(confirmMessage)) {
+      return;
+    }
 
     try {
       const res = await fetch('/api/admin/banned-ips', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ ipAddress, reason, details: `${type} ${itemId}` }),
+        body: JSON.stringify({
+          ipAddress,
+          contact,
+          details,
+          deleteAll,
+        }),
       });
 
       if (!res.ok) {
         const errorData = await res.json();
-        throw new Error(errorData.message || 'IP 차단 실패');
+        throw new Error(errorData.error || 'IP 처리 실패');
       }
 
-      alert('IP가 성공적으로 차단되었습니다.');
+      alert('작업이 성공적으로 완료되었습니다.');
       router.refresh();
     } catch (error) {
-      console.error('Error banning IP:', error);
-      alert((error as Error).message || 'IP 차단 중 오류가 발생했습니다.');
-    }
-    setIsOpen(false);
-  };
-
-  const handleDeleteItem = async () => {
-    const confirmDelete = window.confirm('정말로 이 항목을 삭제하시겠습니까?');
-    if (!confirmDelete) return;
-
-    try {
-      const res = await fetch('/api/admin/cleanup', {
-        method: 'DELETE',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ type, itemId }),
-      });
-
-      if (!res.ok) {
-        const errorData = await res.json();
-        throw new Error(errorData.message || '항목 삭제 실패');
-      }
-
-      alert('항목이 성공적으로 삭제되었습니다.');
-      onItemDeleted?.(itemId);
-      router.refresh();
-    } catch (error) {
-      console.error('Error deleting item:', error);
-      alert((error as Error).message || '항목 삭제 중 오류가 발생했습니다.');
-    }
-    setIsOpen(false);
-  };
-
-  const handleDeleteAllFromIp = async () => {
-    const confirmDelete = window.confirm(`${ipAddress}의 모든 항목을 삭제하시겠습니까?`);
-    if (!confirmDelete) return;
-
-    try {
-      const res = await fetch('/api/admin/cleanup', {
-        method: 'DELETE',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ type, ipAddress }),
-      });
-
-      if (!res.ok) {
-        const errorData = await res.json();
-        throw new Error(errorData.message || '모든 항목 삭제 실패');
-      }
-
-      alert(`${ipAddress}의 모든 항목이 성공적으로 삭제되었습니다.`);
-      router.refresh();
-    } catch (error) {
-      console.error('Error deleting all items from IP:', error);
-      alert((error as Error).message || '모든 항목 삭제 중 오류가 발생했습니다.');
+      console.error('Error processing IP action:', error);
+      alert((error as Error).message || '작업 중 오류가 발생했습니다.');
     }
     setIsOpen(false);
   };
@@ -117,25 +75,18 @@ const IpActions = ({ ipAddress, itemId, type, onItemDeleted }: IpActionsProps) =
         >
           <div className="py-1" role="none">
             <button
-              onClick={handleBanIp}
+              onClick={() => handleBan(false)}
               className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900"
               role="menuitem"
             >
-              IP 차단
+              해당 항목 IP 차단
             </button>
             <button
-              onClick={handleDeleteItem}
-              className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900"
+              onClick={() => handleBan(true)}
+              className="block w-full text-left px-4 py-2 text-sm text-red-700 hover:bg-gray-100 hover:text-red-900"
               role="menuitem"
             >
-              해당 항목 삭제
-            </button>
-            <button
-              onClick={handleDeleteAllFromIp}
-              className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900"
-              role="menuitem"
-            >
-              이 IP의 모든 항목 삭제
+              해당 IP 차단 및 전체항목 삭제
             </button>
           </div>
         </div>

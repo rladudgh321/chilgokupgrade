@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
 type PropertyType = {
   id: number;
@@ -18,6 +18,7 @@ interface OrderFormProps {
 }
 
 const OrderForm = ({ propertyTypes, buyTypes }: OrderFormProps) => {
+  const [isBanned, setIsBanned] = useState(false);
   const [formData, setFormData] = useState({
     category: '구해요',
     author: '',
@@ -30,6 +31,21 @@ const OrderForm = ({ propertyTypes, buyTypes }: OrderFormProps) => {
     description: '',
   });
 
+  useEffect(() => {
+    const checkIpStatus = async () => {
+      try {
+        const res = await fetch('/api/ip-status');
+        const data = await res.json();
+        if (data.isBanned) {
+          setIsBanned(true);
+        }
+      } catch (error) {
+        console.error("Could not verify IP status:", error);
+      }
+    };
+    checkIpStatus();
+  }, []);
+
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
@@ -37,6 +53,10 @@ const OrderForm = ({ propertyTypes, buyTypes }: OrderFormProps) => {
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    if (isBanned) {
+      alert('귀하는 양식 제출이 제한되었습니다.');
+      return;
+    }
     try {
       const response = await fetch('/api/inquiries/orders', {
         method: 'POST',
@@ -70,8 +90,18 @@ const OrderForm = ({ propertyTypes, buyTypes }: OrderFormProps) => {
     }
   };
 
+  if (isBanned) {
+    return (
+      <div className="max-w-4xl mx-auto bg-white p-4 sm:p-6 md:p-8 rounded-lg shadow-md text-center">
+        <h2 className="text-2xl font-bold text-red-600">접근 제한</h2>
+        <p className="text-gray-700 mt-4">귀하의 IP 주소에서는 이 양식을 제출할 수 없습니다.</p>
+      </div>
+    );
+  }
+
   return (
     <form onSubmit={handleSubmit} className="max-w-4xl mx-auto bg-white p-4 sm:p-6 md:p-8 rounded-lg shadow-md">
+      {/* Form fields... */}
       <div className="mb-6">
         <label className="block text-gray-700 font-bold mb-2">구분</label>
         <div className="flex flex-col sm:flex-row flex-wrap gap-4">
@@ -230,7 +260,8 @@ const OrderForm = ({ propertyTypes, buyTypes }: OrderFormProps) => {
       <div className="text-center">
         <button
           type="submit"
-          className="w-full md:w-auto bg-blue-600 text-white font-bold py-3 px-8 rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50"
+          className="w-full md:w-auto bg-blue-600 text-white font-bold py-3 px-8 rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 disabled:bg-gray-400"
+          disabled={isBanned}
         >
           의뢰하기
         </button>
