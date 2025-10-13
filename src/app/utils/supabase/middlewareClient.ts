@@ -1,11 +1,10 @@
-import { createServerClient } from "@supabase/ssr";
+import { createServerClient, type CookieOptions } from "@supabase/ssr";
 import { type NextRequest, NextResponse } from "next/server";
 
 // 보안상, 미들웨어에서는 Service Role Key를 권장(RLS 무시하고 확실하게 차단 가능)
 // (절대 클라이언트로 전달되지 않음)
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-const supabaseKey =
-  process.env.SUPABASE_SERVICE_ROLE_KEY! || process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_DEFAULT_KEY!;
+const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_DEFAULT_KEY!;
 
 export function createClient(request: NextRequest) {
   // 원본 요청 헤더로 초기 Response 생성
@@ -13,7 +12,11 @@ export function createClient(request: NextRequest) {
     request: { headers: request.headers },
   });
 
-  const supabase = createServerClient(supabaseUrl, supabaseKey, {
+  
+  const supabase = createServerClient(
+    supabaseUrl!,
+    supabaseKey!, 
+    {
     cookies: {
       getAll() {
         return request.cookies.getAll();

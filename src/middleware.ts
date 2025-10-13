@@ -4,10 +4,25 @@ import { type NextRequest, NextResponse } from "next/server";
 export async function middleware(request: NextRequest) {
   const { supabase, response } = createClient(request);
 
-  // Run the IP ban check only for POST requests
+  // Refresh session cookies. This is the primary purpose of the Supabase middleware.
+  const { data: { user } } = await supabase.auth.getUser();
+
+  const pathname = request.nextUrl.pathname;
+
+  // --- Route Protection Logic ---
+  const publicAdminRoutes = ['/admin/login', '/admin/signup'];
+
+  if (pathname.startsWith('/admin') && !publicAdminRoutes.includes(pathname)) {
+    if (!user) {
+      // Unauthenticated user trying to access a protected admin route.
+      // Rewrite to the not-found page.
+      return NextResponse.rewrite(new URL('/not-found', request.url));
+    }
+  }
+
+  // --- IP Ban Logic ---
   if (request.method === "POST") {
     const ip = request.ip ?? "127.0.0.1";
-
     try {
       const { data: bannedIp, error } = await supabase
         .from("BannedIp")
@@ -16,28 +31,28 @@ export async function middleware(request: NextRequest) {
         .single();
 
       if (error && error.code !== "PGRST116") {
-        // PGRST116 means "The result contains 0 rows", which is not an error in this case.
-        console.error("Error checking banned IP (middleware):", error.message);
-        // Fail-open: If the DB check fails, allow the request to prevent blocking legitimate users.
-        return response;
-      }
-
-      // If the IP is found in the banned list, block the request.
-      if (bannedIp) {
+        console.error("Error checking banned IP in middleware:", error.message);
+      } else if (bannedIp) {
         console.log(`Blocked POST request from banned IP: ${ip}`);
-        return new NextResponse("Access Denied: Your IP is blocked.", {
-          status: 403,
-        });
+        return new NextResponse("Access Denied: Your IP is blocked.", { status: 403 });
       }
     } catch (e) {
       console.error("Exception in middleware while checking IP:", e);
-      return response;
     }
   }
 
+  // Return the response object to apply any session cookie updates.
   return response;
 }
 
 export const config = {
-  matcher: ["/((?!_next/static|_next/image|favicon.ico).*)"],
+  matcher: [
+    /*
+     * Match all request paths except for the ones starting with:
+     * - _next/static (static files)
+     * - _next/image (image optimization files)
+     * - favicon.ico (favicon file)
+     */
+    '/((?!_next/static|_next/image|favicon.ico).*)',
+  ],
 };

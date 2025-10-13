@@ -1,5 +1,7 @@
+'use client';
+
 import Image from 'next/image';
-import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 
 interface HeaderProps {
   isOpen: boolean;
@@ -7,6 +9,22 @@ interface HeaderProps {
 }
 
 const Header = ({ isOpen, setIsOpen }: HeaderProps) => {
+  const router = useRouter();
+
+  const handleLogout = async () => {
+    const response = await fetch('/api/admin/logout', {
+      method: 'POST',
+    });
+
+    if (response.ok) {
+      router.push('/admin/login');
+      router.refresh();
+    } else {
+      console.error('Logout failed');
+      // Optionally, show an error message to the user
+    }
+  };
+
   return (
     <header className="fixed grow top-0 left-0 right-0 flex items-center h-14 px-4 bg-gray-800 text-white z-10">
       <button 
@@ -22,7 +40,9 @@ const Header = ({ isOpen, setIsOpen }: HeaderProps) => {
           <Image alt="logo" src="/img/logo.png" layout="fill" objectFit="contain" priority={true} />
         </div>
       </div>
-      <Link href="/">로그아웃</Link>
+      <button onClick={handleLogout} className="px-4 py-2 hover:bg-gray-700 rounded">
+        로그아웃
+      </button>
     </header>
   );
 }
