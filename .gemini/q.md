@@ -1,29 +1,19 @@
-Error: Your project's URL and Key are required to create a Supabase client!
+`Dashboard`컴포넌트에서 
 
-Check your Supabase project's API settings to find these values       
+`매물통계`는 전체매물 갯수와 Build 테이블의 `visibility`컬럼이 true인  매물들의 views의 총합을 표현해줘
+`의뢰통계`는 확인하지 않은 매수, 매도, 기타 부분으로 나뉘어서 표시해줘
+`연락요청`은 확인하지 않은 연락요청을 표시해줘
 
-https://supabase.com/dashboard/project/_/settings/api
-    at <unknown> (https://supabase.com/dashboard/project/_/settings/api)
-    at createServerClient (../../src/createServerClient.ts:139:11)    
-    at createAuthClient (src\app\utils\supabase\auth-client.ts:16:38) 
-    at POST (src\app\api\admin\logout\route.ts:5:50)
-  14 |   });
-  15 |
-> 16 |   const supabase = createServerClient(supabaseUrl, supabaseKey, {
-     |                                      ^
-  17 |     cookies: {
-  18 |       getAll() {
-  19 |         return request.cookies.getAll();
- POST /api/admin/logout 500 in 578ms
 
- --------------------------------
- 요청 URL
-http://127.0.0.1:3000/api/admin/logout
-요청 메서드
-POST
-상태 코드
-500 Internal Server Error
-원격 주소
-127.0.0.1:3000
-리퍼러 정책
-strict-origin-when-cross-origin
+카테고리별 조회수에서는 `ListingType` 테이블을 말하는 것이고 원 모양의 차트로 비율대로 만들어줘
+그리고 그 아래에 수치를 내림차순으로 표현해줘
+예를들면 나대지, 토지, 주택, 아파트, 공장 이라면, 제일 비율 많은게 원 모양 중에서 파이가 제일 클 것이고 나대지가 크다면 나대지가 많고 조회수 그 옆에 작성해줘.
+조회수는 Build테이블의 views이고 서로 연동되어 있어.
+그리고 그 아래에는 Build테이블의 visibility컬럼이 true이고 views가 가장 높은 5개를 내림차순으로 주소를 표현해줘.
+
+테마별 조회수는 `ThemeImage` 테이블을 말하는 것이고 원모양의 차트로 비율대로 만들어줘.
+그리고 그 아래에 수치를 내림차순으로 표현해줘
+반려동물, 역세권, 신축, 주차가능 이라면 제일 비율 많은게 원 모양 중에서 파이가 제일 클 것이고 반려동물이 크다면 반려동물이 많고 조회수 그 옆에 작성해줘
+조회수는 Build테이블의 views이고 서로 연동되어 있어.
+그리고 그 아래에는 Build테이블의 visibility컬럼이 true이고 views가 가장 높은 5개를 내림차순으로 주소를 표현해줘.
+
