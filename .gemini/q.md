@@ -17,3 +17,15 @@
 조회수는 Build테이블의 views이고 서로 연동되어 있어.
 그리고 그 아래에는 Build테이블의 visibility컬럼이 true이고 views가 가장 높은 5개를 내림차순으로 주소를 표현해줘.
 
+--------
+나는 prisma db를 사용하지 않고 supabase db를 이용해
+
+import { cookies } from "next/headers";
+import { createClient } from "@/app/utils/supabase/server";
+    const cookieStore = await cookies();
+    const supabase = createClient(cookieStore);
+
+-----------
+아주 잘했어.
+하지만 매물들을 클릭할때 veiws가 올라가도록 설정해줘
+  
