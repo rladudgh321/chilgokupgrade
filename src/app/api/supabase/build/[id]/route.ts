@@ -44,6 +44,18 @@ export async function GET(
       return NextResponse.json({ message: "매물을 찾을 수 없습니다." }, { status: 404, headers: corsHeaders });
     }
 
+    // Increment view count asynchronously
+    const newViews = (data.views || 0) + 1;
+    supabase
+      .from('Build')
+      .update({ views: newViews })
+      .eq("id", idNum)
+      .then(({ error: updateError }) => {
+        if (updateError) {
+          console.error(`Failed to increment view count for listing ${idNum}:`, updateError);
+        }
+      });
+
     const result = {
       ...data,
       label: (data.label as any)?.name,

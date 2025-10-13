@@ -3,7 +3,7 @@ import WebsiteInfoForm from "./WebsiteInfoForm";
 import { createClient } from "@/app/utils/supabase/server";
 
 async function getWorkInfo() {
-  const cookieStore = cookies();
+  const cookieStore = await cookies();
   const supabase = createClient(cookieStore);
 
   try {

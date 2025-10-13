@@ -1,24 +1,84 @@
-import SimpleCard from '@adminComponents/dashboard/SimpleCard';
-import Smile from '@svg/Smile';
-import Layer from '@svg/Layer';
-import Check from '@svg/Check';
-import Visit from '@adminComponents/dashboard/Visit';
-import Chart from '@adminComponents/dashboard/Chart';
+import { cookies } from 'next/headers';
+import { createClient } from '@/app/utils/supabase/server';
+import DashboardClient from '../shared/DashboardClient';
 
-const Dashboard = () => {
-  return (
-    <div className="p-2 sm:p-4 space-y-4">
-      <div className='flex flex-col sm:flex-row gap-4'>
-        <SimpleCard icon={<Layer className='w-8' />} title='매물 통계' buttonTitle='매물통계 초기화' contentTitle='전체매물 / 공개된 매물 총조회수' content='100 / 5875' />
-        <SimpleCard icon={<Check className='w-8' />} title='의뢰 통계' contentTitle='매수 / 매도 / 기타' content='5 / 2 /1' />
-        <SimpleCard icon={<Smile className='w-8' />} title='연락요청 통계' contentTitle='연락 요청' content='3' />
-      </div>
-      <div className='flex flex-col sm:flex-row gap-4'>
-        <Chart title='카테고리별 조회수' chart='카테고리 차트' />
-        <Chart title='테마별 조회수' chart='테마 차트' />
-      </div>
-    </div>
-  )
+async function getDashboardData() {
+  const cookieStore = await cookies();
+  const supabase = createClient(cookieStore);
+
+  // Listing Stats
+  const { count: totalListings } = await supabase.from('Build').select('*', { count: 'exact', head: true });
+  const { data: viewsData, error: viewsError } = await supabase.from('Build').select('views').eq('visibility', true);
+  if (viewsError) console.error('Error fetching views:', viewsError);
+  const totalViews = viewsData?.reduce((acc, curr) => acc + (curr.views || 0), 0) || 0;
+
+  // Inquiry Stats
+  const { data: inquiryData, error: inquiryError } = await supabase.from('Order').select('category').eq('confirm', false);
+  if (inquiryError) console.error('Error fetching inquiries:', inquiryError);
+  const inquiryStats = {
+    buy: inquiryData?.filter(i => i.category === '매수').length || 0,
+    sell: inquiryData?.filter(i => i.category === '매도').length || 0,
+    other: inquiryData?.filter(i => i.category === '기타').length || 0,
+  };
+
+  // Contact Requests
+  const { count: contactRequests } = await supabase.from('ContactRequest').select('*', { count: 'exact', head: true }).eq('confirm', false);
+
+  // Category Views
+  const { data: buildsForCategories, error: buildsForCatError } = await supabase.from('Build').select('views, listingTypeId').gt('views', 0).not('listingTypeId', 'is', null);
+  if (buildsForCatError) console.error('Error fetching builds for categories:', buildsForCatError);
+  const { data: listingTypes, error: listingTypesError } = await supabase.from('ListingType').select('id, name');
+  if (listingTypesError) console.error('Error fetching listing types:', listingTypesError);
+
+  const categoryViewsMap = new Map<number, { name: string; value: number }>();
+  if (listingTypes) {
+    listingTypes.forEach(lt => {
+      categoryViewsMap.set(lt.id, { name: lt.name, value: 0 });
+    });
+  }
+  if (buildsForCategories) {
+    buildsForCategories.forEach(build => {
+      const category = categoryViewsMap.get(build.listingTypeId);
+      if (category && build.views) {
+        category.value += build.views;
+      }
+    });
+  }
+  const categoryViews = Array.from(categoryViewsMap.values()).sort((a, b) => b.value - a.value);
+
+  // Theme Views
+  const { data: buildsForThemes, error: buildsForThemesError } = await supabase.from('Build').select('themes, views').gt('views', 0);
+  if (buildsForThemesError) console.error('Error fetching builds for themes:', buildsForThemesError);
+  const themeViewsMap = new Map<string, number>();
+  if (buildsForThemes) {
+    buildsForThemes.forEach(build => {
+      if (build.views && build.themes) {
+        build.themes.forEach(theme => {
+          themeViewsMap.set(theme, (themeViewsMap.get(theme) || 0) + build.views);
+        });
+      }
+    });
+  }
+  const themeViews = Array.from(themeViewsMap.entries())
+    .map(([name, value]) => ({ name, value }))
+    .sort((a, b) => b.value - a.value);
+
+  // Top 5 Listings
+  const { data: topListings, error: topListingsError } = await supabase.from('Build').select('address, views').eq('visibility', true).not('address', 'is', null).order('views', { ascending: false }).limit(5);
+  if (topListingsError) console.error('Error fetching top listings:', topListingsError);
+
+  return {
+    listingStats: { totalListings: totalListings || 0, totalViews },
+    inquiryStats,
+    contactRequests: contactRequests || 0,
+    categoryViews,
+    themeViews,
+    topListings: topListings?.map(l => ({ address: l.address!, views: l.views || 0})) || [],
+  };
 }
 
-export default Dashboard
+// Server Component
+export default async function DashboardPage() {
+  const dashboardData = await getDashboardData();
+  return <DashboardClient dashboardData={dashboardData} />;
+}
