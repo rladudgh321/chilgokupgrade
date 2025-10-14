@@ -103,6 +103,18 @@ model Build {
   confirmDate      DateTime?
 }
 
+model AccessLog {
+  id        Int      @id @default(autoincrement())
+  ip        String?
+  browser   String?
+  os        String?
+  referrer  String?
+  location  String?
+  createdAt DateTime @default(now())
+
+  @@map("access_logs")
+}
+
 model BannedIp {
   id        Int      @id @default(autoincrement())
   ipAddress String   @unique

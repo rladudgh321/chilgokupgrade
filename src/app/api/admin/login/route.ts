@@ -32,6 +32,63 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    if (data.user) {
+      // Access Log
+      (async () => {
+        try {
+          const ip = request.ip;
+          const userAgent = request.headers.get("user-agent");
+          const referrer = request.headers.get("referer");
+
+          let browser = "Unknown";
+          let os = "Unknown";
+
+          if (userAgent) {
+            const browserRegex = /(firefox|msie|chrome|safari|trident|edg)[\/ ]?([\d\.]+)/i;
+            const osRegex = /(windows|macintosh|linux|android|ios)/i;
+            
+            const browserMatch = userAgent.match(browserRegex);
+            if (browserMatch) {
+              browser = browserMatch[1];
+            }
+
+            const osMatch = userAgent.match(osRegex);
+            if (osMatch) {
+              os = osMatch[1];
+            }
+          }
+
+          let location = null;
+          if (ip) {
+              try {
+                  const geoRes = await fetch(`http://ip-api.com/json/${ip}?fields=country,city,regionName`);
+                  const geoData = await geoRes.json();
+                  if (geoData.status === 'success') {
+                      location = `${geoData.country}, ${geoData.regionName}, ${geoData.city}`;
+                  }
+              } catch (e) {
+                  console.error("Error fetching geolocation", e);
+              }
+          }
+
+          const { error: logError } = await supabase.from("access_logs").insert({
+            ip,
+            browser,
+            os,
+            referrer,
+            location,
+          });
+
+          if (logError) {
+            console.error("Error inserting access log", logError);
+          }
+
+        } catch (e) {
+          console.error("Error in access log middleware", e);
+        }
+      })();
+    }
+
     // 성공 시: createClient(cookieStore) 내부에서 cookieStore.set(...)로
     // 세션 쿠키가 응답에 자동 반영됩니다(별도 헤더 복사 불필요).
     // 필요 시 user 반환

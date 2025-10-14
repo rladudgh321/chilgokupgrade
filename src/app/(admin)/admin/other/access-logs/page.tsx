@@ -1,7 +1,11 @@
-const AccessLogs = () => {
-  return (
-    <div>AccessLogs</div>
-  )
-}
+export const dynamic = 'force-dynamic';
 
-export default AccessLogs
+import AccessLogList from "./AccessLogList";
+
+const AccessLogsPage = async () => {
+  return (
+    <AccessLogList />
+  );
+};
+
+export default AccessLogsPage;
