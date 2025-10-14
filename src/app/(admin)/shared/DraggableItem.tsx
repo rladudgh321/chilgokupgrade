@@ -7,20 +7,22 @@ import { useDrag, useDrop } from 'react-dnd';
 type DraggableItemProps = {
   id: number;
   name: string;
+  url?: string;
   imageUrl?: string;
   imageName?: string;
   moveItem: (draggedId: number, hoveredId: number) => void;
-  onEdit?: (oldName: string, newName: string) => void;
+  onEdit?: (id: number, newName: string, newUrl?: string) => void;
   onDelete?: (id: number, name: string) => void;
   onImageEdit?: (id: number, newImageUrl: string, newImageName: string) => void;
   disabled?: boolean;
   uploadEndpoint?: string;
 };
 
-const DraggableItem = ({ id, name, imageUrl, imageName, moveItem, onEdit, onDelete, onImageEdit, disabled = false, uploadEndpoint }: DraggableItemProps) => {
+const DraggableItem = ({ id, name, url, imageUrl, imageName, moveItem, onEdit, onDelete, onImageEdit, disabled = false, uploadEndpoint }: DraggableItemProps) => {
   const ref = useRef<HTMLDivElement>(null);
   const [isEditing, setIsEditing] = useState(false);
   const [editValue, setEditValue] = useState(name);
+  const [editUrl, setEditUrl] = useState(url);
   const [isImageEditing, setIsImageEditing] = useState(false);
   const [selectedImageFile, setSelectedImageFile] = useState<File | null>(null);
 
@@ -50,18 +52,20 @@ const DraggableItem = ({ id, name, imageUrl, imageName, moveItem, onEdit, onDele
 
   const handleEdit = () => {
     if (isEditing) {
-      if (editValue.trim() && editValue.trim() !== name && onEdit) {
-        onEdit(name, editValue.trim());
+      if (editValue.trim() && onEdit) {
+        onEdit(id, editValue.trim(), editUrl);
       }
       setIsEditing(false);
     } else {
       setEditValue(name);
+      setEditUrl(url);
       setIsEditing(true);
     }
   };
 
   const handleCancel = () => {
     setEditValue(name);
+    setEditUrl(url);
     setIsEditing(false);
   };
 
@@ -122,16 +126,31 @@ const DraggableItem = ({ id, name, imageUrl, imageName, moveItem, onEdit, onDele
           {/* 텍스트 편집 */}
           <div className="flex-1 w-full">
             {isEditing ? (
-              <input
-                type="text"
-                value={editValue}
-                onChange={(e) => setEditValue(e.target.value)}
-                onKeyDown={handleKeyPress}
-                className="w-full px-2 py-1 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
-                autoFocus
-              />
+              <div>
+                <input
+                  type="text"
+                  value={editValue}
+                  onChange={(e) => setEditValue(e.target.value)}
+                  onKeyDown={handleKeyPress}
+                  className="w-full px-2 py-1 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  autoFocus
+                />
+                {url !== undefined && (
+                  <input
+                    type="text"
+                    value={editUrl}
+                    onChange={(e) => setEditUrl(e.target.value)}
+                    onKeyDown={handleKeyPress}
+                    className="w-full mt-1 px-2 py-1 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    placeholder="URL"
+                  />
+                )}
+              </div>
             ) : (
-              <span className="text-lg font-medium">{name}</span>
+              <div>
+                <span className="text-lg font-medium">{name}</span>
+                {url && <div className="text-sm text-gray-500">{url}</div>}
+              </div>
             )}
             
             {/* 이미지 편집 섹션 */}

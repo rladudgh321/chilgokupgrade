@@ -1,5 +1,26 @@
-Error: Route "/landSearch" used `searchParams.sortBy`. `searchParams` should be awaited before using its properties. Learn more: https://nextjs.org/docs/messages/sync-dynamic-apis
-    at Page (src\app\(app)\landSearch\page.tsx:10:38)
-   8 |   const propertyType = searchParams.propertyType ? decodeURIComponent(searchParams.propertyType as string) : undefined;
-   9 |   const dealType = searchParams.dealType ? decodeURIComponent(searchParams.dealType as string) : undefined;
-> 10 |   const sortBy = typeof searchParams.sortBy === 'string' ? searchParams.sortBy : 'latest';
+const SnsIcon = () => {
+  return (
+    <div className="bg-gray-100 py-8">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <h2 className="text-2xl font-bold text-center text-gray-800 mb-6">Follow Us</h2>
+        <div className="flex justify-center space-x-6">
+          <a href="#" className="text-gray-500 hover:text-blue-500 transition-colors">
+            <svg className="w-8 h-8" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path fillRule="evenodd" d="M22 12c0-5.523-4.477-10-10-10S2 6.477 2 12c0 4.991 3.657 9.128 8.438 9.878v-6.987h-2.54V12h2.54V9.797c0-2.506 1.492-3.89 3.777-3.89 1.094 0 2.238.195 2.238.195v2.46h-1.26c-1.243 0-1.63.771-1.63 1.562V12h2.773l-.443 2.89h-2.33v6.988C18.343 21.128 22 16.991 22 12z" clipRule="evenodd" /></svg>
+          </a>
+          <a href="#" className="text-gray-500 hover:text-pink-500 transition-colors">
+            <svg className="w-8 h-8" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path fillRule="evenodd" d="M12.315 2c-4.013 0-4.483.018-6.058.088-1.575.07-2.658.348-3.592 1.282-.934.934-1.212 2.017-1.282 3.592C.018 7.832 0 8.302 0 12.315s.018 4.483.088 6.058c.07 1.575.348 2.658 1.282 3.592.934.934 2.017 1.212 3.592 1.282 1.575.07 2.045.088 6.058.088s4.483-.018 6.058-.088c1.575-.07 2.658-.348 3.592-1.282.934-.934 1.212-2.017 1.282-3.592.07-1.575.088-2.045.088-6.058s-.018-4.483-.088-6.058c-.07-1.575-.348-2.658-1.282-3.592-.934-.934-2.017-1.212-3.592-1.282C16.798 2.018 16.328 2 12.315 2zm0 1.802c3.938 0 4.383.015 5.92.084 1.422.065 2.2.345 2.88.95.68.604.95 1.458.95 2.88.07 1.537.084 1.982.084 5.92s-.015 4.383-.084 5.92c-.065 1.422-.345 2.2-.95 2.88-.604.68-1.458.95-2.88.95-1.537.07-1.982.084-5.92.084s-4.383-.015-5.92-.084c-1.422-.065-2.2-.345-2.88-.95-.68-.604-.95-1.458-.95-2.88-.07-1.537-.084-1.982-.084-5.92s.015-4.383.084-5.92c.065-1.422.345-2.2.95-2.88.604-.68 1.458.95 2.88.95 1.537-.07 1.982-.084 5.92-.084zM12 8.25a3.75 3.75 0 100 7.5 3.75 3.75 0 000-7.5zM12 14a2 2 0 110-4 2 2 0 010 4zm6.36-7.96a1.25 1.25 0 100-2.5 1.25 1.25 0 000 2.5z" clipRule="evenodd" /></svg>
+          </a>
+          <a href="#" className="text-gray-500 hover:text-blue-400 transition-colors">
+            <svg className="w-8 h-8" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path d="M23.953 4.57a10 10 0 01-2.825.775 4.958 4.958 0 002.163-2.723c-.951.555-2.005.959-3.127 1.184a4.92 4.92 0 00-8.384 4.482C7.69 8.095 4.067 6.13 1.64 3.162a4.822 4.822 0 00-.666 2.475c0 1.71.87 3.213 2.188 4.096a4.904 4.904 0 01-2.228-.616v.06a4.923 4.923 0 003.946 4.827 4.996 4.996 0 01-2.223.085 4.923 4.923 0 004.6 3.419A9.9 9.9 0 010 17.54a13.94 13.94 0 007.548 2.21c9.058 0 14.01-7.502 14.01-14.013 0-.213-.005-.426-.015-.637a9.953 9.953 0 002.423-2.526z" /></svg>
+          </a>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default SnsIcon;
+-------------
+svg를 지우고 SnsSetting테이블의 데이터를 넣고 싶어. url에는 클릭했을때. 나타나게 해주고, name은 그 아이콘 아래에 해줘. 
+
+'/src//app/(app)/layout.tsx' 파일에서 SnsIcon컴포넌트에 데이터를 내려줘

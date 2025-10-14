@@ -8,13 +8,15 @@ type ListManagerProps = {
   title: string;
   placeholder: string;
   buttonText: string;
-  apiEndpoint?: string; // API 엔드포인트 추가
-  enableImageUpload?: boolean; // 이미지 업로드 기능 활성화
+  apiEndpoint?: string;
+  enableImageUpload?: boolean;
+  enableUrlInput?: boolean;
 };
 
-const ListManager = ({ title, placeholder, buttonText, apiEndpoint='', enableImageUpload = false }: ListManagerProps) => {
-  const [items, setItems] = useState<{ id: number; name: string; imageUrl?: string; imageName?: string }[]>([]);
+const ListManager = ({ title, placeholder, buttonText, apiEndpoint = '', enableImageUpload = false, enableUrlInput = false }: ListManagerProps) => {
+  const [items, setItems] = useState<{ id: number; name: string; url?: string; imageUrl?: string; imageName?: string }[]>([]);
   const [newItem, setNewItem] = useState('');
+  const [newUrl, setNewUrl] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
@@ -69,14 +71,11 @@ const ListManager = ({ title, placeholder, buttonText, apiEndpoint='', enableIma
       
       if (result.ok) {
         // labels API: {id,name} / theme-images API: {id,label,imageUrl,imageName}
-        type Row = { id: number; name?: string; label?: string; imageUrl?: string; imageName?: string };
+        type Row = { id: number; name?: string; label?: string; url?: string; imageUrl?: string; imageName?: string };
         const rows: Row[] = Array.isArray(result.data) ? result.data : [];
         const normalized = rows.map((r: Row) => {
-          if (r && typeof r === 'object' && 'label' in r) {
-            return { id: r.id, name: r.label as string, imageUrl: r.imageUrl, imageName: r.imageName };
-          }
-          // name 기반 응답에서도 이미지 정보를 보존
-          return { id: r.id, name: (r.name as string), imageUrl: r.imageUrl, imageName: r.imageName };
+          const name = r.label || r.name;
+          return { id: r.id, name: name as string, url: r.url, imageUrl: r.imageUrl, imageName: r.imageName };
         });
         setItems(normalized);
         setError(null);
@@ -100,7 +99,15 @@ const ListManager = ({ title, placeholder, buttonText, apiEndpoint='', enableIma
 
     try {
       setLoading(true);
-      
+
+      const body: { label: string; url?: string; imageUrl?: string; imageName?: string } = {
+        label: newItem.trim(),
+      };
+
+      if (enableUrlInput) {
+        body.url = newUrl.trim();
+      }
+
       if (enableImageUpload && selectedFile) {
         // 이미지와 함께 업로드
         const formData = new FormData();
@@ -114,49 +121,35 @@ const ListManager = ({ title, placeholder, buttonText, apiEndpoint='', enableIma
         });
 
         const result = await response.json();
-        
-        if (result.ok) {
-          // 업로드 성공 시 항목 생성 (apiEndpoint에 저장)
-          const saveRes = await fetch(apiEndpoint, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              label: newItem.trim(),
-              imageUrl: result.data.imageUrl,
-              imageName: result.data.imageName,
-            }),
-          });
-          const saveJson = await saveRes.json();
-          if (saveJson.ok) {
-            setNewItem('');
-            setSelectedFile(null);
-            await loadItems();
-            setError(null);
-          } else {
-            setError(saveJson.error?.message || '이미지 정보 저장에 실패했습니다.');
-          }
-        } else {
-          setError(result.error?.message || '추가에 실패했습니다.');
-        }
-      } else {
-        // 일반 라벨 추가
-        const response = await fetch(apiEndpoint, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({ label: newItem.trim() }),
-        });
 
-        const result = await response.json();
-        
         if (result.ok) {
-          setNewItem('');
-          await loadItems();
-          setError(null);
+          body.imageUrl = result.data.imageUrl;
+          body.imageName = result.data.imageName;
         } else {
           setError(result.error?.message || '추가에 실패했습니다.');
+          return;
         }
+      }
+
+      // 일반 라벨 또는 이미지와 함께 추가
+      const response = await fetch(apiEndpoint, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(body),
+      });
+
+      const result = await response.json();
+
+      if (result.ok) {
+        setNewItem('');
+        setNewUrl('');
+        setSelectedFile(null);
+        await loadItems();
+        setError(null);
+      } else {
+        setError(result.error?.message || '추가에 실패했습니다.');
       }
     } catch {
       setError('네트워크 오류가 발생했습니다.');
@@ -179,15 +172,20 @@ const ListManager = ({ title, placeholder, buttonText, apiEndpoint='', enableIma
     debouncedSaveOrder(updatedItems);
   };
 
-  const handleEditItem = async (oldName: string, newName: string) => {
+  const handleEditItem = async (id: number, newName: string, newUrl?: string) => {
     try {
       setLoading(true);
+      const body: any = { id, newName };
+      if (enableUrlInput) {
+        body.newUrl = newUrl;
+      }
+
       const response = await fetch(apiEndpoint, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(apiEndpoint === '/api/buy-types' ? { oldName: oldName, newName: newName } : { oldLabel: oldName, newLabel: newName }),
+        body: JSON.stringify(body),
       });
 
       const result = await response.json();
@@ -280,6 +278,20 @@ const ListManager = ({ title, placeholder, buttonText, apiEndpoint='', enableIma
         disabled={loading}
       />
 
+      {/* URL input */}
+      {enableUrlInput && (
+        <div className="mb-4">
+          <input
+            type="text"
+            value={newUrl}
+            onChange={(e) => setNewUrl(e.target.value)}
+            placeholder="URL을 입력하세요"
+            className="block w-full p-2 border border-gray-300 rounded-md"
+            disabled={loading}
+          />
+        </div>
+      )}
+
       {/* Image upload section */}
       {enableImageUpload && (
         <div className="mb-4">
@@ -318,6 +330,7 @@ const ListManager = ({ title, placeholder, buttonText, apiEndpoint='', enableIma
             key={item.id}
             id={item.id}
             name={item.name}
+            url={item.url}
             imageUrl={item.imageUrl}
             imageName={item.imageName}
             moveItem={moveItem}
