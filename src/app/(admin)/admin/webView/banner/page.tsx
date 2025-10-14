@@ -1,13 +1,14 @@
-import ListManager from "@adminShared/ListManager"
+'use client';
 
-const Banner = () => {
+import ImageManager from "@/app/(admin)/shared/ImageManager";
+
+const BannerPage = () => {
   return (
-    <ListManager
-      title="배너 설정"
-      placeholder="새로운 배너"
-      buttonText="배너 등록"
+    <ImageManager
+      title="웹뷰 배너 관리"
+      apiEndpoint="/api/admin/webView/banner"
     />
-  )
-}
+  );
+};
 
-export default Banner
+export default BannerPage;

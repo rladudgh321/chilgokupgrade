@@ -342,3 +342,12 @@ model SnsSetting {
   createdAt DateTime @default(now())
   updatedAt DateTime @default(now()) @updatedAt
 }
+
+model WebViewBanner {
+  id        Int      @id @default(autoincrement())
+  imageUrl  String
+  imageName String
+  order     Int?     @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now()) @updatedAt
+}
