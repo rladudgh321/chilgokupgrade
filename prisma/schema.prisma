@@ -340,6 +340,8 @@ model WorkInfo {
   owner        String?
   businessId   String?
   address      String?
+  logoUrl      String?
+  logoName     String?
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 }

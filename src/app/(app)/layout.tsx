@@ -37,10 +37,11 @@ export default async function AppLayout({
   children: React.ReactNode;
 }>) {
   const workInfo = await getWorkInfo();
+  console.log('workInfo', workInfo);
   const snsSettings = await getSnsSettings();
   return (
     <>
-      <Header />
+      <Header logoUrl={workInfo?.logoUrl} />
       <main className="flex-grow">{children}</main>
       {Boolean(snsSettings?.length) && <SnsIcon snsSettings={snsSettings} />}
       <Footer workInfo={workInfo} />

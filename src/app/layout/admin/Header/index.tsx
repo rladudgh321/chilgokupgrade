@@ -6,9 +6,10 @@ import { useRouter } from 'next/navigation';
 interface HeaderProps {
   isOpen: boolean;
   setIsOpen: (isOpen: boolean) => void;
+  logoUrl: string;
 }
 
-const Header = ({ isOpen, setIsOpen }: HeaderProps) => {
+const Header = ({ isOpen, setIsOpen, logoUrl }: HeaderProps) => {
   const router = useRouter();
 
   const handleLogout = async () => {
@@ -37,7 +38,7 @@ const Header = ({ isOpen, setIsOpen }: HeaderProps) => {
       </button>
       <div className="flex-1 text-center">
         <div className="relative inline-block h-10 w-24">
-          <Image alt="logo" src="/img/logo.png" layout="fill" objectFit="contain" priority={true} />
+          <Image alt="logo" src={logoUrl} layout="fill" objectFit="contain" priority={true} />
         </div>
       </div>
       <button onClick={handleLogout} className="px-4 py-2 hover:bg-gray-700 rounded">

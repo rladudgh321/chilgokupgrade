@@ -4,13 +4,13 @@ import { useState } from 'react';
 import Header from '../layout/admin/Header';
 import AdminNav from '../components/admin/nav';
 
-export default function AdminLayoutClient({ children }: { children: React.ReactNode }) {
+export default function AdminLayoutClient({ children, logoUrl }: { children: React.ReactNode, logoUrl: string | null }) {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   return (
     <>
       <div className="relative z-10 flex">
-        <Header isOpen={isMobileMenuOpen} setIsOpen={setIsMobileMenuOpen} />
+        <Header isOpen={isMobileMenuOpen} setIsOpen={setIsMobileMenuOpen} logoUrl={logoUrl} />
       </div>
       <div className="relative flex -z-0">
         <div

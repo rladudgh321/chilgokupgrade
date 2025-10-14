@@ -41,6 +41,7 @@ const websiteSettingsData = [
 
 const webViewData = [
   { title: "배너 설정", url: "banner" },
+  { title: "로고 설정", url: "logo-settings" },
 ];
 
 const otherData = [

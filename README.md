@@ -42,3 +42,8 @@ rm -f ~/.gemini/settings.json
 ----------------------
 ### 마지막 확인해야할 작업
 1. `/landSearch`, `/card`페이지의 `최신순, 인기순, 금액순, 면적순`에 대한 카테고리 api작업을 해야한다
+
+---------
+나는 nextjs15 app router를 사용하고 있고 `/api`를 사용하여 route handler를 사용하고 있어 api 폴더 아래에 모든 route.ts에 대해 test코드를 작성해줘 jest로 해줘
+--------
+아직 route.ts에 대한 test코드가 없는 경우 찾아서 test코드를 작성해줘

@@ -4,14 +4,18 @@ import OpenMenu from "./OpenMenu";
 import Link from "next/link";
 import NavMenu from "./NavMenu";
 
-const Header = () => {
+interface HeaderProps {
+  logoUrl?: string;
+}
+
+const Header = ({ logoUrl }: HeaderProps) => {
   return (
     <header className="fixed top-0 left-0 w-full z-50 border-b border-white/10 bg-black">
       <div className="mx-auto max-w-7xl h-14 px-4 flex items-center justify-between">
         <Link href="/" className="relative h-8 w-28 md:h-9 md:w-32" aria-label="홈으로">
           <Image
             alt="logo"
-            src="/img/logo.png"
+            src={logoUrl!}
             fill
             priority
             sizes="(max-width: 768px) 112px, 128px"

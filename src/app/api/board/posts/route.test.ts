@@ -1,47 +1,103 @@
-import { GET } from './route';
-import { createClient } from '@/app/utils/supabase/server';
+import { POST, GET } from './route';
 import { NextRequest } from 'next/server';
-import { cookies } from 'next/headers';
+import { createClient } from '@/utils/supabase/server';
 
-const mockSupabase = createClient(cookies());
+// Mock the Supabase client
+jest.mock('@/utils/supabase/server', () => ({
+  createClient: jest.fn(),
+}));
 
-describe('GET /api/board/posts', () => {
+describe('/api/board/posts', () => {
+  let supabase: any;
+
   beforeEach(() => {
+    supabase = {
+      from: jest.fn(() => supabase),
+      insert: jest.fn(() => supabase),
+      select: jest.fn(() => supabase),
+      single: jest.fn(),
+      order: jest.fn(() => supabase),
+      range: jest.fn(),
+      eq: jest.fn(() => supabase),
+    };
+    (createClient as jest.Mock).mockReturnValue(supabase);
+  });
+
+  afterEach(() => {
     jest.clearAllMocks();
   });
 
-  it('should fetch posts with default pagination', async () => {
-    const req = new NextRequest('http://localhost/api/board/posts');
-    (mockSupabase.range as jest.Mock).mockResolvedValueOnce({ data: [{ id: 1, title: 'Test Post' }], error: null, count: 1 });
+  describe('POST', () => {
+    it('should create a post successfully', async () => {
+      const mockPost = { title: 'Test Post', content: 'Test content' };
+      const createdPost = { id: 1, ...mockPost };
+      supabase.single.mockResolvedValue({ data: createdPost, error: null });
 
-    const response = await GET(req);
-    const { data, count } = await response.json();
+      const req = new NextRequest('http://localhost/api/board/posts', {
+        method: 'POST',
+        body: JSON.stringify(mockPost),
+      });
 
-    expect(response.status).toBe(200);
-    expect(data).toHaveLength(1);
-    expect(count).toBe(1);
-    expect(mockSupabase.from).toHaveBeenCalledWith('BoardPost');
-    expect(mockSupabase.select).toHaveBeenCalledWith('*' , { count: 'exact' });
-    expect(mockSupabase.range).toHaveBeenCalledWith(0, 9);
+      const response = await POST(req);
+      const body = await response.json();
+
+      expect(response.status).toBe(200);
+      expect(body.message).toBe('게시글이 성공적으로 생성되었습니다');
+      expect(body.data).toEqual(createdPost);
+    });
+
+    it('should return 400 for invalid data', async () => {
+      const req = new NextRequest('http://localhost/api/board/posts', {
+        method: 'POST',
+        body: JSON.stringify({ content: 'only content' }), // Missing title
+      });
+
+      const response = await POST(req);
+      const body = await response.json();
+
+      expect(response.status).toBe(400);
+      expect(body.message).toBe('입력 데이터가 올바르지 않습니다');
+    });
+
+    it('should return 500 on database error', async () => {
+        const mockPost = { title: 'Test Post', content: 'Test content' };
+        supabase.single.mockResolvedValue({ data: null, error: { message: 'DB Error' } });
+  
+        const req = new NextRequest('http://localhost/api/board/posts', {
+          method: 'POST',
+          body: JSON.stringify(mockPost),
+        });
+  
+        const response = await POST(req);
+        const body = await response.json();
+  
+        expect(response.status).toBe(500);
+        expect(body.message).toBe('DB Error');
+      });
   });
 
-  it('should fetch posts with custom pagination', async () => {
-    const req = new NextRequest('http://localhost/api/board/posts?page=2&limit=20');
-    (mockSupabase.range as jest.Mock).mockResolvedValueOnce({ data: [], error: null, count: 0 });
+  describe('GET', () => {
+    it('should fetch posts with pagination', async () => {
+      const mockPosts = [{ id: 1, title: 'Post 1' }];
+      supabase.range.mockResolvedValue({ data: mockPosts, error: null, count: 1 });
 
-    await GET(req);
+      const req = new NextRequest('http://localhost/api/board/posts?page=1&limit=10');
+      const response = await GET(req);
+      const body = await response.json();
 
-    expect(mockSupabase.range).toHaveBeenCalledWith(20, 39);
-  });
+      expect(response.status).toBe(200);
+      expect(body.data).toEqual(mockPosts);
+      expect(body.count).toBe(1);
+      expect(supabase.range).toHaveBeenCalledWith(0, 9);
+    });
 
-  it('should handle errors', async () => {
-    const req = new NextRequest('http://localhost/api/board/posts');
-    (mockSupabase.range as jest.Mock).mockResolvedValueOnce({ data: null, error: { message: 'Test Error' } });
-
-    const response = await GET(req);
-    const { message } = await response.json();
-
-    expect(response.status).toBe(500);
-    expect(message).toBe('Test Error');
+    it('should filter by publishedOnly', async () => {
+        supabase.range.mockResolvedValue({ data: [], error: null, count: 0 });
+  
+        const req = new NextRequest('http://localhost/api/board/posts?publishedOnly=true');
+        await GET(req);
+  
+        expect(supabase.eq).toHaveBeenCalledWith('isPublished', true);
+      });
   });
 });
