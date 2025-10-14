@@ -33,60 +33,7 @@ export async function POST(request: NextRequest) {
     }
 
     if (data.user) {
-      // Access Log
-      (async () => {
-        try {
-          const ip = request.ip;
-          const userAgent = request.headers.get("user-agent");
-          const referrer = request.headers.get("referer");
-
-          let browser = "Unknown";
-          let os = "Unknown";
-
-          if (userAgent) {
-            const browserRegex = /(firefox|msie|chrome|safari|trident|edg)[\/ ]?([\d\.]+)/i;
-            const osRegex = /(windows|macintosh|linux|android|ios)/i;
-            
-            const browserMatch = userAgent.match(browserRegex);
-            if (browserMatch) {
-              browser = browserMatch[1];
-            }
-
-            const osMatch = userAgent.match(osRegex);
-            if (osMatch) {
-              os = osMatch[1];
-            }
-          }
-
-          let location = null;
-          if (ip) {
-              try {
-                  const geoRes = await fetch(`http://ip-api.com/json/${ip}?fields=country,city,regionName`);
-                  const geoData = await geoRes.json();
-                  if (geoData.status === 'success') {
-                      location = `${geoData.country}, ${geoData.regionName}, ${geoData.city}`;
-                  }
-              } catch (e) {
-                  console.error("Error fetching geolocation", e);
-              }
-          }
-
-          const { error: logError } = await supabase.from("access_logs").insert({
-            ip,
-            browser,
-            os,
-            referrer,
-            location,
-          });
-
-          if (logError) {
-            console.error("Error inserting access log", logError);
-          }
-
-        } catch (e) {
-          console.error("Error in access log middleware", e);
-        }
-      })();
+      await createAccessLog(request, supabase);
     }
 
     // 성공 시: createClient(cookieStore) 내부에서 cookieStore.set(...)로
@@ -103,4 +50,88 @@ export async function POST(request: NextRequest) {
       { status: 500 }
     );
   }
+}
+
+function getClientIp(req: NextRequest) {
+  const h = req.headers;
+  const ip =
+    h.get("cf-connecting-ip") ||                      // Cloudflare
+    h.get("x-vercel-forwarded-for")?.split(",")[0]?.trim() || // Vercel
+    h.get("x-forwarded-for")?.split(",")[0]?.trim() || // 일반 프록시
+    h.get("x-real-ip") ||                              // Nginx 등
+    h.get("fly-client-ip") ||                          // Fly.io
+    "unknown";
+  return ip;
+}
+
+async function createAccessLog(request: NextRequest, supabase: any) {
+  console.log("--- createAccessLog started ---");
+  try {
+    const ip = getClientIp(request);
+    console.log("IP Address:", ip);
+
+    const userAgent = request.headers.get("user-agent");
+    console.log("User Agent:", userAgent);
+
+    const referrer = request.headers.get("referer");
+    console.log("Referrer:", referrer);
+
+    let browser = "Unknown";
+    let os = "Unknown";
+
+    if (userAgent) {
+      const browserRegex = /(firefox|msie|chrome|safari|trident|edg)[\/ ]?([\d\.]+)/i;
+      const osRegex = /(windows|macintosh|linux|android|ios)/i;
+      
+      const browserMatch = userAgent.match(browserRegex);
+      if (browserMatch) {
+        browser = browserMatch[1];
+      }
+
+      const osMatch = userAgent.match(osRegex);
+      if (osMatch) {
+        os = osMatch[1];
+      }
+    }
+    console.log("Browser:", browser, "OS:", os);
+
+    let location = null;
+    if (ip && ip !== 'unknown') {
+        try {
+            console.log(`Fetching geolocation for ${ip}...`);
+            const geoRes = await fetch(`http://ip-api.com/json/${ip}?fields=status,message,country,countryCode,region,regionName,city,zip,lat,lon,timezone,isp,org,as,query`);
+            const geoData = await geoRes.json();
+            console.log("Geolocation API response:", geoData);
+            if (geoData.status === 'success') {
+              location = `${geoData.country}, ${geoData.regionName}, ${geoData.city}, ${geoData.zip}`;
+            } else {
+              console.warn("Geolocation fetch was not successful:", geoData.message);
+            }
+        } catch (e) {
+            console.error("!!! Exception fetching geolocation:", e);
+        }
+    }
+    console.log("Final location:", location);
+
+    const logData = {
+      ip,
+      browser,
+      os,
+      referrer,
+      location,
+    };
+
+    console.log("Attempting to insert log into Supabase with data:", logData);
+    const { data: insertData, error: logError } = await supabase.from("access_logs").insert(logData).select();
+
+    if (logError) {
+      console.error("!!! Supabase insert error:", logError);
+    } else {
+      console.log("+++ Supabase insert successful:", insertData);
+    }
+
+  } catch (e) {
+    console.error("!!! Critical error in createAccessLog:", e);
+  }
+  console.log("--- createAccessLog finished ---");
 }

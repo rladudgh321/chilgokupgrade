@@ -1,7 +1,162 @@
-AccessLogs페이지에서 `번호, 아이피, 브라우저, 운영체제, 직전url주소, 그 아이피의 지구상 주소, 접속시간`을 표로 예쁘게 정리해줘. api도 만들어줘.
-나는 supabase를 사용해
-prsima는 schema.prisma만 이용하고, prisma 매서드는 이용하지 않아
---------------
-나는 `/admin/login`페이지에서 로그인에 성공한 사람의 접속 기록을 원해
----------
-너는 아이피에 대하여 구현을 해줬으면 좋겠어. 그리고 그 아이피에 대하여 주소를 알려줬으면 좋겠어 예를들면 `서울 강남구 압구정동 594-12` 이렇게 말이지
+IP Address: ::ffff:127.0.0.1
+User Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36
+Referrer: http://127.0.0.1:3000/admin/login  
+Browser: Chrome OS: Windows
+Fetching geolocation for ::ffff:127.0.0.1... 
+Geolocation API response: { status: 'fail', message: 'reserved range', query: '127.0.0.1' }
+Geolocation fetch was not successful: reserved range
+Final location: null
+Attempting to insert log into Supabase with data: {
+  ip: '::ffff:127.0.0.1',
+  browser: 'Chrome',
+  os: 'Windows',
+  referrer: 'http://127.0.0.1:3000/admin/login',
+  location: null
+}
+!!! Supabase insert error: {
+  code: '42501',
+  details: null,
+  hint: null,
+  message: 'new row violates row-level security policy for table "access_logs"'
+}
+--- createAccessLog finished ---
+------------
+import { createClient } from "@/app/utils/supabase/server";
+import { cookies } from "next/headers";
+import { type NextRequest, NextResponse } from "next/server";
+
+export async function POST(request: NextRequest) {
+  try {
+    console.log("--- LOGIN API ROUTE EXECUTED ---"); // DEBUG
+    const { email, password } = await request.json();
+
+    if (!email || !password) {
+      return NextResponse.json(
+        { ok: false, error: "이메일과 비밀번호를 입력하세요." },
+        { status: 400 }
+      );
+    }
+
+    // signup 라우트와 동일하게 cookieStore 기반 서버 클라이언트 사용
+    const cookieStore = await cookies();
+    const supabase = createClient(cookieStore);
+
+    const { data, error } = await supabase.auth.signInWithPassword({
+      email,
+      password,
+    });
+
+    if (error) {
+      // 이메일 미인증/자격증명 오류 등은 여기서 잡힙니다.
+      // error.status가 undefined인 경우가 있어 기본 401로 처리
+      return NextResponse.json(
+        { ok: false, error: error.message },
+        { status: error.status || 401 }
+      );
+    }
+
+    if (data.user) {
+      await createAccessLog(request, supabase);
+    }
+
+    // 성공 시: createClient(cookieStore) 내부에서 cookieStore.set(...)로
+    // 세션 쿠키가 응답에 자동 반영됩니다(별도 헤더 복사 불필요).
+    // 필요 시 user 반환
+    return NextResponse.json(
+      { ok: true, user: data.user },
+      { status: 200 }
+    );
+  } catch (e: any) {
+    console.error("[LOGIN]", e);
+    return NextResponse.json(
+      { ok: false, error: e?.message ?? "Internal Server Error" },
+      { status: 500 }
+    );
+  }
+}
+
+function getClientIp(req: NextRequest) {
+  const h = req.headers;
+  const ip =
+    h.get("cf-connecting-ip") ||                      // Cloudflare
+    h.get("x-vercel-forwarded-for")?.split(",")[0]?.trim() || // Vercel
+    h.get("x-forwarded-for")?.split(",")[0]?.trim() || // 일반 프록시
+    h.get("x-real-ip") ||                              // Nginx 등
+    h.get("fly-client-ip") ||                          // Fly.io
+    "unknown";
+  return ip;
+}
+
+async function createAccessLog(request: NextRequest, supabase: any) {
+  console.log("--- createAccessLog started ---");
+  try {
+    const ip = getClientIp(request);
+    console.log("IP Address:", ip);
+
+    const userAgent = request.headers.get("user-agent");
+    console.log("User Agent:", userAgent);
+
+    const referrer = request.headers.get("referer");
+    console.log("Referrer:", referrer);
+
+    let browser = "Unknown";
+    let os = "Unknown";
+
+    if (userAgent) {
+      const browserRegex = /(firefox|msie|chrome|safari|trident|edg)[\/ ]?([\d\.]+)/i;
+      const osRegex = /(windows|macintosh|linux|android|ios)/i;
+      
+      const browserMatch = userAgent.match(browserRegex);
+      if (browserMatch) {
+        browser = browserMatch[1];
+      }
+
+      const osMatch = userAgent.match(osRegex);
+      if (osMatch) {
+        os = osMatch[1];
+      }
+    }
+    console.log("Browser:", browser, "OS:", os);
+
+    let location = null;
+    if (ip && ip !== 'unknown') {
+        try {
+            console.log(`Fetching geolocation for ${ip}...`);
+            const geoRes = await fetch(`http://ip-api.com/json/${ip}?fields=status,message,country,countryCode,region,regionName,city,zip,lat,lon,timezone,isp,org,as,query`);
+            const geoData = await geoRes.json();
+            console.log("Geolocation API response:", geoData);
+            if (geoData.status === 'success') {
+              location = `${geoData.country}, ${geoData.regionName}, ${geoData.city}, ${geoData.zip}`;
+            } else {
+              console.warn("Geolocation fetch was not successful:", geoData.message);
+            }
+        } catch (e) {
+            console.error("!!! Exception fetching geolocation:", e);
+        }
+    }
+    console.log("Final location:", location);
+
+    const logData = {
+      ip,
+      browser,
+      os,
+      referrer,
+      location,
+    };
+
+    console.log("Attempting to insert log into Supabase with data:", logData);
+    const { data: insertData, error: logError } = await supabase.from("access_logs").insert(logData).select();
+
+    if (logError) {
+      console.error("!!! Supabase insert error:", logError);
+    } else {
+      console.log("+++ Supabase insert successful:", insertData);
+    }
+
+  } catch (e) {
+    console.error("!!! Critical error in createAccessLog:", e);
+  }
+  console.log("--- createAccessLog finished ---");
+}
+-----------
+이렇게 기록이 찍히는데 왜 supabase db에는 찍히지 않지?
