@@ -44,7 +44,6 @@ const webViewData = [
 ];
 
 const otherData = [
-  { title: "키워드 URL 추출", url: "keyword-url-extraction" },
   { title: "접속 기록", url: "access-logs" },
 ];
 
@@ -55,7 +54,6 @@ const totalMenu = [
   { menu: "board", title: "게시판 관리", data: boardData, component: BoardMenu, icon: "📋" },
   { menu: "websiteSettings", title: "홈페이지 설정", data: websiteSettingsData, component: WebsiteSettingsMenu, icon: "⚙️" },
   { menu: "webView", title: "홈페이지 화면 설정", data: webViewData, component: WebViewMenu, icon: "🖼️" },
-  { menu: "customers", title: "고객관리", data: [], component: null, icon: "👥" },
   { menu: "other", title: "기타", data: otherData, component: OtherMenu, icon: "🔧" },
 ];
 
