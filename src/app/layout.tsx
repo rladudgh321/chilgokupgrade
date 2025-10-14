@@ -3,23 +3,38 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import "react-datepicker/dist/react-datepicker.css";
 import Script from "next/script";
+import localFont from 'next/font/local'
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
-});
+const myFontWoff2 = localFont({
+  src: [
+    {
+      path: '../assets/font/NanumSquareB.woff2',
+    }
+  ],
+  preload: true,
+  display: 'block',
+  variable: "--font-nanum-b",
+})
 
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
-});
-
+const myFontFallback = localFont({
+  src: [
+    {
+      path: '../assets/font/NanumSquareB.woff',
+    },
+    {
+      path: '../assets/font/NanumSquareB.ttf',
+    }
+  ],
+  preload: false,
+  display: 'block',
+  variable: "--font-nanum-b",
+})
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="ko" suppressHydrationWarning className="h-full">
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased h-full flex flex-col`}
+        className={`${myFontWoff2.variable} ${myFontFallback.variable} antialiased h-full flex flex-col`}
       >
         <TanstackProvider>{children}</TanstackProvider>
 

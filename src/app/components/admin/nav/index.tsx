@@ -41,11 +41,6 @@ const websiteSettingsData = [
 
 const webViewData = [
   { title: "배너 설정", url: "banner" },
-  { title: "새 페이지만들기", url: "custom" },
-  { title: "레이아웃 설정", url: "layout" },
-  { title: "지도 설정", url: "map" },
-  { title: "아웃링크 설정", url: "link" },
-  { title: "상단메뉴 설정", url: "upper" },
 ];
 
 const otherData = [
