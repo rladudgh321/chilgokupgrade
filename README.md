@@ -47,3 +47,11 @@ rm -f ~/.gemini/settings.json
 나는 nextjs15 app router를 사용하고 있고 `/api`를 사용하여 route handler를 사용하고 있어 api 폴더 아래에 모든 route.ts에 대해 test코드를 작성해줘 jest로 해줘
 --------
 아직 route.ts에 대한 test코드가 없는 경우 찾아서 test코드를 작성해줘
+
+-----------
+RLS
+
+C    (auth.uid() = 'f312fbfc-cf58-405e-86ef-e9047966fa52'::uuid)
+R
+U     (auth.uid() = 'f312fbfc-cf58-405e-86ef-e9047966fa52'::uuid)
+D    (auth.uid() = 'f312fbfc-cf58-405e-86ef-e9047966fa52'::uuid)
