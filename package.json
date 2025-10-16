@@ -5,6 +5,10 @@
   "prisma": {
     "seed": "tsx prisma/seed.ts"
   },
+  "sideEffects": [
+    "*.css",
+    "**/*.css"
+  ],
   "scripts": {
     "seed": "prisma db seed",
     "dev": "next dev --turbo",
@@ -13,12 +17,14 @@
     "lint": "next lint",
     "dev:no": "next dev",
     "prisma": "prisma generate",
-    "test": "jest --runInBand"
+    "test": "jest --runInBand",
+    "analyze": "cross-env ANALYZE=true next build"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.895.0",
     "@aws-sdk/lib-storage": "^3.895.0",
     "@hookform/resolvers": "^5.2.2",
+    "@next/bundle-analyzer": "^15.5.5",
     "@prisma/extension-accelerate": "^2.0.2",
     "@supabase/ssr": "^0.7.0",
     "@supabase/supabase-js": "^2.57.4",
@@ -54,6 +60,7 @@
     "@types/quill": "^2.0.0",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "cross-env": "^10.1.0",
     "eslint": "^9",
     "eslint-config-next": "15.2.3",
     "jest": "^30.2.0",
