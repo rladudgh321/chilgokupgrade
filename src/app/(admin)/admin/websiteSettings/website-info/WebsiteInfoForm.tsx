@@ -4,21 +4,12 @@ import { useForm, SubmitHandler } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { WorkInfoFormData } from "./schema";
 
-// Zod schema for form validation
-const workInfoSchema = z.object({
-  id: z.string().optional().nullable(),
-  created_at: z.string().optional().nullable(),
-  companyName: z.string().optional().nullable(),
-  phone: z.string().optional().nullable(),
-  mobile: z.string().optional().nullable(),
+// Zod schema for form validation (lightweight)
+const lightweightWorkInfoSchema = z.object({
   email: z.string().email({ message: "유효한 이메일을 입력해주세요." }).optional().nullable().or(z.literal('')),
-  owner: z.string().optional().nullable(),
-  businessId: z.string().optional().nullable(),
-  address: z.string().optional().nullable(),
 });
-
-type WorkInfoFormData = z.infer<typeof workInfoSchema>;
 
 // API fetch function using fetch
 const getWorkInfo = async (): Promise<WorkInfoFormData> => {
@@ -60,7 +51,7 @@ const WebsiteInfoForm = ({ initialData }: { initialData: WorkInfoFormData | null
     handleSubmit,
     formState: { errors, isSubmitting },
   } = useForm<WorkInfoFormData>({
-    resolver: zodResolver(workInfoSchema),
+    resolver: zodResolver(lightweightWorkInfoSchema),
     values: workInfo || {},
   });
 

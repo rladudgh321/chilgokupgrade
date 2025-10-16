@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/app/utils/supabase/server";
 import { cookies } from "next/headers";
+import { workInfoSchema } from "@/app/(admin)/admin/websiteSettings/website-info/schema";
+import { z } from "zod";
 
 export async function GET() {
   const cookieStore = await cookies();
@@ -28,8 +30,10 @@ export async function POST(request: Request) {
     const supabase = createClient(cookieStore);
     const body = await request.json();
 
+    const validatedData = workInfoSchema.parse(body);
+
     // DB가 관리하는 필드 제거 (createdAt/updatedAt은 서버에서 세팅)
-    const { id, created_at, createdAt, updatedAt, ...rest } = body;
+    const { id, created_at, createdAt, updatedAt, ...rest } = validatedData;
 
     const now = new Date().toISOString();
 
@@ -52,6 +56,9 @@ export async function POST(request: Request) {
     return NextResponse.json(data);
   } catch (err: any) {
     console.error("POST /api/admin/website-info error:", err);
+    if (err instanceof z.ZodError) {
+      return NextResponse.json({ error: err.errors }, { status: 400 });
+    }
     return NextResponse.json(
       { error: err?.message ?? "Failed to save data to Supabase" },
       { status: 500 }
