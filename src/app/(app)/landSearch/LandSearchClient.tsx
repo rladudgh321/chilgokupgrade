@@ -1,219 +1,110 @@
-
-
-
 "use client";
 
 import { koreanToNumber } from "@/app/utility/koreanToNumber";
-
 import { useState, useMemo } from "react";
-
 import { useRouter, useSearchParams } from "next/navigation";
-
 import { useInfiniteQuery, useQuery } from "@tanstack/react-query";
-
 import MapView from "./MapView";
-
 import ListingList from "./ListingList";
-
 import SearchBar from "./SearchBar";
-
 import BuildDetailModal from "../../components/root/BuildDetailModal";
-
-import axios from "axios";
-
-
 
 // Assuming the type for a listing is similar to what's in MapView and ListingCard
 
 type Listing = {
-
   id: number;
-
   // ... other properties
-
   [key: string]: any;
-
 };
-
-
 
 type Props = {
-
   initialListings: Listing[];
-
 };
 
-
-
 const fetchListings = async ({ pageParam = 1, queryKey }: any) => {
-
   const [, searchParams] = queryKey;
-
   const params = new URLSearchParams();
 
-
-
   Object.entries(searchParams).forEach(([key, value]) => {
-
     if (value && typeof value === "string") {
-
       params.set(key, value);
-
     }
-
   });
 
   params.set("page", pageParam.toString());
-
-
-
-  const { data } = await axios.get(`/api/listings?${params.toString()}`);
-
-  return data;
-
+  const res = await fetch(`/api/listings?${params.toString()}`);
+  if (!res.ok) {
+    throw new Error('Network response was not ok');
+  }
+  return res.json();
 };
-
-
 
 const fetchMapListings = async ({ queryKey }: any) => {
-
   const [, searchParams] = queryKey;
-
   const params = new URLSearchParams();
-
-
-
   Object.entries(searchParams).forEach(([key, value]) => {
-
     if (value && typeof value === "string") {
-
       params.set(key, value);
-
     }
-
   });
-
-
-
-  const { data } = await axios.get(`/api/listings/map?${params.toString()}`);
-
+  const res = await fetch(`/api/listings/map?${params.toString()}`);
+  if (!res.ok) {
+    throw new Error('Network response was not ok');
+  }
+  const data = await res.json();
   return data.data; // The new endpoint wraps data in a `data` property
-
 };
 
-
-
 export default function LandSearchClient({ initialListings }: Props) {
-
   const [selectedBuildId, setSelectedBuildId] = useState<number | null>(null);
-
-
-
   const handleCardClick = (id: number) => {
-
     setSelectedBuildId(id);
-
   };
-
-
-
   const handleCloseModal = () => {
-
     setSelectedBuildId(null);
-
   };
-
   const router = useRouter();
-
   const currentSearchParams = useSearchParams();
-
   const sortBy = currentSearchParams.get("sortBy") ?? "latest";
-
-
-
   const queryParams = useMemo(() => {
-
     const params: { [key: string]: string } = {};
-
     currentSearchParams.forEach((value, key) => {
-
       params[key] = value;
-
     });
-
     console.log("Current Query Params:", params);
-
     return params;
-
   }, [currentSearchParams]);
-
-
-
   const { 
-
     data: paginatedData,
-
     fetchNextPage,
-
     hasNextPage,
-
     isFetchingNextPage,
-
   } = useInfiniteQuery({
-
     queryKey: ["listings", queryParams],
-
     queryFn: fetchListings,
-
     getNextPageParam: (lastPage) => {
-
       if (lastPage.currentPage < lastPage.totalPages) {
-
         return lastPage.currentPage + 1;
-
       }
-
       return undefined;
-
     },
-
     initialData: () => {
-
         return {
-
           pageParams: [1],
-
           pages: [{
-
             listings: initialListings,
-
             totalPages: 1, // We don't know total pages on client, so we start with 1
-
             currentPage: 1
-
           }]
-
         }
-
     },
-
     initialPageParam: 1,
-
   });
-
-
-
   const { data: mapListings = [] } = useQuery({
-
     queryKey: ["map-listings", queryParams],
-
     queryFn: fetchMapListings,
-
     initialData: initialListings,
-
   });
-
-
 
   const allListings = useMemo(() => (paginatedData ? paginatedData.pages.flatMap((page) => page.listings) : []), [paginatedData]);
 

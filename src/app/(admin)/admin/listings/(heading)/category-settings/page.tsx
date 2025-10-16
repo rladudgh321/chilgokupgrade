@@ -1,16 +1,29 @@
 "use client";
 
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import axios from "axios";
 import { useState, useEffect } from "react";
 
 const fetchSettings = async () => {
-  const { data } = await axios.get("/api/admin/search-bar-settings");
+  const res = await fetch("/api/admin/search-bar-settings");
+  if (!res.ok) {
+    throw new Error('Network response was not ok');
+  }
+  const data = await res.json();
   return data.data;
 };
 
 const updateSettings = async (settings: any) => {
-  const { data } = await axios.put("/api/admin/search-bar-settings", settings);
+  const res = await fetch("/api/admin/search-bar-settings", {
+    method: 'PUT',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(settings),
+  });
+  if (!res.ok) {
+    throw new Error('Network response was not ok');
+  }
+  const data = await res.json();
   return data.data;
 };
 

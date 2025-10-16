@@ -2,10 +2,13 @@
 import { useEffect, useState, useRef } from "react"
 import { useRouter, useSearchParams, usePathname } from "next/navigation"
 import { useQuery } from "@tanstack/react-query";
-import axios from "axios";
 
 const fetchSettings = async () => {
-  const { data } = await axios.get("/api/admin/search-bar-settings");
+  const res = await fetch("/api/admin/search-bar-settings");
+  if (!res.ok) {
+    throw new Error('Network response was not ok');
+  }
+  const data = await res.json();
   return data.data;
 };
 

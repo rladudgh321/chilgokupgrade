@@ -3,10 +3,10 @@ import { useState, useCallback, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import Image from "next/image"
 import dynamic from 'next/dynamic'
-import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 
 const Editor = dynamic(() => import('@/app/components/shared/Editor'), { ssr: false });
+const DatePicker = dynamic(() => import('react-datepicker'), { ssr: false });
 
 interface Post {
   id?: number

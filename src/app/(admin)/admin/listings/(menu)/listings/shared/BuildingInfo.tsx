@@ -1,9 +1,12 @@
 "use client";
 
 import { useFormContext, Controller } from "react-hook-form";
-import DatePicker from "react-datepicker";
+import dynamic from 'next/dynamic'
 import { ko } from "date-fns/locale";
 import { useCallback } from "react";
+import "react-datepicker/dist/react-datepicker.css";
+
+const DatePicker = dynamic(() => import('react-datepicker'), { ssr: false });
 
 type YMD = string; // 'YYYY-MM-DD'로 폼에 저장한다고 가정
 

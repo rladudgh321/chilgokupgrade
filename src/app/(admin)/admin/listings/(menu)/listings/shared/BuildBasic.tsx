@@ -3,9 +3,12 @@
 
 import React, { MouseEventHandler, useEffect, useState } from "react";
 import { useFormContext, Controller } from "react-hook-form";
-import DatePicker from "react-datepicker";
+import dynamic from 'next/dynamic'
 import { ko } from "date-fns/locale";
 import { clsx } from "clsx";
+import "react-datepicker/dist/react-datepicker.css";
+
+const DatePicker = dynamic(() => import('react-datepicker'), { ssr: false });
 
 /* =========================
    공통 스타일/컴포넌트
