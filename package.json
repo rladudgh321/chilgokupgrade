@@ -35,6 +35,7 @@
     "axios": "^1.12.2",
     "clsx": "^2.1.1",
     "date-fns": "^4.1.0",
+    "date-fns-tz": "^3.2.0",
     "kor-to-number": "^1.1.5",
     "lucide-react": "^0.487.0",
     "next": "^15.2.4",

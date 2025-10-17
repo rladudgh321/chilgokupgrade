@@ -1,36 +1,20 @@
 "use client"
-import { useForm, SubmitHandler, SubmitErrorHandler } from "react-hook-form"
-import { useState, useEffect } from 'react';
 
-type ContactRequestInput = {
+import { useForm, SubmitHandler, SubmitErrorHandler } from "react-hook-form"
+
+export type ContactRequestInput = {
   author: string
   contact: string
   description: string
   note?: string
 }
 
-const ContactForm = () => {
-  const [isBanned, setIsBanned] = useState(false);
+const ContactForm = ({isBanned}: { isBanned: boolean }) => {
   const {
     register,
     handleSubmit,
     reset,
   } = useForm<ContactRequestInput>()
-
-  useEffect(() => {
-    const checkIpStatus = async () => {
-      try {
-        const res = await fetch('/api/ip-status');
-        const data = await res.json();
-        if (data.isBanned) {
-          setIsBanned(true);
-        }
-      } catch (error) {
-        console.error("Could not verify IP status:", error);
-      }
-    };
-    checkIpStatus();
-  }, []);
 
   const onSubmit: SubmitHandler<ContactRequestInput> = async (data) => {
     if (isBanned) {

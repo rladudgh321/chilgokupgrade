@@ -19,12 +19,12 @@ const Footer = ({ workInfo }: { workInfo: WorkInfo }) => {
         <div className="grid md:grid-cols-3 gap-8">
           {/* 로고 및 회사명 */}
           <div className="flex flex-col items-start">
-            <Image 
+           {workInfo?.logoUrl && <Image 
               src={String(workInfo?.logoUrl)} 
               alt="logo" 
               width={120} 
               height={60} 
-            />
+            />}
             <p className="mt-4 text-lg font-bold text-white">
               {workInfo?.companyName}
             </p>

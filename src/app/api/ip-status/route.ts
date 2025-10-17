@@ -2,7 +2,7 @@ import { supabaseAdmin } from "@/app/utils/supabase/admin";
 import { NextRequest, NextResponse } from "next/server";
 
 export async function GET(request: NextRequest) {
-  const ip = request.ip ?? "127.0.0.1";
+  const ip = request.headers.get("x-forwarded-for")?.split(",")[0] ?? "127.0.0.1";
 
   if (!supabaseAdmin) {
     console.error("Supabase admin client not initialized. Cannot check IP status.");
@@ -17,10 +17,11 @@ export async function GET(request: NextRequest) {
       .eq("ipAddress", ip)
       .single();
 
-    if (error && error.code !== "PGRST116") {
+    if (error && error.code !== "PGRST116" && error.status !== 406) {
       throw error;
     }
 
+    // data가 존재하면 true(차단해야함), 존재 안하면 false
     return NextResponse.json({ isBanned: !!data });
 
   } catch (error) {

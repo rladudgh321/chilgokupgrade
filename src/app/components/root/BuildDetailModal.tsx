@@ -12,11 +12,14 @@ interface BuildDetailModalProps {
   onClose: () => void;
 }
 
+
 const BuildDetailModal = ({ buildId, onClose }: BuildDetailModalProps) => {
   const [build, setBuild] = useState<IBuild | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [areaUnit, setAreaUnit] = useState<'m2' | 'pyeong'>('m2');
+
+
 
   useEffect(() => {
     const fetchBuild = async () => {

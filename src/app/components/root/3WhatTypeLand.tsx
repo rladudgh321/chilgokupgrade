@@ -1,41 +1,17 @@
-"use client";
-
-import { useEffect, useState } from 'react';
 import Link from 'next/link';
 
-type PropertyItem = {
+export type ListingTypeProps = {
   name: string;
   imageUrl?: string;
 };
 
-const WhatTypeLand = () => {
-  const [items, setItems] = useState<PropertyItem[]>([]);
-
-  useEffect(() => {
-    let cancelled = false;
-    (async () => {
-      try {
-        const res = await fetch('/api/listing-type', { cache: 'no-store' });
-        if (!res.ok) return;
-        const json = await res.json();
-        const rows: Array<{ name?: string; imageUrl?: string }> = json?.data ?? [];
-        const mapped = rows
-          .map(r => ({ name: (r?.name ?? '').trim(), imageUrl: r?.imageUrl }))
-          .filter(p => p.name.length > 0 && p.imageUrl); // Only show items with images
-        if (!cancelled) setItems(mapped);
-      } catch {
-        // ignore
-      }
-    })();
-    return () => { cancelled = true; };
-  }, []);
-
+const WhatTypeLand = ({listingType}: {listingType: ListingTypeProps[]}) => {
   return (
     <div className="mx-auto max-w-7xl text-center p-4">
       <h2 className="text-lg sm:text-xl font-bold">어떤 종류의 매물을 찾으세요?</h2>
       <p className="text-gray-600 text-sm sm:text-base">원하시는 매물의 종류를 선택해주세요!</p>
       <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-2 sm:gap-4 mt-4">
-        {items.map((property, index) => {
+        {listingType.map((property, index) => {
           const href = `/landSearch?propertyType=${encodeURIComponent(property.name)}`;
           return (
             <Link href={href} key={`${property.name}-${index}`} className="bg-white border border-gray-300 rounded-lg shadow-md overflow-hidden block">
