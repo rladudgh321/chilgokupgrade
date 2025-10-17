@@ -10,7 +10,7 @@ export async function GET(req: NextRequest) {
     const keyword = keywordRaw.length ? keywordRaw : undefined;
     const theme = searchParams.get("theme")?.trim();
     const propertyType = searchParams.get("propertyType")?.trim();
-    const dealType = searchParams.get("dealType")?.trim();
+    const buyType = searchParams.get("buyType")?.trim();
 
     const cookieStore = await cookies();
     const supabase = createClient(cookieStore);
@@ -40,12 +40,12 @@ export async function GET(req: NextRequest) {
       }
     }
 
-    if (dealType) {
-      const { data: typeRec } = await supabase.from("BuyType").select("id").eq("name", dealType).single();
+    if (buyType) {
+      const { data: typeRec } = await supabase.from("BuyType").select("id").eq("name", buyType).single();
       if (typeRec) {
           q = q.eq("buyTypeId", typeRec.id);
       } else {
-          q = q.eq("buyTypeId", -1); // Return no results if dealType doesn't exist
+          q = q.eq("buyTypeId", -1); // Return no results if buyType doesn't exist
       }
     }
 

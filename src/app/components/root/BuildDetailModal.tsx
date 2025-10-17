@@ -1,6 +1,7 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useMemo, useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { BuildFindOne } from '@/app/apis/build';
 import KakaoMapMarker from '@/app/components/shared/KakaoMapMarker';
 import { IBuild } from '@/app/interface/build';
@@ -12,31 +13,25 @@ interface BuildDetailModalProps {
   onClose: () => void;
 }
 
+// 쿼리 키 헬퍼 (선택)
+const buildKeys = {
+  detail: (id: number) => ['build', 'detail', id] as const,
+};
 
 const BuildDetailModal = ({ buildId, onClose }: BuildDetailModalProps) => {
-  const [build, setBuild] = useState<IBuild | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
   const [areaUnit, setAreaUnit] = useState<'m2' | 'pyeong'>('m2');
 
-
-
-  useEffect(() => {
-    const fetchBuild = async () => {
-      try {
-        setLoading(true);
-        const data = await BuildFindOne(buildId);
-        setBuild(data);
-      } catch (err) {
-        setError('Failed to fetch building details.');
-        console.error(err);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchBuild();
-  }, [buildId]);
+  // 클릭된 카드만 요청: enabled로 가드
+  const { data: build, isLoading, isError, error } = useQuery<IBuild>({
+    queryKey: buildKeys.detail(buildId),
+    queryFn: () => BuildFindOne(buildId),
+    enabled: Number.isFinite(buildId) && buildId > 0,
+    staleTime: 60_000,            // 1분간 신선: 재방문시 네트워크 요청 줄임
+    gcTime: 10 * 60_000,          // 메모리 캐시 유지 시간
+    retry: 1,                     // 실패시 1회만 재시도 (상황에 맞게 조절)
+    placeholderData: (prev) => prev, // 재오픈 시 깜빡임 줄이기
+  });
+  console.log('build',build);
 
   const convertToPyeong = (m2: number) => (m2 / 3.305785).toFixed(2);
 
@@ -61,18 +56,33 @@ const BuildDetailModal = ({ buildId, onClose }: BuildDetailModalProps) => {
     return `${floor}층`;
   };
 
-  const allImages = build?.mainImage ? [build.mainImage, ...(Array.isArray(build.subImage) ? build.subImage : [])] : [];
+  const allImages = useMemo(
+    () =>
+      build?.mainImage
+        ? [build.mainImage, ...(Array.isArray(build.subImage) ? build.subImage : [])]
+        : [],
+    [build?.mainImage, build?.subImage]
+  );
 
   return (
     <div className="fixed inset-0 backdrop-blur-sm z-50 flex justify-center items-center p-2 sm:p-4" onClick={onClose}>
-      <div className="bg-white rounded-lg shadow-xl w-full max-w-sm sm:max-w-md md:max-w-lg lg:max-w-xl xl:max-w-3xl" onClick={(e) => e.stopPropagation()}>
+      <div
+        className="bg-white rounded-lg shadow-xl w-full max-w-sm sm:max-w-md md:max-w-lg lg:max-w-xl xl:max-w-3xl"
+        onClick={(e) => e.stopPropagation()}
+      >
         <div className="p-3 sm:p-4 border-b flex justify-between items-center bg-purple-800 text-white rounded-t-lg">
-          <h2 className="text-lg sm:text-xl font-bold">매물 상세 정보 (번호: {build?.id})</h2>
+          <h2 className="text-lg sm:text-xl font-bold">매물 상세 정보 (번호: {build?.id ?? buildId})</h2>
           <button onClick={onClose} className="text-white hover:text-gray-200 text-2xl font-bold">&times;</button>
         </div>
+
         <div className="p-4 sm:p-6 space-y-4 sm:space-y-6" style={{ maxHeight: '85vh', overflowY: 'auto' }}>
-          {loading && <div className="text-center py-10">Loading...</div>}
-          {error && <div className="text-center py-10 text-red-500">{error}</div>}
+          {isLoading && <div className="text-center py-10">Loading...</div>}
+          {isError && (
+            <div className="text-center py-10 text-red-500">
+              불러오기에 실패했어요. {error instanceof Error ? error.message : ''}
+            </div>
+          )}
+
           {build && (
             <>
               <ImageSlider images={allImages} />
@@ -85,42 +95,56 @@ const BuildDetailModal = ({ buildId, onClose }: BuildDetailModalProps) => {
               <div>
                 <h4 className="text-base sm:text-lg font-semibold mb-3 text-purple-800">매물 정보</h4>
                 <div className="border rounded-lg overflow-hidden grid grid-cols-1 md:grid-cols-2">
-                    {renderInfoRow('매물 종류', build.propertyType)}
-                    {renderInfoRow('거래 종류', build.dealType)}
-                    {build.isSalePriceEnabled && renderInfoRow('매매가', formatPrice(build.salePrice))}
-                    {build.isLumpSumPriceEnabled && renderInfoRow('전세가', formatPrice(build.lumpSumPrice))}
-                    {build.isRentalPriceEnabled && renderInfoRow('월세', `${formatPrice(build.deposit)} / ${formatPrice(build.rentalPrice)}`)}
-                    {build.managementFee && renderInfoRow('관리비', `${formatPrice(build.managementFee)} (포함: ${build.managementEtc || '-'})`)}
-                    {renderInfoRow('층수', `${getFloorString(build.currentFloor)} / ${getFloorString(build.totalFloors)}`)}
-                    {renderInfoRow('방/화장실 수', `${build.rooms || '-'}개 / ${build.bathrooms || '-'}개`)}
-                    {renderInfoRow('면적', 
-                      <div className="flex items-center gap-2">
-                        <span className="text-xs sm:text-sm">
-                          {areaUnit === 'm2'
-                            ? `공급 ${build.supplyArea || '-'}m² / 전용 ${build.actualArea || '-'}m²`
-                            : `공급 ${convertToPyeong(build.actualArea || 0)}평 / 전용 ${convertToPyeong(build.actualArea || 0)}평`}
-                        </span>
-                        <button onClick={() => setAreaUnit(areaUnit === 'm2' ? 'pyeong' : 'm2')} className="text-xs bg-gray-200 hover:bg-gray-300 rounded px-2 py-1 transition-colors">
-                          {areaUnit === 'm2' ? '평으로 보기' : 'm²로 보기'}
-                        </button>
-                      </div>
-                    )}
-                    {renderInfoRow('주차 옵션', `총 ${build.totalParking || '-'}대 (세대당 ${build.parkingPerUnit || '-'}대), 주차비: ${formatPrice(build.parkingFee)}`)}
-                    {renderInfoRow('엘리베이터', build.elevatorType ? `${build.elevatorType} (${build.elevatorCount || '-'}대)` : '-')}
-                    {renderInfoRow('난방 방식', build.heatingType)}
-                    {renderInfoRow('입주 가능일', build.moveInDate ? `${new Date(build.moveInDate).toLocaleDateString()} (${build.moveInType})` : '-')}
-                    {renderInfoRow('건축 년도', build.constructionYear ? new Date(build.constructionYear).toLocaleDateString() : '-')}
-                    {renderInfoRow('방향', build.direction ? `${build.direction} (기준: ${build.directionBase})` : '-')}
-                    {build.themes && build.themes.length > 0 && renderInfoRow('테마', build.themes.join(', '))}
+                  {renderInfoRow('매물 종류', build.propertyType)}
+                  {renderInfoRow('거래 종류', build.buyType?.name)}
+                  {build.isSalePriceEnabled && renderInfoRow('매매가', formatPrice(build.salePrice))}
+                  {build.isLumpSumPriceEnabled && renderInfoRow('전세가', formatPrice(build.lumpSumPrice))}
+                  {build.isRentalPriceEnabled &&
+                    renderInfoRow('월세', `${formatPrice(build.deposit)} / ${formatPrice(build.rentalPrice)}`)}
+                  {build.managementFee &&
+                    renderInfoRow('관리비', `${formatPrice(build.managementFee)} (포함: ${build.managementEtc || '-'})`)}
+                  {renderInfoRow('층수', `${getFloorString(build.currentFloor)} / ${getFloorString(build.totalFloors)}`)}
+                  {renderInfoRow('방/화장실 수', `${build.roomOption?.name || '-'} / ${build.bathroomOption?.name || '-'}`)}
+                  {renderInfoRow(
+                    '면적',
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs sm:text-sm">
+                        {areaUnit === 'm2'
+                          ? `공급 ${build.supplyArea || '-'}m² / 전용 ${build.actualArea || '-'}m²`
+                          : `공급 ${convertToPyeong(build.actualArea || 0)}평 / 전용 ${convertToPyeong(
+                              build.actualArea || 0
+                            )}평`}
+                      </span>
+                      <button
+                        onClick={() => setAreaUnit(areaUnit === 'm2' ? 'pyeong' : 'm2')}
+                        className="text-xs bg-gray-200 hover:bg-gray-300 rounded px-2 py-1 transition-colors"
+                      >
+                        {areaUnit === 'm2' ? '평으로 보기' : 'm²로 보기'}
+                      </button>
+                    </div>
+                  )}
+                  {renderInfoRow(
+                    '주차 옵션',
+                    `총 ${build.totalParking || '-'}대 (세대당 ${build.parkingPerUnit || '-'}대), 주차비: ${formatPrice(
+                      build.parkingFee
+                    )}`
+                  )}
+                  {renderInfoRow('엘리베이터', build.elevatorType ? `${build.elevatorType} (${build.elevatorCount || '-'}대)` : '-')}
+                  {renderInfoRow('난방 방식', build.heatingType)}
+                  {renderInfoRow(
+                    '입주 가능일',
+                    build.moveInDate ? `${new Date(build.moveInDate).toLocaleDateString()} (${build.moveInType})` : '-'
+                  )}
+                  {renderInfoRow('건축 년도', build.constructionYear ? new Date(build.constructionYear).toLocaleDateString() : '-')}
+                  {renderInfoRow('방향', build.direction ? `${build.direction} (기준: ${build.directionBase})` : '-')}
+                  {build.themes && build.themes.length > 0 && renderInfoRow('테마', build.themes.join(', '))}
                 </div>
               </div>
 
               <div className="bg-gray-50 rounded-lg p-3 sm:p-4">
                 <h4 className="text-base sm:text-lg font-semibold mb-3 text-purple-800">옵션 정보</h4>
                 <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-2 sm:gap-4 pt-2">
-                  {build.buildingOptions && build.buildingOptions.map(opt => <OptionIcon key={`building-${opt.id}`} option={opt} />)}
-                  {/* {build.roomOption && build.roomOption.id && <OptionIcon key={`room-${build.roomOption.id}`} option={build.roomOption} />} */}
-                  {/* {build.bathroomOption && build.bathroomOption.id && <OptionIcon key={`bathroom-${build.bathroomOption.id}`} option={build.bathroomOption} />} */}
+                  {build.buildingOptions && build.buildingOptions.map((opt) => <OptionIcon key={`building-${opt.id}`} option={opt} />)}
                   {build.floorOption && build.floorOption.id && <OptionIcon key={`floor-${build.floorOption.id}`} option={build.floorOption} />}
                 </div>
               </div>

@@ -210,13 +210,13 @@ const DeletedListings = ({ DeletedData, sortKey }: DeletedListingsProps) => {
                     />
                   </td>
 
-                  <td className="p-2 sm:p-3 text-xs sm:text-sm">{listing.dealType}</td>
+                  <td className="p-2 sm:p-3 text-xs sm:text-sm">{listing.buyType}</td>
                   <td className="p-2 sm:p-3 text-xs sm:text-sm">{listing.propertyType}</td>
                   <td className="p-2 sm:p-3 text-xs sm:text-sm"><CopyText text={listing.address ?? ""} /></td>
 
                   <td className="p-2 sm:p-3 text-xs sm:text-sm">
                     <div>{listing.title}</div>
-                    <div>방 {listing.rooms} / 화장실 {listing.bathrooms}</div>
+                    <div>방 {listing.roomOption?.name} / 화장실 {listing.bathroomOption?.name}</div>
                     <div>실면적 {listing.actualArea}평 / 공급면적 {listing.supplyArea}평</div>
                     <div>{listing.direction} / 지상 {listing.currentFloor}/{listing.totalFloors}층</div>
                   </td>

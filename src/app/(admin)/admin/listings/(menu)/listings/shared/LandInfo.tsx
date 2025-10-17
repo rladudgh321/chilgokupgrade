@@ -38,7 +38,7 @@ const PriceInput = ({ name, label, enabledName }) => {
 const LandInfo = () => {
   const { register, setValue, control, watch } = useFormContext<{
     propertyType: string;
-    dealType: string;
+    buyType: string;
     dealScope: string;
     visibility: boolean;
     priceDisplay: string;
@@ -61,7 +61,7 @@ const LandInfo = () => {
 
   // ✅ RHF 값 구독 (reset로 내려온 서버 데이터가 바로 들어옴)
   const propertyType  = useWatch({ control, name: "propertyType" })  ?? "";
-  const dealType      = useWatch({ control, name: "dealType" })      ?? "";
+  const buyType      = useWatch({ control, name: "buyType" })      ?? "";
   const dealScope     = useWatch({ control, name: "dealScope" })     ?? "";
   const visibility    = useWatch({ control, name: "visibility" })    ?? true;   // 불린
   const priceDisplay  = useWatch({ control, name: "priceDisplay" })  ?? "";
@@ -164,12 +164,12 @@ const LandInfo = () => {
               <input
                 type="radio"
                 className="hidden"
-                {...register("dealType")}
+                {...register("buyType")}
                 value={item}
-                checked={dealType === item}
-                onChange={() => onPick("dealType", item)}
+                checked={buyType === item}
+                onChange={() => onPick("buyType", item)}
               />
-              <span style={chip(isActive(dealType, item))}>{item}</span>
+              <span style={chip(isActive(buyType, item))}>{item}</span>
             </label>
           ))}
         </div>

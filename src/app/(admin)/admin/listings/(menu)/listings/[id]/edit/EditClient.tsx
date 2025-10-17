@@ -1,31 +1,27 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
 import BuildForm, { BASE_DEFAULTS, FormData } from "@/app/(admin)/admin/listings/(menu)/listings/shared/BuildForm";
 import { BuildFindOne, BuildUpdate } from "@/app/apis/build";
 
-interface Option {
-  id: number;
-  name: string;
-}
+interface Option { id: number; name: string }
 
+// ---- fetchers (그대로) ----
 const fetchRoomOptions = async (): Promise<Option[]> => {
   const res = await fetch("/api/room-options", { cache: "no-store" });
   if (!res.ok) throw new Error("Failed to fetch room options");
   const json = await res.json();
   return json.data;
 };
-
 const fetchBathroomOptions = async (): Promise<Option[]> => {
   const res = await fetch("/api/bathroom-options", { cache: "no-store" });
   if (!res.ok) throw new Error("Failed to fetch bathroom options");
   const json = await res.json();
   return json.data;
 };
-
 const fetchThemeOptions = async () => {
   const res = await fetch("/api/theme-images", { cache: "no-store" });
   if (!res.ok) throw new Error("Failed to fetch theme options");
@@ -33,53 +29,126 @@ const fetchThemeOptions = async () => {
   return json.data.map((item: { label: string }) => item.label);
 };
 
-function toStrArray(v: unknown): string[] {
+// ---- helpers ----
+const toDateStr = (v: unknown): string | null => {
+  if (!v) return null;
+  const d = typeof v === "string" ? new Date(v) : v instanceof Date ? v : null;
+  if (!d || Number.isNaN(d.getTime())) return null;
+  return d.toISOString().slice(0, 10); // YYYY-MM-DD
+};
+
+const toStrArray = (v: unknown): string[] => {
   if (!v) return [];
   if (Array.isArray(v)) {
     return v
-      .map((x) => (typeof x === "string" ? x : (x as any)?.url ?? ""))
+      .map((x) =>
+        typeof x === "string" ? x : (x as any)?.url ?? ""
+      )
       .filter((s) => typeof s === "string" && s.trim().length > 0);
   }
   if (typeof v === "string") return v.trim() ? [v.trim()] : [];
-  if (typeof v === "object" && v) {
-    const url = (v as any).url;
+  if (typeof v === "object") {
+    const url = (v as any)?.url;
     return typeof url === "string" && url.trim() ? [url.trim()] : [];
   }
   return [];
-}
+};
 
-function normalizeForForm(d: any, roomOptions: Option[], bathroomOptions: Option[], themeOptions: string[]): FormData {
+const toIdArray = (v: unknown): number[] => {
+  if (!Array.isArray(v)) return [];
+  return v
+    .map((x) => (typeof x === "object" && x ? (x as any).id : null))
+    .filter((id): id is number => typeof id === "number");
+};
+
+// ---- prisma Build -> FormData 정규화 (schema.prisma 기준) ----
+function normalizeForForm(d: any, themeOptions: string[]): FormData {
   return {
     ...BASE_DEFAULTS,
 
-    // 문자열
+    // 위치
     address: d.address ?? "",
     dong: d.dong ?? "",
     ho: d.ho ?? "",
     etc: d.etc ?? "",
+    isAddressPublic: d.isAddressPublic ?? "public",
     mapLocation: d.mapLocation ?? "",
+
+    // LandInfo / 관계
     propertyType: d.propertyType ?? "",
-    dealType: d.dealType ?? "",
+    listingTypeId: d.listingTypeId ?? null,
+    buyTypeId: d.buyTypeId ?? null,
     dealScope: d.dealScope ?? "",
+    visibility: d.visibility ?? true,
     priceDisplay: d.priceDisplay ?? "",
+
+    // 가격 + 플래그
+    salePrice: d.salePrice ?? null,
+    isSalePriceEnabled: d.isSalePriceEnabled ?? false,
+    lumpSumPrice: d.lumpSumPrice ?? null,
+    isLumpSumPriceEnabled: d.isLumpSumPriceEnabled ?? false,
+    actualEntryCost: d.actualEntryCost ?? null,
+    isActualEntryCostEnabled: d.isActualEntryCostEnabled ?? false,
+    rentalPrice: d.rentalPrice ?? null,
+    isRentalPriceEnabled: d.isRentalPriceEnabled ?? false,
+    halfLumpSumMonthlyRent: d.halfLumpSumMonthlyRent ?? null,
+    isHalfLumpSumMonthlyRentEnabled: d.isHalfLumpSumMonthlyRentEnabled ?? false,
+    deposit: d.deposit ?? null,
+    isDepositEnabled: d.isDepositEnabled ?? false,
+    managementFee: d.managementFee ?? null,
+    isManagementFeeEnabled: d.isManagementFeeEnabled ?? false,
+    managementEtc: d.managementEtc ?? "",
+
+    // 기본 정보
     popularity: d.popularity ?? "",
-    label: d.label ?? "저보증금",
+    labelId: d.labelId ?? null,
     floorType: d.floorType ?? "지상",
+    currentFloor: d.currentFloor ?? null,
+    totalFloors: d.totalFloors ?? null,
+    basementFloors: d.basementFloors ?? null,
     floorDescription: d.floorDescription ?? "",
+    actualArea: d.actualArea ?? null,
+    supplyArea: d.supplyArea ?? null,
+    landArea: d.landArea ?? null,
+    buildingArea: d.buildingArea ?? null,
+    totalArea: d.totalArea ?? null,
+
+    // relation 선택(id)들 — 폼에서 select로 바인딩해 사용
+    roomOptionId: d.roomOptionId ?? null,          // ← FormData에 이 필드가 있다고 가정(스키마와 일치)
+    bathroomOptionId: d.bathroomOptionId ?? null,  // ← 동일
+    floorOptionId: d.floorOptionId ?? null,        // ← 선택 시 사용(있으면)
+
+    // 배열들
+    themes: Array.isArray(d.themes) ? d.themes : (themeOptions ?? []),
+    buildingOptions: toIdArray(d.buildingOptions),
+    parking: Array.isArray(d.parking) ? d.parking : [],
+
+    // 날짜 → YYYY-MM-DD
+    constructionYear: toDateStr(d.constructionYear),
+    permitDate: toDateStr(d.permitDate),
+    approvalDate: toDateStr(d.approvalDate),
+
+    // 설비/기타
+    parkingPerUnit: d.parkingPerUnit ?? null,
+    totalParking: d.totalParking ?? null,
+    parkingFee: d.parkingFee ?? null,
     direction: d.direction ?? "",
     directionBase: d.directionBase ?? "",
-    landUse: d.landUse ?? "상업지구",
-    landType: d.landType ?? "대지",
+    landUse: d.landUse ?? "",
+    landType: d.landType ?? "",
     buildingUse: d.buildingUse ?? "",
-    staff: d.staff ?? "권오길",
-    customerType: d.customerType ?? "매도자",
+    staff: d.staff ?? "",
+    customerType: d.customerType ?? "",
     customerName: d.customerName ?? "",
 
     elevatorType: d.elevatorType ?? "",
+    elevatorCount: d.elevatorCount ?? null,
     moveInType: d.moveInType ?? "",
+    moveInDate: toDateStr(d.moveInDate),
     heatingType: d.heatingType ?? "",
     yieldType: d.yieldType ?? "",
     otherYield: d.otherYield ?? "",
+    contractEndDate: toDateStr(d.contractEndDate),
     buildingName: d.buildingName ?? "",
     floorAreaRatio: d.floorAreaRatio ?? "",
     otherUse: d.otherUse ?? "",
@@ -87,115 +156,167 @@ function normalizeForForm(d: any, roomOptions: Option[], bathroomOptions: Option
     height: d.height ?? "",
     roofStructure: d.roofStructure ?? "",
 
+    // 콘텐츠
     title: d.title ?? "",
     editorContent: d.editorContent ?? "",
     secretNote: d.secretNote ?? "",
     secretContact: d.secretContact ?? "",
 
+    // 이미지 (프론트는 string[] 유지)
     mainImage:
       typeof d.mainImage === "string" && d.mainImage.trim()
         ? d.mainImage.trim()
         : (typeof d.mainImage === "object" && d.mainImage?.url ? d.mainImage.url : ""),
-
     subImage: toStrArray(d.subImage),
     adminImage: toStrArray(d.adminImage),
-
-    // enum/boolean/number/array/date
-    isAddressPublic: d.isAddressPublic ?? "public",
-    visibility: d.visibility ?? true, // ← 스키마가 boolean이면 boolean 유지
-
-    salePrice: d.salePrice ?? 0,
-    isSalePriceEnabled: d.isSalePriceEnabled ?? false,
-    lumpSumPrice: d.lumpSumPrice ?? 0,
-    isLumpSumPriceEnabled: d.isLumpSumPriceEnabled ?? false,
-    actualEntryCost: d.actualEntryCost ?? 0,
-    isActualEntryCostEnabled: d.isActualEntryCostEnabled ?? false,
-    rentalPrice: d.rentalPrice ?? 0,
-    isRentalPriceEnabled: d.isRentalPriceEnabled ?? false,
-    halfLumpSumMonthlyRent: d.halfLumpSumMonthlyRent ?? 0,
-    isHalfLumpSumMonthlyRentEnabled: d.isHalfLumpSumMonthlyRentEnabled ?? false,
-    deposit: d.deposit ?? 0,
-    isDepositEnabled: d.isDepositEnabled ?? false,
-    managementFee: d.managementFee ?? 0,
-    isManagementFeeEnabled: d.isManagementFeeEnabled ?? false,
-    managementEtc: d.managementEtc ?? d.management_etc ?? "",
-    
-    currentFloor: d.currentFloor ?? 0,
-    totalFloors: d.totalFloors ?? 0,
-    basementFloors: d.basementFloors ?? 0,
-    rooms: d.roomOption?.name ?? (roomOptions.length > 0 ? roomOptions[0].name : ""),
-    bathrooms: d.bathroomOption?.name ?? (bathroomOptions.length > 0 ? bathroomOptions[0].name : ""),
-    actualArea: d.actualArea ?? 0,
-    supplyArea: d.supplyArea ?? 0,
-    landArea: d.landArea ?? 0,
-    buildingArea: d.buildingArea ?? 0,
-    totalArea: d.totalArea ?? 0,
-    parkingPerUnit: d.parkingPerUnit ?? 0,
-    totalParking: d.totalParking ?? 0,
-    parkingFee: d.parkingFee ?? 0,
-    elevatorCount: d.elevatorCount ?? 0,
-
-    themes: (d.themes && d.themes[0]) ?? (themeOptions.length > 0 ? themeOptions[0] : ""),
-    buildingOptions: Array.isArray(d.buildingOptions) ? d.buildingOptions : [],
-    parking: Array.isArray(d.parking) ? d.parking : [],
-
-    // 날짜 필드는 input[type=date]와 호환되는 'YYYY-MM-DD' 문자열 권장
-    constructionYear: d.constructionYear ? d.constructionYear.slice(0,10) : "",
-    permitDate: d.permitDate ? d.permitDate.slice(0,10) : "",
-    approvalDate: d.approvalDate ? d.approvalDate.slice(0,10) : "",
-    moveInDate: d.moveInDate ? d.moveInDate.slice(0,10) : "",
-    contractEndDate: d.contractEndDate ? d.contractEndDate.slice(0,10) : "",
-  };
+  } as FormData;
 }
 
 export default function EditClient({ id }: { id: number }) {
   const router = useRouter();
 
+  // 단건
   const { data, isLoading, isError } = useQuery({
     queryKey: ["build", id],
     queryFn: () => BuildFindOne(id),
   });
 
+  // 선택지(이 파일에서는 id/name만 필요)
   const { data: roomOptions = [], isLoading: isLoadingRoomOptions } = useQuery<Option[]>({
     queryKey: ["roomOptions"],
     queryFn: fetchRoomOptions,
   });
-
   const { data: bathroomOptions = [], isLoading: isLoadingBathroomOptions } = useQuery<Option[]>({
     queryKey: ["bathroomOptions"],
     queryFn: fetchBathroomOptions,
   });
-
-  const { data: themeOptions = [], isLoading: isLoadingThemeOptions } = useQuery({
+  const { data: themeOptions = [], isLoading: isLoadingThemeOptions } = useQuery<string[]>({
     queryKey: ["themeOptions"],
     queryFn: fetchThemeOptions,
   });
 
   const methods = useForm<FormData>({ defaultValues: BASE_DEFAULTS });
 
-  const allQueriesLoaded = !isLoading && !isLoadingRoomOptions && !isLoadingBathroomOptions && !isLoadingThemeOptions;
+  const allLoaded = useMemo(
+    () => !isLoading && !isLoadingRoomOptions && !isLoadingBathroomOptions && !isLoadingThemeOptions,
+    [isLoading, isLoadingRoomOptions, isLoadingBathroomOptions, isLoadingThemeOptions]
+  );
 
-  // ✅ 데이터 도착 시 단 한번, 정규화해서 reset
+  // 데이터 → 폼 reset
   useEffect(() => {
-    if (allQueriesLoaded && data) {
-      methods.reset(normalizeForForm(data, roomOptions, bathroomOptions, themeOptions));
+    if (allLoaded && data) {
+      methods.reset(normalizeForForm(data, themeOptions));
     }
-  }, [allQueriesLoaded, data, roomOptions, bathroomOptions, themeOptions, methods]);
+  }, [allLoaded, data, themeOptions, methods]);
 
   const { mutate, isPending } = useMutation({
     mutationFn: (payload: FormData) => {
-      const { rooms, bathrooms, themes, ...rest } = payload;
+      // 서버에 맞게 변환
+      const serverPayload = {
+        // 위치/기본
+        address: payload.address ?? null,
+        dong: payload.dong ?? null,
+        ho: payload.ho ?? null,
+        etc: payload.etc ?? null,
+        isAddressPublic: payload.isAddressPublic ?? "public",
+        mapLocation: payload.mapLocation ?? null,
 
-      const roomOption = roomOptions.find(opt => opt.name === rooms);
-      const bathroomOption = bathroomOptions.find(opt => opt.name === bathrooms);
+        // LandInfo
+        propertyType: payload.propertyType ?? null,
+        listingTypeId: payload.listingTypeId ?? null,
+        buyTypeId: payload.buyTypeId ?? null,
+        dealScope: payload.dealScope ?? null,
+        visibility: !!payload.visibility,
+        priceDisplay: payload.priceDisplay ?? null,
 
-      const serverPayload: Record<string, unknown> = {
-        ...rest,
-        roomOptionId: roomOption?.id,
-        bathroomOptionId: bathroomOption?.id,
-        themes: themes ? [themes] : [],
+        // 가격 + 플래그
+        salePrice: payload.salePrice ?? null,
+        isSalePriceEnabled: !!payload.isSalePriceEnabled,
+        lumpSumPrice: payload.lumpSumPrice ?? null,
+        isLumpSumPriceEnabled: !!payload.isLumpSumPriceEnabled,
+        actualEntryCost: payload.actualEntryCost ?? null,
+        isActualEntryCostEnabled: !!payload.isActualEntryCostEnabled,
+        rentalPrice: payload.rentalPrice ?? null,
+        isRentalPriceEnabled: !!payload.isRentalPriceEnabled,
+        halfLumpSumMonthlyRent: payload.halfLumpSumMonthlyRent ?? null,
+        isHalfLumpSumMonthlyRentEnabled: !!payload.isHalfLumpSumMonthlyRentEnabled,
+        deposit: payload.deposit ?? null,
+        isDepositEnabled: !!payload.isDepositEnabled,
+        managementFee: payload.managementFee ?? null,
+        isManagementFeeEnabled: !!payload.isManagementFeeEnabled,
+        managementEtc: payload.managementEtc ?? null,
+
+        // 기본/관계
+        popularity: payload.popularity ?? null,
+        labelId: payload.labelId ?? null,
+        floorType: payload.floorType ?? null,
+        currentFloor: payload.currentFloor ?? null,
+        totalFloors: payload.totalFloors ?? null,
+        basementFloors: payload.basementFloors ?? null,
+        floorDescription: payload.floorDescription ?? null,
+
+        // relation: 옵션 선택
+        roomOptionId: (payload as any).roomOptionId ?? null,          // ← 폼에서 select로 바인딩했다고 가정
+        bathroomOptionId: (payload as any).bathroomOptionId ?? null,  // ← 동일
+        floorOptionId: (payload as any).floorOptionId ?? null,
+
+        // 면적
+        actualArea: payload.actualArea ?? null,
+        supplyArea: payload.supplyArea ?? null,
+        landArea: payload.landArea ?? null,
+        buildingArea: payload.buildingArea ?? null,
+        totalArea: payload.totalArea ?? null,
+
+        // 배열
+        themes: Array.isArray(payload.themes) ? payload.themes : [],
+        buildingOptions: Array.isArray(payload.buildingOptions) ? payload.buildingOptions : [],
+        parking: Array.isArray(payload.parking) ? payload.parking : [],
+
+        // 날짜 (문자열이면 Date로 변환, null 허용)
+        constructionYear: payload.constructionYear ? new Date(payload.constructionYear as any) : null,
+        permitDate: payload.permitDate ? new Date(payload.permitDate as any) : null,
+        approvalDate: payload.approvalDate ? new Date(payload.approvalDate as any) : null,
+
+        // 설비/기타
+        parkingPerUnit: payload.parkingPerUnit ?? null,
+        totalParking: payload.totalParking ?? null,
+        parkingFee: payload.parkingFee ?? null,
+        direction: payload.direction ?? null,
+        directionBase: payload.directionBase ?? null,
+        landUse: payload.landUse ?? null,
+        landType: payload.landType ?? null,
+        buildingUse: payload.buildingUse ?? null,
+        staff: payload.staff ?? null,
+        customerType: payload.customerType ?? null,
+        customerName: payload.customerName ?? null,
+
+        elevatorType: payload.elevatorType ?? null,
+        elevatorCount: payload.elevatorCount ?? null,
+        moveInType: payload.moveInType ?? null,
+        moveInDate: payload.moveInDate ? new Date(payload.moveInDate as any) : null,
+        heatingType: payload.heatingType ?? null,
+        yieldType: payload.yieldType ?? null,
+        otherYield: payload.otherYield ?? null,
+        contractEndDate: payload.contractEndDate ? new Date(payload.contractEndDate as any) : null,
+        buildingName: payload.buildingName ?? null,
+        floorAreaRatio: payload.floorAreaRatio ?? null,
+        otherUse: payload.otherUse ?? null,
+        mainStructure: payload.mainStructure ?? null,
+        height: payload.height ?? null,
+        roofStructure: payload.roofStructure ?? null,
+
+        // 콘텐츠
+        title: payload.title ?? null,
+        editorContent: payload.editorContent ?? null,
+        secretNote: payload.secretNote ?? null,
+        secretContact: payload.secretContact ?? null,
+
+        // 이미지(Json 직렬화는 서버에서 처리)
+        mainImage: payload.mainImage ?? null,
+        subImage: payload.subImage ?? [],
+        adminImage: payload.adminImage ?? [],
       };
-      
+
       return BuildUpdate(id, serverPayload);
     },
     onSuccess: () => router.back(),
@@ -205,7 +326,7 @@ export default function EditClient({ id }: { id: number }) {
     },
   });
 
-  if (!allQueriesLoaded) return <p>로딩 중...</p>;
+  if (!allLoaded) return <p>로딩 중...</p>;
   if (isError) return <p>불러오기 실패</p>;
 
   return (
@@ -216,6 +337,10 @@ export default function EditClient({ id }: { id: number }) {
       onSubmit={(form) => mutate(form)}
       onCancel={() => router.back()}
       submitLabel="수정"
+      // 선택지 전달(컴포넌트 내부에서 id/name 바인딩)
+      roomOptions={roomOptions.map(o => o.name)}
+      bathroomOptions={bathroomOptions.map(o => o.name)}
+      themeOptions={themeOptions}
     />
   );
 }

@@ -15,7 +15,7 @@ export async function GET(req: NextRequest) {
     const keyword = keywordRaw.length ? keywordRaw : undefined;
     const theme = searchParams.get("theme")?.trim();
     const propertyType = searchParams.get("propertyType")?.trim();
-    const dealType = searchParams.get("dealType")?.trim();
+    const buyType = searchParams.get("buyType")?.trim();
     const rooms = searchParams.get("rooms")?.trim();
     const bathrooms = searchParams.get("bathrooms")?.trim();
     const sortBy = searchParams.get("sortBy")?.trim() ?? "latest";
@@ -81,12 +81,12 @@ export async function GET(req: NextRequest) {
       }
     }
 
-    if (dealType) {
-      const { data: typeRec } = await supabase.from("BuyType").select("id").eq("name", dealType).single();
+    if (buyType) {
+      const { data: typeRec } = await supabase.from("BuyType").select("id").eq("name", buyType).single();
       if (typeRec) {
           q = q.eq("buyTypeId", typeRec.id);
       } else {
-          q = q.eq("buyTypeId", -1); // Return no results if dealType doesn't exist
+          q = q.eq("buyTypeId", -1); // Return no results if buyType doesn't exist
       }
     }
 
@@ -140,13 +140,13 @@ export async function GET(req: NextRequest) {
     }
 
     const priceRange = searchParams.get("priceRange")?.trim();
-    if (priceRange && dealType) {
+    if (priceRange && buyType) {
         let priceField = "";
-        if (dealType === "전세") {
+        if (buyType === "전세") {
             priceField = "lumpSumPrice";
-        } else if (dealType === "월세") {
+        } else if (buyType === "월세") {
             priceField = "rentalPrice";
-        } else if (dealType === "매매") {
+        } else if (buyType === "매매") {
             priceField = "salePrice";
         }
 
@@ -192,7 +192,7 @@ export async function GET(req: NextRequest) {
       label: d.label?.name,
       buildingOptions: d.buildingOptions.map((o: any) => o.name),
       propertyType: d.listingType?.name,
-      dealType: d.buyType?.name,
+      buyType: d.buyType?.name,
     }));
 
     return NextResponse.json({
@@ -213,7 +213,7 @@ export async function GET(req: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const raw = await request.json();
-    const { label, buildingOptions, propertyType, dealType, id, ...restOfBody } = raw as any;
+    const { label, buildingOptions, propertyType, buyType, id, ...restOfBody } = raw as any;
 
     const cookieStore = await cookies();
     const supabase = createClient(cookieStore);
@@ -241,10 +241,10 @@ export async function POST(request: NextRequest) {
     }
 
     let buyTypeId: number | null = null;
-    if (dealType) {
-        const { data: typeRec } = await supabase.from("BuyType").select("id").eq("name", dealType).single();
+    if (buyType) {
+        const { data: typeRec } = await supabase.from("BuyType").select("id").eq("name", buyType).single();
         if (!typeRec) {
-            const { data: newType } = await supabase.from("BuyType").insert({ name: dealType }).select("id").single();
+            const { data: newType } = await supabase.from("BuyType").insert({ name: buyType }).select("id").single();
             if (newType) buyTypeId = newType.id;
         } else {
             buyTypeId = typeRec.id;

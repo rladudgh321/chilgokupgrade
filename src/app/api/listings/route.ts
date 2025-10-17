@@ -9,7 +9,7 @@ export async function GET(request: Request) {
   const keyword = searchParams.get("keyword") || undefined;
   const theme = searchParams.get("theme") || undefined;
   const propertyType = searchParams.get("propertyType") || undefined;
-  const dealType = searchParams.get("dealType") || undefined;
+  const buyType = searchParams.get("buyType") || undefined;
   const rooms = searchParams.get("rooms") || undefined;
   const bathrooms = searchParams.get("bathrooms") || undefined;
   const sortBy = searchParams.get("sortBy") || "latest";
@@ -22,7 +22,7 @@ export async function GET(request: Request) {
       {
         theme,
         propertyType,
-        dealType,
+        buyType,
         rooms,
         bathrooms,
       },

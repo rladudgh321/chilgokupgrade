@@ -120,23 +120,23 @@ export default function LandSearchClient({ initialListings }: Props) {
 
     const priceRange = queryParams.priceRange;
 
-    const dealType = queryParams.dealType;
+    const buyType = queryParams.buyType;
 
 
 
-    if (priceRange && dealType) {
+    if (priceRange && buyType) {
 
       let priceField = "";
 
-      if (dealType === "전세") {
+      if (buyType === "전세") {
 
         priceField = "lumpSumPrice";
 
-      } else if (dealType === "월세") {
+      } else if (buyType === "월세") {
 
         priceField = "rentalPrice";
 
-      } else if (dealType === "매매") {
+      } else if (buyType === "매매") {
 
         priceField = "salePrice";
 

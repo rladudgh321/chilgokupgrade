@@ -6,7 +6,7 @@ export default async function Page({ searchParams }: { searchParams: { [key: str
     keyword: keywordParam,
     theme: themeParam,
     propertyType: propertyTypeParam,
-    dealType: dealTypeParam,
+    buyType: buyTypeParam,
     sortBy: sortByParam 
   } = searchParams;
 
@@ -14,14 +14,14 @@ export default async function Page({ searchParams }: { searchParams: { [key: str
   const keyword = typeof keywordParam === 'string' ? keywordParam : undefined;
   const theme = typeof themeParam === 'string' ? themeParam : undefined;
   const propertyType = propertyTypeParam ? decodeURIComponent(propertyTypeParam as string) : undefined;
-  const dealType = dealTypeParam ? decodeURIComponent(dealTypeParam as string) : undefined;
+  const buyType = buyTypeParam ? decodeURIComponent(buyTypeParam as string) : undefined;
   const sortBy = typeof sortByParam === 'string' ? sortByParam : 'latest';
 
   // API를 통해 초기 데이터만 가져오기
   const { data: processedListings } = await BuildFindAll(page, 10, keyword, {
     theme,
     propertyType,
-    dealType,
+    buyType,
   }, sortBy);
   return (
     <LandSearchClient 

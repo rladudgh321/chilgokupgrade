@@ -18,7 +18,7 @@ const fetchListings = async ({ pageParam = 1, queryKey }: any) => {
   if (searchParams.keyword) params.set("keyword", searchParams.keyword);
   if (searchParams.theme) params.set("theme", searchParams.theme);
   if (searchParams.propertyType) params.set("propertyType", searchParams.propertyType);
-  if (searchParams.dealType) params.set("dealType", searchParams.dealType);
+  if (searchParams.buyType) params.set("buyType", searchParams.buyType);
   if (searchParams.rooms) params.set("rooms", searchParams.rooms);
   if (searchParams.bathrooms) params.set("bathrooms", searchParams.bathrooms);
   if (searchParams.sortBy) params.set("sortBy", searchParams.sortBy);
@@ -112,15 +112,15 @@ const CardList = () => {
     let listings = allListings;
 
     const priceRange = queryParams.priceRange;
-    const dealType = queryParams.dealType;
+    const buyType = queryParams.buyType;
 
-    if (priceRange && dealType) {
+    if (priceRange && buyType) {
       let priceField = "";
-      if (dealType === "전세") {
+      if (buyType === "전세") {
         priceField = "lumpSumPrice";
-      } else if (dealType === "월세") {
+      } else if (buyType === "월세") {
         priceField = "rentalPrice";
-      } else if (dealType === "매매") {
+      } else if (buyType === "매매") {
         priceField = "salePrice";
       }
 

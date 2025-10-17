@@ -26,7 +26,7 @@ const SearchBar = () => {
   const [searchTerm, setSearchTerm] = useState(searchParams.get("keyword") || "")
   const [debouncedSearchTerm, setDebouncedSearchTerm] = useState(searchTerm)
   const [propertyType, setPropertyType] = useState(searchParams.get("propertyType") || "")
-  const [dealType, setDealType] = useState(searchParams.get("dealType") || "")
+  const [buyType, setbuyType] = useState(searchParams.get("buyType") || "")
   const [priceRange, setPriceRange] = useState(searchParams.get("priceRange") || "")
   const [areaRange, setAreaRange] = useState(searchParams.get("areaRange") || "")
   const [theme, setTheme] = useState(searchParams.get("theme") || "")
@@ -40,10 +40,10 @@ const SearchBar = () => {
   const [roomOptions, setRoomOptions] = useState<string[]>([])
   const [pricePresets, setPricePresets] = useState<Array<{id: number, name: string}>>([]);
 
-  // Fetch price presets when dealType changes
+  // Fetch price presets when buyType changes
   useEffect(() => {
-    if (dealType) {
-      const selectedBuyType = buyTypeOptions.find(bt => bt.name === dealType);
+    if (buyType) {
+      const selectedBuyType = buyTypeOptions.find(bt => bt.name === buyType);
       if (selectedBuyType) {
         let isMounted = true;
         (async () => {
@@ -63,7 +63,7 @@ const SearchBar = () => {
     } else {
       setPricePresets([]);
     }
-  }, [dealType, buyTypeOptions]);
+  }, [buyType, buyTypeOptions]);
   const [bathroomOptions, setBathroomOptions] = useState<string[]>([])
   const [floorOptions, setFloorOptions] = useState<string[]>([])
   const [areaOptions, setAreaOptions] = useState<string[]>([])
@@ -225,7 +225,7 @@ const SearchBar = () => {
 
     if (debouncedSearchTerm) query.keyword = debouncedSearchTerm;
     if (propertyType) query.propertyType = propertyType;
-    if (dealType) query.dealType = dealType;
+    if (buyType) query.buyType = buyType;
     if (priceRange) query.priceRange = priceRange;
     if (areaRange) query.areaRange = areaRange;
     if (theme) query.theme = theme;
@@ -235,12 +235,12 @@ const SearchBar = () => {
     if (subwayLine) query.subwayLine = subwayLine;
 
     router.push(`${pathname}?${new URLSearchParams(query).toString()}`);
-  }, [debouncedSearchTerm, propertyType, dealType, priceRange, areaRange, theme, rooms, floor, bathrooms, subwayLine, router, pathname])
+  }, [debouncedSearchTerm, propertyType, buyType, priceRange, areaRange, theme, rooms, floor, bathrooms, subwayLine, router, pathname])
 
   const handleReset = () => {
     setSearchTerm("")
     setPropertyType("")
-    setDealType("")
+    setbuyType("")
     setPriceRange("")
     setAreaRange("")
     setTheme("")
@@ -293,10 +293,10 @@ const SearchBar = () => {
           </select>
         )}
 
-        {settings?.showDealType && (
+        {settings?.showbuyType && (
           <select
-            value={dealType}
-            onChange={(e) => setDealType(e.target.value)}
+            value={buyType}
+            onChange={(e) => setbuyType(e.target.value)}
             className="px-2 py-1 sm:px-3 sm:py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-xs sm:text-sm"
           >
             <option value="">거래유형</option>
@@ -311,7 +311,7 @@ const SearchBar = () => {
             value={priceRange}
             onChange={(e) => setPriceRange(e.target.value)}
             className="px-2 py-1 sm:px-3 sm:py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-xs sm:text-sm"
-            disabled={!dealType || pricePresets.length === 0}
+            disabled={!buyType || pricePresets.length === 0}
           >
             <option value="">금액</option>
             {pricePresets.map((preset) => (

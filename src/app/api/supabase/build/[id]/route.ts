@@ -60,7 +60,7 @@ export async function GET(
       ...data,
       label: (data.label as any)?.name,
       propertyType: (data.listingType as any)?.name,
-      dealType: (data.buyType as any)?.name,
+      buyType: (data.buyType as any)?.name,
     };
 
     return NextResponse.json(result, { headers: corsHeaders });
@@ -88,7 +88,7 @@ export async function PATCH(
     const cookieStore = await cookies();
     const supabase = createClient(cookieStore);
 
-    const { label, buildingOptions, propertyType, dealType, id: rawId, ...restOfBody } = raw as any;
+    const { label, buildingOptions, propertyType, buyType, id: rawId, ...restOfBody } = raw as any;
 
     let labelId: number | null = null;
     if (label) {
@@ -113,10 +113,10 @@ export async function PATCH(
     }
 
     let buyTypeId: number | null = null;
-    if (dealType) {
-        const { data: typeRec } = await supabase.from("BuyType").select("id").eq("name", dealType).single();
+    if (buyType) {
+        const { data: typeRec } = await supabase.from("BuyType").select("id").eq("name", buyType).single();
         if (!typeRec) {
-            const { data: newType } = await supabase.from("BuyType").insert({ name: dealType }).select("id").single();
+            const { data: newType } = await supabase.from("BuyType").insert({ name: buyType }).select("id").single();
             if (newType) buyTypeId = newType.id;
         } else {
             buyTypeId = typeRec.id;
@@ -128,7 +128,7 @@ export async function PATCH(
     };
     if (label !== undefined) dataToUpdate.labelId = labelId;
     if (propertyType !== undefined) dataToUpdate.listingTypeId = listingTypeId;
-    if (dealType !== undefined) dataToUpdate.buyTypeId = buyTypeId;
+    if (buyType !== undefined) dataToUpdate.buyTypeId = buyTypeId;
 
     // 날짜 필드 "" -> null 변환
     const dateFields = [
@@ -193,7 +193,7 @@ export async function PATCH(
         label: (finalData as any).label?.name,
         buildingOptions: (finalData as any).buildingOptions.map((o: any) => o.name),
         propertyType: (finalData as any).listingType?.name,
-        dealType: (finalData as any).buyType?.name,
+        buyType: (finalData as any).buyType?.name,
     };
 
     return NextResponse.json({ message: "수정 완료", data: result }, { headers: corsHeaders });

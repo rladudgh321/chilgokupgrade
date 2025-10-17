@@ -301,7 +301,7 @@ const ListingsMain = ({ ListingsData, sortKey }: ListingsMainProps) => {
           <tbody>
             <tr>
               <td style="width:18%; padding:6px; background:#f5f6f8;">거래유형</td>
-              <td style="width:32%; padding:6px;">${listing.dealType ?? "-"}</td>
+              <td style="width:32%; padding:6px;">${listing.buyType ?? "-"}</td>
               <td style="width:18%; padding:6px; background:#f5f6f8;">매물종류</td>
               <td style="width:32%; padding:6px;">${listing.propertyType ?? "-"}</td>
             </tr>
@@ -333,7 +333,7 @@ const ListingsMain = ({ ListingsData, sortKey }: ListingsMainProps) => {
               <td style="padding:6px; background:#f5f6f8;">층</td>
               <td style="padding:6px;">${listing.currentFloor ?? "-"}/${listing.totalFloors ?? "-"}</td>
               <td style="padding:6px; background:#f5f6f8;">방/욕실</td>
-              <td style="padding:6px;">${listing.rooms ?? "-"} / ${listing.bathrooms ?? "-"}</td>
+              <td style="padding:6px;">${listing.roomOption?.name ?? "-"} / ${listing.bathroomOption?.name ?? "-"}</td>
             </tr>
             <tr>
               <td style="padding:6px; background:#f5f6f8;">실면적(평)</td>
@@ -404,7 +404,7 @@ const ListingsMain = ({ ListingsData, sortKey }: ListingsMainProps) => {
           <tbody>
             <tr>
               <td style="width:18%; padding:6px; background:#f5f6f8;">거래유형</td>
-              <td style="width:32%; padding:6px;">${listing.dealType ?? "-"}</td>
+              <td style="width:32%; padding:6px;">${listing.buyType ?? "-"}</td>
               <td style="width:18%; padding:6px; background:#f5f6f8;">매물종류</td>
               <td style="width:32%; padding:6px;">${listing.propertyType ?? "-"}</td>
             </tr>
@@ -436,7 +436,7 @@ const ListingsMain = ({ ListingsData, sortKey }: ListingsMainProps) => {
               <td style="padding:6px; background:#f5f6f8;">층</td>
               <td style="padding:6px;">${listing.currentFloor ?? "-"}/${listing.totalFloors ?? "-"}</td>
               <td style="padding:6px; background:#f5f6f8;">방/욕실</td>
-              <td style="padding:6px;">${listing.rooms ?? "-"} / ${listing.bathrooms ?? "-"}</td>
+              <td style="padding:6px;">${listing.roomOption?.name ?? "-"} / ${listing.bathroomOption?.name ?? "-"}</td>
             </tr>
             <tr>
               <td style="padding:6px; background:#f5f6f8;">실면적(평)</td>
@@ -620,7 +620,7 @@ const ListingsMain = ({ ListingsData, sortKey }: ListingsMainProps) => {
                     />
                   </td>
 
-                  <td className="p-2 sm:p-3 text-xs sm:text-sm">{listing.dealType}</td>
+                  <td className="p-2 sm:p-3 text-xs sm:text-sm">{listing.buyType}</td>
                   <td className="p-2 sm:p-3 text-xs sm:text-sm">{listing.propertyType}</td>
 
                   <td className="p-2 sm:p-3 text-xs sm:text-sm">
@@ -634,7 +634,7 @@ const ListingsMain = ({ ListingsData, sortKey }: ListingsMainProps) => {
                   <td className="p-2 sm:p-3 text-xs sm:text-sm">
                     <div>{listing.title}</div>
                     <div>
-                      방 {listing.rooms} / 화장실 {listing.bathrooms}
+                      방 {listing.roomOption?.name} / 화장실 {listing.bathroomOption?.name}
                     </div>
                     <div>
                       실면적 {listing.actualArea}평 / 공급면적 {listing.supplyArea}평

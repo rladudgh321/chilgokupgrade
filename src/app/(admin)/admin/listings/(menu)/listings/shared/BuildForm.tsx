@@ -12,6 +12,7 @@ import SaveImage from "./SaveImage";
 
 export type AddressState = "public" | "private" | "exclude";
 
+// ✅ schema.prisma(Build)에 맞춘 FormData
 export interface FormData {
   // LocationCard
   address: string;
@@ -21,90 +22,95 @@ export interface FormData {
   isAddressPublic: AddressState;
   mapLocation: string;
 
-  // LandInfo
-  propertyType: string;
-  dealType: string;
-  dealScope: string;
-  visibility: boolean;
-  priceDisplay: string;
-  salePrice: number;
+  // LandInfo (리스팅/거래/가격)
+  propertyType: string | null;       // 자유 문자열 필드 유지
+  listingTypeId: number | null;      // ✅ relation
+  buyTypeId: number | null;
+  dealScope: string | null;
+  visibility: boolean;               // ✅ boolean으로 수정
+  priceDisplay: string | null;
+
+  // 가격 + 표시 플래그
+  salePrice: number | null;
   isSalePriceEnabled: boolean;
-  lumpSumPrice: number;
+  lumpSumPrice: number | null;
   isLumpSumPriceEnabled: boolean;
-  actualEntryCost: number;
+  actualEntryCost: number | null;
   isActualEntryCostEnabled: boolean;
-  rentalPrice: number;
+  rentalPrice: number | null;
   isRentalPriceEnabled: boolean;
-  halfLumpSumMonthlyRent: number;
+  halfLumpSumMonthlyRent: number | null;
   isHalfLumpSumMonthlyRentEnabled: boolean;
-  deposit: number;
+  deposit: number | null;
   isDepositEnabled: boolean;
-  managementFee: number;
+  managementFee: number | null;
   isManagementFeeEnabled: boolean;
-  managementEtc: string;
+  managementEtc: string | null;
 
   // BuildBasic
-  popularity: string;
-  label: string;
-  floorType: string;
-  currentFloor: number;
-  totalFloors: number;
-  basementFloors: number;
-  floorDescription: string;
-  rooms: number;
-  bathrooms: number;
-  actualArea: number;
-  supplyArea: number;
-  landArea: number;
-  buildingArea: number;
-  totalArea: number;
-  themes: string[];
-  buildingOptions: string[];
-  constructionYear: number;
-  permitDate: number;
-  approvalDate: number;
-  parkingPerUnit: number;
-  totalParking: number;
-  parkingFee: number;
-  parking: string[];
-  direction: string;
-  directionBase: string;
-  landUse: string;
-  landType: string;
-  buildingUse: string;
-  staff: string;
-  customerType: string;
-  customerName: string;
+  popularity: string | null;         // 스키마는 String?
+  labelId: number | null;            // ✅ relation
+  floorType: string | null;
+  currentFloor: number | null;
+  totalFloors: number | null;
+  basementFloors: number | null;
+  floorDescription: string | null;
+  rooms: number | null;
+  bathrooms: number | null;
+  actualArea: number | null;
+  supplyArea: number | null;
+  landArea: number | null;
+  buildingArea: number | null;
+  totalArea: number | null;
+  themes: string[];                  // String[]
+  buildingOptions: number[];         // relation: 선택된 option id 리스트 추천
+  constructionYear: string | Date | null;
+  permitDate: string | Date | null;
+  approvalDate: string | Date | null;
+  parkingPerUnit: number | null;
+  totalParking: number | null;
+  parkingFee: number | null;
+  parking: string[];                 // String[]
+  direction: string | null;
+  directionBase: string | null;
+  landUse: string | null;
+  landType: string | null;
+  buildingUse: string | null;
+  staff: string | null;
+  customerType: string | null;
+  customerName: string | null;
 
   // BuildingInfo
-  elevatorType: string;
-  elevatorCount?: number;
-  moveInType: string;
-  moveInDate: string | Date;
-  heatingType: string;
-  yieldType: string;
-  otherYield: string;
-  contractEndDate: string | Date;
-  buildingName: string;
-  floorAreaRatio: string;
-  otherUse: string;
-  mainStructure: string;
-  height: string;
-  roofStructure: string;
+  elevatorType: string | null;
+  elevatorCount: number | null;
+  moveInType: string | null;
+  moveInDate: string | Date | null;
+  heatingType: string | null;
+  yieldType: string | null;
+  otherYield: string | null;
+  contractEndDate: string | Date | null;
+  buildingName: string | null;
+  floorAreaRatio: string | null;
+  otherUse: string | null;
+  mainStructure: string | null;
+  height: string | null;
+  roofStructure: string | null;
 
   // DetailDescription
-  title: string;
-  editorContent: string;
-  secretNote: string;
-  secretContact: string;
+  title: string | null;
+  editorContent: string | null;
+  secretNote: string | null;
+  secretContact: string | null;
 
-  // SaveImage
-  mainImage: string;
-  subImage: string[];
-  adminImage: string[];
+  // SaveImage (프론트: 배열 유지를 권장)
+  mainImage: string | null;
+  subImage: string[];     // 백엔드에서 Json으로 직렬화
+  adminImage: string[];   // 백엔드에서 Json으로 직렬화
 }
 
+// ✅ 기본값도 스키마 타입에 맞춤
 export const BASE_DEFAULTS: FormData = {
+  // Location
   address: "",
   dong: "",
   ho: "",
@@ -112,67 +118,72 @@ export const BASE_DEFAULTS: FormData = {
   isAddressPublic: "public",
   mapLocation: "",
 
+  // LandInfo
   propertyType: "",
-  dealType: "",
+  listingTypeId: null,
+  buyTypeId: null,
   dealScope: "",
-  visibility: "",
+  visibility: true,
   priceDisplay: "",
-  salePrice: 0,
+
+  salePrice: null,
   isSalePriceEnabled: false,
-  lumpSumPrice: 0,
+  lumpSumPrice: null,
   isLumpSumPriceEnabled: false,
-  actualEntryCost: 0,
+  actualEntryCost: null,
   isActualEntryCostEnabled: false,
-  rentalPrice: 0,
+  rentalPrice: null,
   isRentalPriceEnabled: false,
-  halfLumpSumMonthlyRent: 0,
+  halfLumpSumMonthlyRent: null,
   isHalfLumpSumMonthlyRentEnabled: false,
-  deposit: 0,
+  deposit: null,
   isDepositEnabled: false,
-  managementFee: 0,
+  managementFee: null,
   isManagementFeeEnabled: false,
   managementEtc: "",
 
+  // BuildBasic
   popularity: "",
-  label: "저보증금",
+  labelId: null,
   floorType: "지상",
-  currentFloor: 0,
-  totalFloors: 0,
-  basementFloors: 0,
+  currentFloor: null,
+  totalFloors: null,
+  basementFloors: null,
   floorDescription: "",
-  rooms: 0,
-  bathrooms: 0,
-  actualArea: 0,
-  supplyArea: 0,
-  landArea: 0,
-  buildingArea: 0,
-  totalArea: 0,
+  rooms: null,
+  bathrooms: null,
+  actualArea: null,
+  supplyArea: null,
+  landArea: null,
+  buildingArea: null,
+  totalArea: null,
   themes: [],
-  buildingOptions: [],
-  constructionYear: 0,
-  permitDate: 0,
-  approvalDate: 0,
-  parkingPerUnit: 0,
-  totalParking: 0,
-  parkingFee: 0,
+  buildingOptions: [],           // id 배열 권장
+  constructionYear: null,        // 연도만 받는다면 'YYYY-01-01'로 매핑
+  permitDate: null,
+  approvalDate: null,
+  parkingPerUnit: null,
+  totalParking: null,
+  parkingFee: null,
   parking: [],
   direction: "",
   directionBase: "",
-  landUse: "상업지구",
-  landType: "대지",
+  landUse: "",
+  landType: "",
   buildingUse: "",
-  staff: "권오길",
-  customerType: "매도자",
+  staff: "",
+  customerType: "",
   customerName: "",
 
+  // BuildingInfo
   elevatorType: "",
-  elevatorCount: 0,
+  elevatorCount: null,
   moveInType: "",
-  moveInDate: "",
+  moveInDate: null,
   heatingType: "",
   yieldType: "",
   otherYield: "",
-  contractEndDate: "",
+  contractEndDate: null,
   buildingName: "",
   floorAreaRatio: "",
   otherUse: "",
@@ -180,11 +191,13 @@ export const BASE_DEFAULTS: FormData = {
   height: "",
   roofStructure: "",
 
+  // Description
   title: "",
   editorContent: "",
   secretNote: "",
   secretContact: "",
 
+  // Images
   mainImage: "",
   subImage: [],
   adminImage: [],
@@ -197,8 +210,9 @@ type Props = {
   mode: "create" | "update";
   submitLabel?: string;
   onCancel?: () => void;
-  roomOptions: string[];
-  bathroomOptions: string[];
+  // 선택 옵션들 (id/label로 내려받는 걸 권장)
+  roomOptions: string[];      // 필요하면 { id:number; name:string }[] 로 전환
+  bathroomOptions: string[];  // 동일
   themeOptions: string[];
 };
 
@@ -229,7 +243,12 @@ export default function BuildForm({
         </Container>
 
         <Container title="기본정보">
-          <BuildBasic roomOptions={roomOptions} bathroomOptions={bathroomOptions} themeOptions={themeOptions} />
+          {/* buildingOptions를 id 배열로 받도록 컴포넌트도 맞춰주면 백엔드 매핑이 깔끔합니다 */}
+          <BuildBasic
+            roomOptions={roomOptions}
+            bathroomOptions={bathroomOptions}
+            themeOptions={themeOptions}
+          />
         </Container>
 
         <Container title="건물 추가 정보">

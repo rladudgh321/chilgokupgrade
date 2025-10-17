@@ -27,12 +27,12 @@ describe('/api/listings API 라우트', () => {
       expect(body.listings).toEqual(mockResponse.data);
       expect(body.totalPages).toBe(1);
       expect(body.currentPage).toBe(1);
-      expect(BuildFindAll).toHaveBeenCalledWith(1, 10, undefined, { theme: undefined, propertyType: undefined, dealType: undefined }, 'latest');
+      expect(BuildFindAll).toHaveBeenCalledWith(1, 10, undefined, { theme: undefined, propertyType: undefined, buyType: undefined }, 'latest');
     });
 
     test('모든 검색 및 필터 파라미터를 BuildFindAll에 정확히 전달해야 합니다.', async () => {
         (BuildFindAll as jest.Mock).mockResolvedValue({ data: [], totalPages: 0 });
-        const url = 'http://localhost/api/listings?page=2&limit=20&keyword=서울&theme=신축&propertyType=아파트&dealType=매매&sortBy=price';
+        const url = 'http://localhost/api/listings?page=2&limit=20&keyword=서울&theme=신축&propertyType=아파트&buyType=매매&sortBy=price';
         const req = new NextRequest(url);
         await GET(req);
   
@@ -40,7 +40,7 @@ describe('/api/listings API 라우트', () => {
           2, 
           20, 
           '서울', 
-          { theme: '신축', propertyType: '아파트', dealType: '매매' }, 
+          { theme: '신축', propertyType: '아파트', buyType: '매매' }, 
           'price'
         );
       });
