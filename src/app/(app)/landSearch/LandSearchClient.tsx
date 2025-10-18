@@ -56,12 +56,13 @@ const fetchMapListings = async ({ queryKey }: any) => {
 };
 
 export default function LandSearchClient({ initialListings }: Props) {
-  const [selectedBuildId, setSelectedBuildId] = useState<number | null>(null);
+  const [selectedBuild, setSelectedBuild] = useState<Listing | null>(null);
   const handleCardClick = (id: number) => {
-    setSelectedBuildId(id);
+    const build = allListings.find(l => l.id === id);
+    setSelectedBuild(build || null);
   };
   const handleCloseModal = () => {
-    setSelectedBuildId(null);
+    setSelectedBuild(null);
   };
   const router = useRouter();
   const currentSearchParams = useSearchParams();
@@ -512,9 +513,9 @@ export default function LandSearchClient({ initialListings }: Props) {
 
       </div>
 
-      {selectedBuildId && (
+      {selectedBuild && (
 
-        <BuildDetailModal buildId={selectedBuildId} onClose={handleCloseModal} />
+        <BuildDetailModal build={selectedBuild} onClose={handleCloseModal} />
 
       )}
 
