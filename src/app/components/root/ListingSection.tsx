@@ -1,10 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useRouter } from "next/navigation";
 import RecommedLand from "./5RecommedLand";
 import QuickSale from "./6QuickSale";
 import RecentlyLand from "./7RecentlyLand";
-import BuildDetailModal from "./BuildDetailModal";
 import { ListingSectionProps } from "@/app/(app)/page";
 
 export type Listing = {
@@ -41,30 +40,20 @@ export type Listing = {
   isAddressPublic?: string;
   visibility?: boolean;
 };
-
-const ListingSection = ({ RecommendData, QuickSaleData, RecentlyData }: { RecommendData:ListingSectionProps, QuickSaleData: ListingSectionProps, RecentlyData: ListingSectionProps}) => {
-  const [selectedBuildId, setSelectedBuildId] = useState<number | null>(null);
-
+const ListingSection = ({ RecommendData, QuickSaleData, RecentlyData }:{
+  RecommendData: ListingSectionProps; QuickSaleData: ListingSectionProps; RecentlyData: ListingSectionProps;
+}) => {
+  const router = useRouter();
   const handleCardClick = (id: number) => {
-    setSelectedBuildId(id);
+    router.push(`/build/${id}`, { scroll: false }); // ← 모달 인터셉트 라우트로 이동
   };
 
-  const handleCloseModal = () => {
-    setSelectedBuildId(null);
-  };
   return (
     <>
       <RecommedLand RecommendData={RecommendData.listings} onCardClick={handleCardClick} />
       <QuickSale QuickSaleData={QuickSaleData.listings} onCardClick={handleCardClick} />
       <RecentlyLand RecentlyData={RecentlyData.listings} onCardClick={handleCardClick} />
-      {selectedBuildId && (
-        <BuildDetailModal
-          buildId={selectedBuildId}
-          onClose={handleCloseModal}
-        />
-      )}
     </>
   );
 };
-
 export default ListingSection;

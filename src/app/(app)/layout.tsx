@@ -32,9 +32,10 @@ export const metadata: Metadata = {
 };
 
 export default async function AppLayout({
-  children,
+  children, modal,
 }: Readonly<{
   children: React.ReactNode;
+  modal: React.ReactNode;
 }>) {
   const workInfo = await getWorkInfo();
   console.log('workInfo', workInfo);
@@ -45,6 +46,7 @@ export default async function AppLayout({
       <main className="flex-grow">{children}</main>
       {Boolean(snsSettings?.length) && <SnsIcon snsSettings={snsSettings} />}
       <Footer workInfo={workInfo} />
+      {modal}
     </>
   );
 }
