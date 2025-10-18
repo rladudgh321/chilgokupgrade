@@ -8,11 +8,9 @@ import OptionIcon from "@/app/components/shared/OptionIcon";
 import ImageSlider from "@/app/components/shared/ImageSlider";
 import { IBuild } from "@/app/interface/build";
 
-export default function BuildDetailModalClient({ build }: { build: IBuild }) {
-  const router = useRouter();
+export default function BuildDetailModalClient({ build, onClose }: { build: IBuild, onClose: () => void }) {
   const [areaUnit, setAreaUnit] = useState<"m2" | "pyeong">("m2");
 
-  const onClose = () => router.back(); // ← 닫기 시 이전 화면으로
 
   const convertToPyeong = (m2: number) => (m2 / 3.305785).toFixed(2);
   const formatPrice = (price?: number | string | null) =>
@@ -110,8 +108,8 @@ export default function BuildDetailModalClient({ build }: { build: IBuild }) {
           <div className="bg-gray-50 rounded-lg p-3 sm:p-4">
             <h4 className="text-base sm:text-lg font-semibold mb-3 text-purple-800">옵션 정보</h4>
             <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-2 sm:gap-4 pt-2">
-              {build.buildingOptions?.map((opt) => (
-                <OptionIcon key={`building-${opt.id}`} option={opt} />
+              {build.buildingOptions?.map((opt, index) => (
+                <OptionIcon key={`building-${opt.id || index}`} option={opt} />
               ))}
               {build.floorOption?.id && <OptionIcon key={`floor-${build.floorOption.id}`} option={build.floorOption} />}
             </div>

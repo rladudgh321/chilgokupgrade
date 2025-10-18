@@ -27,6 +27,10 @@ const iconMap: Record<string, string> = {
 };
 
 const OptionIcon = ({ option }: OptionIconProps) => {
+  if (!option || !option.name) {
+    return null;
+  }
+
   const iconSrc = Object.keys(iconMap).find(key => option.name.includes(key));
   const iconPath = option.imageUrl || (iconSrc ? iconMap[iconSrc] : null);
 

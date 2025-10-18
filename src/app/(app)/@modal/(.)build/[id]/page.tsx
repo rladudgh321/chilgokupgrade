@@ -1,4 +1,4 @@
-import BuildDetailModalClient from '@/app/components/root/BuildDetailModal';
+import BuildDetailModalWithRouting from '@/app/components/root/BuildDetailModalWithRouting';
 import { IBuild } from "@/app/interface/build";
 
 const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL!;
@@ -14,5 +14,5 @@ async function getBuild(id: number): Promise<IBuild> {
 export default async function ModalPage({ params }: { params: Promise<{ id: string }> }) {
   const buildId = Number((await params).id);
   const build = await getBuild(buildId); // ✅ 서버에서 await로 패칭
-  return <BuildDetailModalClient build={build} />;
+  return <BuildDetailModalWithRouting build={build} />;
 }

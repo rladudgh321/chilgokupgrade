@@ -84,7 +84,7 @@ async function getPopular(): Promise<ListingSectionProps> {
     throw new Error('Network response was not ok');
   }
   const json = await res.json();
-  return (!json?.listings || !Array.isArray(json?.listings)) ? json :  { currentPage: 1, totalPage: 1, listings: [] }
+  return (json?.listings && Array.isArray(json?.listings)) ? json :  { currentPage: 1, totalPage: 1, listings: [] }
 }
 
 async function getQuickSale(): Promise<ListingSectionProps> {
@@ -93,7 +93,7 @@ async function getQuickSale(): Promise<ListingSectionProps> {
     throw new Error('Network response was not ok');
   }
   const json = await res.json();
-  return (!json?.listings || !Array.isArray(json?.listings)) ? json :  { currentPage: 1, totalPage: 1, listings: [] }
+  return (json?.listings && Array.isArray(json?.listings)) ? json :  { currentPage: 1, totalPage: 1, listings: [] }
 }
 
 async function getRecently(): Promise<ListingSectionProps> {
@@ -102,7 +102,7 @@ async function getRecently(): Promise<ListingSectionProps> {
     throw new Error('Network response was not ok');
   }
   const json = await res.json();
-  return (!json?.listings || !Array.isArray(json?.listings)) ? json :  { currentPage: 1, totalPage: 1, listings: [] }
+  return (json?.listings && Array.isArray(json?.listings)) ? json :  { currentPage: 1, totalPage: 1, listings: [] }
 }
 
 

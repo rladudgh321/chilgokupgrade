@@ -32,6 +32,7 @@ export default async function AppLayout({
   modal: React.ReactNode;
 }>) {
    const [headerPromise, snsSettings] = await Promise.all([getHeaderInfo(), getSnsSettings()]);
+   console.log('***', headerPromise);
   return (
     <>
       <Header headerPromise={headerPromise} />

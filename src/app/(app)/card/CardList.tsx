@@ -24,7 +24,6 @@ const fetchListings = async ({ pageParam = 1, queryKey }: any) => {
   if (searchParams.bathrooms) params.set("bathrooms", searchParams.bathrooms);
   if (searchParams.sortBy) params.set("sortBy", searchParams.sortBy);
 
-
   const res = await fetch(`/api/listings?${params.toString()}`, {
     next: { revalidate: 28_800, tags: ['public', 'card'] }
   });
@@ -34,17 +33,13 @@ const fetchListings = async ({ pageParam = 1, queryKey }: any) => {
   return res.json();
 };
 
-
-const CardList = () => {
+const CardList = ({ initialData }: { initialData: any }) => {
   const [selectedBuildId, setSelectedBuildId] = useState<number | null>(null);
 
   const handleCardClick = (id: number) => {
     setSelectedBuildId(id);
   };
 
-  const handleCloseModal = () => {
-    setSelectedBuildId(null);
-  };
   const router = useRouter()
   const searchParams = useSearchParams()
 
@@ -58,16 +53,11 @@ const CardList = () => {
     return params;
   }, [searchParams]);
 
+  const handleCloseModal = () => {
+    setSelectedBuildId(null);
+  };
 
-  // 무한 스크롤 쿼리
-  const {
-    data,
-    fetchNextPage,
-    hasNextPage,
-    isFetchingNextPage,
-    isLoading,
-    isError,
-  } = useInfiniteQuery({
+  const { data, fetchNextPage, hasNextPage, isFetchingNextPage, isError } = useInfiniteQuery({
     queryKey: ["listings", queryParams],
     queryFn: fetchListings,
     getNextPageParam: (lastPage) => {
@@ -77,9 +67,9 @@ const CardList = () => {
       return undefined;
     },
     initialPageParam: 1,
-  })
+    initialData: { pages: [initialData], pageParams: [1] },
+  });
 
-  // 무한 스크롤 감지
   const handleScroll = useCallback(() => {
     if (
       window.innerHeight + document.documentElement.scrollTop >=
@@ -102,13 +92,10 @@ const CardList = () => {
     router.push(`/card?${params.toString()}`);
   };
 
-
-  // 모든 매물 데이터 수집
   const allListings = useMemo(() => {
     if (!data) return [];
     const listings = data.pages.flatMap((page) => page.listings);
-    const uniqueListings = Array.from(new Map(listings.map(item => [item.id, item])).values());
-    return uniqueListings;
+    return Array.from(new Map(listings.map(item => [item.id, item])).values());
   }, [data]);
 
   const displayListings = useMemo(() => {
@@ -119,13 +106,9 @@ const CardList = () => {
 
     if (priceRange && buyType) {
       let priceField = "";
-      if (buyType === "전세") {
-        priceField = "lumpSumPrice";
-      } else if (buyType === "월세") {
-        priceField = "rentalPrice";
-      } else if (buyType === "매매") {
-        priceField = "salePrice";
-      }
+      if (buyType === "전세") priceField = "lumpSumPrice";
+      else if (buyType === "월세") priceField = "rentalPrice";
+      else if (buyType === "매매") priceField = "salePrice";
 
       if (priceField) {
         listings = listings.filter(listing => {
@@ -136,24 +119,14 @@ const CardList = () => {
             const [minStr, maxStr] = priceRange.split("~");
             const min = koreanToNumber(minStr);
             const max = koreanToNumber(maxStr);
-            let passesMin = true;
-            let passesMax = true;
-            if (min !== null) {
-              passesMin = price >= min;
-            }
-            if (max !== null) {
-              passesMax = price <= max;
-            }
+            if (min !== null && price < min) return false;
+            if (max !== null && price > max) return false;
           } else if (priceRange.includes("이상")) {
             const min = koreanToNumber(priceRange.replace("이상", ""));
-            if (min !== null) {
-              return price >= min;
-            }
+            if (min !== null && price < min) return false;
           } else if (priceRange.includes("이하")) {
             const max = koreanToNumber(priceRange.replace("이하", ""));
-            if (max !== null) {
-              return price <= max;
-            }
+            if (max !== null && price > max) return false;
           }
           return true;
         });
@@ -170,25 +143,14 @@ const CardList = () => {
                 const [minStr, maxStr] = floor.replace(/층/g, "").split("~");
                 const min = Number(minStr);
                 const max = Number(maxStr);
-                let passesMin = true;
-                let passesMax = true;
-                if (!isNaN(min)) {
-                    passesMin = currentFloor >= min;
-                }
-                if (maxStr && !isNaN(Number(maxStr))) {
-                    passesMax = currentFloor <= Number(maxStr);
-                }
-                return passesMin && passesMax;
+                if (!isNaN(min) && currentFloor < min) return false;
+                if (maxStr && !isNaN(Number(maxStr)) && currentFloor > Number(maxStr)) return false;
             } else if (floor.includes("이상")) {
                 const min = Number(floor.replace("층이상", ""));
-                if (!isNaN(min)) {
-                    return currentFloor >= min;
-                }
+                if (!isNaN(min) && currentFloor < min) return false;
             } else {
                 const singleFloor = Number(floor.replace("층", ""));
-                if (!isNaN(singleFloor)) {
-                    return currentFloor === singleFloor;
-                }
+                if (!isNaN(singleFloor) && currentFloor !== singleFloor) return false;
             }
             return true;
         });
@@ -205,27 +167,16 @@ const CardList = () => {
                 const [minStr, maxStr] = areaRange.replace(/평/g, "").split("~");
                 const minPyeong = Number(minStr);
                 const maxPyeong = Number(maxStr);
-                let passesMin = true;
-                let passesMax = true;
-                if (!isNaN(minPyeong)) {
-                    passesMin = totalArea >= minPyeong * PYEONG_TO_M2;
-                }
-                if (maxStr && !isNaN(Number(maxStr))) {
-                    passesMax = totalArea <= maxPyeong * PYEONG_TO_M2;
-                }
-                return passesMin && passesMax;
+                if (!isNaN(minPyeong) && totalArea < minPyeong * PYEONG_TO_M2) return false;
+                if (maxStr && !isNaN(Number(maxStr)) && totalArea > maxPyeong * PYEONG_TO_M2) return false;
             }
             else if (areaRange.includes("이상")) {
                 const minPyeong = Number(areaRange.replace("평이상", ""));
-                if (!isNaN(minPyeong)) {
-                    return totalArea >= minPyeong * PYEONG_TO_M2;
-                }
+                if (!isNaN(minPyeong) && totalArea < minPyeong * PYEONG_TO_M2) return false;
             }
             else if (areaRange.includes("이하")) {
                 const maxPyeong = Number(areaRange.replace("평이하", ""));
-                if (!isNaN(maxPyeong)) {
-                    return totalArea <= maxPyeong * PYEONG_TO_M2;
-                }
+                if (!isNaN(maxPyeong) && totalArea > maxPyeong * PYEONG_TO_M2) return false;
             }
             return true;
         });
@@ -233,17 +184,6 @@ const CardList = () => {
 
     return listings;
   }, [allListings, queryParams]);
-
-  if (isLoading) {
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto mb-4"></div>
-          <p className="text-gray-600">매물을 불러오는 중...</p>
-        </div>
-      </div>
-    )
-  }
 
   if (isError) {
     return (
@@ -263,14 +203,11 @@ const CardList = () => {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* 검색 바 */}
       <div className="bg-white shadow-sm border-b">
         <SearchBar />
       </div>
 
-      {/* 메인 콘텐츠 */}
       <div className="p-2 sm:p-4 md:p-6">
-        {/* 정렬 탭 */}
         <div className="flex border-b bg-white mb-6 overflow-x-auto">
           {[
             { key: "latest", label: "최신순" },
@@ -292,21 +229,18 @@ const CardList = () => {
           ))}
         </div>
 
-        {/* 반응형 그리드 */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
           {displayListings.map((listing) => (
-            <CardItem key={listing.id} listing={listing} onClick={handleCardClick} />
+            <CardItem key={listing.id} listing={listing} onClick={() => handleCardClick(listing.id)} />
           ))}
         </div>
 
-        {/* 매물이 없을 때 */}
         {displayListings.length === 0 && (
           <div className="flex items-center justify-center h-64 text-gray-500">
             <p>표시할 매물이 없습니다.</p>
           </div>
         )}
 
-        {/* 로딩 인디케이터 */}
         {isFetchingNextPage && (
           <div className="flex items-center justify-center mt-8">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
@@ -314,7 +248,6 @@ const CardList = () => {
           </div>
         )}
 
-        {/* 더 이상 로드할 데이터가 없을 때 */}
         {!hasNextPage && displayListings.length > 0 && (
           <div className="flex items-center justify-center mt-8 text-gray-500">
             <p>모든 매물을 불러왔습니다.</p>
@@ -322,7 +255,10 @@ const CardList = () => {
         )}
       </div>
       {selectedBuildId && (
-        <BuildDetailModalClient build={selectedBuildId} />
+        <BuildDetailModalClient
+          build={allListings.find((listing) => listing.id === selectedBuildId)}
+          onClose={handleCloseModal}
+        />
       )}
     </div>
   )
