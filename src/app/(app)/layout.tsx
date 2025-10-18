@@ -4,8 +4,8 @@ import Footer from "../layout/app/Footer";
 import SnsIcon, { SnsSetting } from "@/app/components/SnsIcon";
 const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL!
 
-async function getHeaderInfo(): Promise<HeaderProps> {
-  const res = await fetch(`${BASE_URL}/api/logo`, { next: { tags: ['public', 'headerInfo'] } });
+export async function getHeaderInfo(): Promise<HeaderProps> {
+  const res = await fetch(`${BASE_URL}/api/header-info`, { next: { tags: ['public', 'headerInfo'], revalidate: 28_800 } });
   if(!res.ok) {
     throw new Error('Network response was not ok');
   }
@@ -13,8 +13,8 @@ async function getHeaderInfo(): Promise<HeaderProps> {
   return data.data;
 }
 
-async function getSnsSettings(): Promise<SnsSetting[]> {
-  const res = await fetch(`${BASE_URL}/api/sns-settings`, { next: { tags: ["public", "sns-settings"] } });
+export async function getSnsSettings(): Promise<SnsSetting[]> {
+  const res = await fetch(`${BASE_URL}/api/sns-settings`, { next: { tags: ["public", "sns-settings"], revalidate: 28_800 } });
   if (!res.ok) throw new Error("Network response was not ok");
   const data = await res.json();
   return data.data;

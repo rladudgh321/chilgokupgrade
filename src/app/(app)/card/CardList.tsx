@@ -4,7 +4,8 @@ import { useInfiniteQuery } from "@tanstack/react-query"
 import CardItem from "./CardItem"
 import SearchBar from "../landSearch/SearchBar"
 import { useRouter, useSearchParams } from "next/navigation"
-import BuildDetailModal from "../../components/root/BuildDetailModal";
+import BuildDetailModalClient from '@/app/components/root/BuildDetailModal'
+import { koreanToNumber } from '@/app/utility/koreanToNumber'
 
 const LIMIT = 12
 
@@ -24,7 +25,9 @@ const fetchListings = async ({ pageParam = 1, queryKey }: any) => {
   if (searchParams.sortBy) params.set("sortBy", searchParams.sortBy);
 
 
-  const res = await fetch(`/api/listings?${params.toString()}`);
+  const res = await fetch(`/api/listings?${params.toString()}`, {
+    next: { revalidate: 28_800, tags: ['public', 'card'] }
+  });
   if (!res.ok) {
     throw new Error('Network response was not ok');
   }
@@ -132,6 +135,7 @@ const CardList = () => {
           if (priceRange.includes("~")) {
             const [minStr, maxStr] = priceRange.split("~");
             const min = koreanToNumber(minStr);
+            const max = koreanToNumber(maxStr);
             let passesMin = true;
             let passesMax = true;
             if (min !== null) {
@@ -318,7 +322,7 @@ const CardList = () => {
         )}
       </div>
       {selectedBuildId && (
-        <BuildDetailModal buildId={selectedBuildId} onClose={handleCloseModal} />
+        <BuildDetailModalClient build={selectedBuildId} />
       )}
     </div>
   )

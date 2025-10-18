@@ -40,7 +40,7 @@ const Header = ({ headerPromise }: {headerPromise: HeaderProps}) => {
         {/* Mobile button */}
         <div className="md:hidden">
           <Header_Button>
-            <OpenMenu />
+            <OpenMenu headerPromise={headerPromise} />
           </Header_Button>
         </div>
       </div>

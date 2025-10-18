@@ -9,12 +9,10 @@ import Institue from "../components/root/9Institue";
 import Popup from "../components/root/Popup";
 import { PopupPost } from "../components/root/Popup";
 
-export const revalidate = 0;
-
 const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL!
 
 async function getPopupPosts(): Promise<PopupPost[]> {
-  const res = await fetch(`${BASE_URL}/api/popup`, { next: { tags: ['public', 'popup'] } });
+  const res = await fetch(`${BASE_URL}/api/popup`, { next: { tags: ['public', 'popup'], revalidate: 28_800 } });
   if(!res.ok) {
     throw new Error('Network response was not ok');
   }
@@ -23,7 +21,7 @@ async function getPopupPosts(): Promise<PopupPost[]> {
 }
 
 async function getBanners(): Promise<Banner[]> {
-    const res = await fetch(`${BASE_URL}/api/admin/webView/banner`);
+    const res = await fetch(`${BASE_URL}/api/admin/webView/banner`, { next: { tags: ['public', 'banner'], revalidate: 28_800 }});
     if(!res.ok) {
       throw new Error('Network response was not ok');
     }
@@ -32,7 +30,9 @@ async function getBanners(): Promise<Banner[]> {
 }
 
 async function getListingType(): Promise<ListingTypeProps[]> {
-    const res = await fetch(`${BASE_URL}/api/listing-type`);
+    const res = await fetch(`${BASE_URL}/api/listing-type`, { next: {
+      tags: ['public', 'listing-type'], revalidate: 28_800
+    }});
     if(!res.ok) {
       throw new Error('Network response was not ok');
     }
@@ -44,7 +44,9 @@ async function getListingType(): Promise<ListingTypeProps[]> {
 }
 
 async function getThemeImage(): Promise<ThemeImageProps[]> {
-    const res = await fetch(`${BASE_URL}/api/theme-images`);
+    const res = await fetch(`${BASE_URL}/api/theme-images`, {
+      next: { tags: ['public', 'theme-image'], revalidate: 28_800 }
+    });
     if(!res.ok) {
       throw new Error('Network response was not ok');
     }
@@ -63,7 +65,7 @@ async function getThemeImage(): Promise<ThemeImageProps[]> {
 }
 
 async function getIpStatus(): Promise<{isBanned: boolean}> {
-  const res = await fetch(`${BASE_URL}/api/ip-status`, { next: { tags: ['public', 'popup'] } });
+  const res = await fetch(`${BASE_URL}/api/ip-status`, { next: { tags: ['public', 'ip-status'], revalidate: 28_800 } });
   if(!res.ok) {
     throw new Error('Network response was not ok');
   }
@@ -77,7 +79,7 @@ export type ListingSectionProps = {
 }
 
 async function getPopular(): Promise<ListingSectionProps> {
-  const res = await fetch(`${BASE_URL}/api/listings?sortBy=popular&limit=10`, { next: { tags: ['public', 'popup'] } });
+  const res = await fetch(`${BASE_URL}/api/listings?sortBy=popular&limit=10`, { next: { tags: ['public', 'popular'], revalidate: 28_800 } });
   if(!res.ok) {
     throw new Error('Network response was not ok');
   }
@@ -86,7 +88,7 @@ async function getPopular(): Promise<ListingSectionProps> {
 }
 
 async function getQuickSale(): Promise<ListingSectionProps> {
-  const res = await fetch(`${BASE_URL}/api/listings?label=급매&limit=10`, { next: { tags: ['public', 'popup'] } });
+  const res = await fetch(`${BASE_URL}/api/listings?label=급매&limit=10`, { next: { tags: ['public', 'quick-sale'], revalidate: 28_800 } });
   if(!res.ok) {
     throw new Error('Network response was not ok');
   }
@@ -95,7 +97,7 @@ async function getQuickSale(): Promise<ListingSectionProps> {
 }
 
 async function getRecently(): Promise<ListingSectionProps> {
-  const res = await fetch(`${BASE_URL}/api/listings?sortBy=latest&limit=10`, { next: { tags: ['public', 'popup'] } });
+  const res = await fetch(`${BASE_URL}/api/listings?sortBy=latest&limit=10`, { next: { tags: ['public', 'recently'], revalidate: 28_800 } });
   if(!res.ok) {
     throw new Error('Network response was not ok');
   }
