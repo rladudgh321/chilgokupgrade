@@ -1,8 +1,6 @@
-// app/components/root/BuildDetailModalClient.tsx  (Client Component)
 "use client";
 
 import { useMemo, useState } from "react";
-import { useRouter } from "next/navigation";
 import KakaoMapMarker from "@/app/components/shared/KakaoMapMarker";
 import OptionIcon from "@/app/components/shared/OptionIcon";
 import ImageSlider from "@/app/components/shared/ImageSlider";
