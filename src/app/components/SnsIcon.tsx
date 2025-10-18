@@ -1,14 +1,14 @@
 import Image from 'next/image';
 
-type SnsSetting = {
+export type SnsSetting = {
   id: number;
   name: string;
   url: string;
   imageUrl: string;
 };
 
-type SnsIconProps = {
-  snsSettings: SnsSetting[] | null;
+export type SnsIconProps = {
+  snsSettings: SnsSetting[];
 };
 
 const SnsIcon = ({ snsSettings }: SnsIconProps) => {
@@ -23,7 +23,7 @@ const SnsIcon = ({ snsSettings }: SnsIconProps) => {
         <div className="flex justify-center space-x-6">
           {snsSettings.map((setting) => (
             <a key={setting.id} href={setting.url} target="_blank" rel="noopener noreferrer" className="flex flex-col items-center hover:text-blue-500 transition-colors">
-              <Image src={setting.imageUrl} alt={setting.name} width={32} height={32} className="w-8 h-8 object-cover" />
+              <Image src={setting.imageUrl || '/father.jpg'} alt={setting.name} width={32} height={32} className="w-8 h-8 object-cover" />
               <span className="mt-2 text-sm">{setting.name}</span>
             </a>
           ))}

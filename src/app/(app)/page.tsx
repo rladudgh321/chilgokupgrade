@@ -76,47 +76,43 @@ export type ListingSectionProps = {
   totalPage: number;
 }
 
-async function getPopular(): Promise<ListingSectionProps | undefined> {
+async function getPopular(): Promise<ListingSectionProps> {
   const res = await fetch(`${BASE_URL}/api/listings?sortBy=popular&limit=10`, { next: { tags: ['public', 'popup'] } });
   if(!res.ok) {
     throw new Error('Network response was not ok');
   }
   const json = await res.json();
-  if (!json?.listings || !Array.isArray(json?.listings)) return;
-
-  return json;
+  return (!json?.listings || !Array.isArray(json?.listings)) ? json :  { currentPage: 1, totalPage: 1, listings: [] }
 }
 
-async function getQuickSale(): Promise<ListingSectionProps | undefined> {
+async function getQuickSale(): Promise<ListingSectionProps> {
   const res = await fetch(`${BASE_URL}/api/listings?label=급매&limit=10`, { next: { tags: ['public', 'popup'] } });
   if(!res.ok) {
     throw new Error('Network response was not ok');
   }
   const json = await res.json();
-  if (!json?.listings || !Array.isArray(json?.listings)) return;
-  return json;
+  return (!json?.listings || !Array.isArray(json?.listings)) ? json :  { currentPage: 1, totalPage: 1, listings: [] }
 }
 
-async function getRecently(): Promise<ListingSectionProps | undefined> {
+async function getRecently(): Promise<ListingSectionProps> {
   const res = await fetch(`${BASE_URL}/api/listings?sortBy=latest&limit=10`, { next: { tags: ['public', 'popup'] } });
   if(!res.ok) {
     throw new Error('Network response was not ok');
   }
   const json = await res.json();
-  if (!json?.listings || !Array.isArray(json?.listings)) return;
-  return json;
+  return (!json?.listings || !Array.isArray(json?.listings)) ? json :  { currentPage: 1, totalPage: 1, listings: [] }
 }
 
 
 const Home = async () => {
-  const popups = await getPopupPosts();
-  const banners = await getBanners();
-  const listingType = await getListingType();
-  const themeImage = await getThemeImage();
-  const isBanned = await getIpStatus();
-  const RecommendData = await getPopular();
-  const QuickSaleData = await getQuickSale();
-  const RecentlyData = await getRecently();
+  const popups = getPopupPosts();
+  const banners = getBanners();
+  const listingType = getListingType();
+  const themeImage = getThemeImage();
+  const isBanned = getIpStatus();
+  const RecommendData = getPopular();
+  const QuickSaleData = getQuickSale();
+  const RecentlyData = getRecently();
   return (
     <main>
       <Popup popups={popups} />
@@ -126,7 +122,7 @@ const Home = async () => {
       <IfLandType themeImage={themeImage} />
       <ListingSection RecommendData={RecommendData!} QuickSaleData={QuickSaleData!} RecentlyData={RecentlyData!} />
       <Contact>
-        <ContactForm isBanned={isBanned.isBanned} />
+        <ContactForm isBanned={isBanned} />
       </Contact>
       <Institue />
     </main>

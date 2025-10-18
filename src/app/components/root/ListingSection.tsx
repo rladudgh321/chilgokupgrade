@@ -5,6 +5,7 @@ import RecommedLand from "./5RecommedLand";
 import QuickSale from "./6QuickSale";
 import RecentlyLand from "./7RecentlyLand";
 import { ListingSectionProps } from "@/app/(app)/page";
+import { use } from 'react';
 
 export type Listing = {
   id: number;
@@ -41,18 +42,20 @@ export type Listing = {
   visibility?: boolean;
 };
 const ListingSection = ({ RecommendData, QuickSaleData, RecentlyData }:{
-  RecommendData: ListingSectionProps; QuickSaleData: ListingSectionProps; RecentlyData: ListingSectionProps;
+  RecommendData: Promise<ListingSectionProps>; QuickSaleData: Promise<ListingSectionProps>; RecentlyData: Promise<ListingSectionProps>;
 }) => {
   const router = useRouter();
   const handleCardClick = (id: number) => {
     router.push(`/build/${id}`, { scroll: false }); // ← 모달 인터셉트 라우트로 이동
   };
-
+  const RecommendDataPromise = use(RecommendData);
+  const QuickSaleDataPromise = use(QuickSaleData);
+  const RecentlyDataPromise = use(RecentlyData);
   return (
     <>
-      <RecommedLand RecommendData={RecommendData.listings} onCardClick={handleCardClick} />
-      <QuickSale QuickSaleData={QuickSaleData.listings} onCardClick={handleCardClick} />
-      <RecentlyLand RecentlyData={RecentlyData.listings} onCardClick={handleCardClick} />
+      <RecommedLand RecommendData={RecommendDataPromise.listings} onCardClick={handleCardClick} />
+      <QuickSale QuickSaleData={QuickSaleDataPromise.listings} onCardClick={handleCardClick} />
+      <RecentlyLand RecentlyData={RecentlyDataPromise.listings} onCardClick={handleCardClick} />
     </>
   );
 };

@@ -1,8 +1,10 @@
 import Link from "next/link";
+import { use } from 'react';
 
 export type ThemeImageProps = { name: string; image?: string; theme: string };
 
-const IfLandType = ({ themeImage }: { themeImage: ThemeImageProps[] }) => {
+const IfLandType = ({ themeImage }: { themeImage: Promise<ThemeImageProps[]> }) => {
+  const themeImagePromise = use(themeImage);
   return (
     <div className="mx-auto max-w-7xl text-center p-4">
       <h2 className="text-lg sm:text-xl font-bold">조건별 매물 찾아보기</h2>
@@ -11,7 +13,7 @@ const IfLandType = ({ themeImage }: { themeImage: ThemeImageProps[] }) => {
       </p>
 
       <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-4 lg:grid-cols-8 gap-2 sm:gap-3 mt-4 px-2">
-        {themeImage.map((item, index) => {
+        {themeImagePromise.map((item, index) => {
           const href = `/landSearch?theme=${encodeURIComponent(item.theme)}`;
 
           return (

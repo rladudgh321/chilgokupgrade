@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { use, useState } from 'react';
 import DraggablePopup from './DraggablePopup';
 
 export type PopupPost = {
@@ -12,9 +12,10 @@ export type PopupPost = {
   popupContent?: string | null;
 };
 
-const Popup = ({ popups }: { popups: PopupPost[] }) => {
+const Popup = ({ popups }: { popups: Promise<PopupPost[]> }) => {
+  const popupsPromise = use(popups);
   // z-index management
-  const [stackOrder, setStackOrder] = useState<number[]>(popups.map(p => p.id));
+  const [stackOrder, setStackOrder] = useState<number[]>(popupsPromise.map(p => p.id));
 
   const handleFocus = (id: number) => {
     setStackOrder(currentOrder => {
@@ -26,7 +27,7 @@ const Popup = ({ popups }: { popups: PopupPost[] }) => {
 
   return (
     <>
-      {popups.map((popup, index) => (
+      {popupsPromise.map((popup, index) => (
         <DraggablePopup 
           key={popup.id}
           popup={popup}

@@ -1,5 +1,6 @@
 "use client"
 
+import { use } from 'react'
 import { useForm, SubmitHandler, SubmitErrorHandler } from "react-hook-form"
 
 export type ContactRequestInput = {
@@ -9,7 +10,8 @@ export type ContactRequestInput = {
   note?: string
 }
 
-const ContactForm = ({isBanned}: { isBanned: boolean }) => {
+const ContactForm = ({isBanned}: { isBanned: Promise<{isBanned: boolean}> }) => {
+  const isBannedPromise = use(isBanned);
   const {
     register,
     handleSubmit,
@@ -17,7 +19,7 @@ const ContactForm = ({isBanned}: { isBanned: boolean }) => {
   } = useForm<ContactRequestInput>()
 
   const onSubmit: SubmitHandler<ContactRequestInput> = async (data) => {
-    if (isBanned) {
+    if (isBannedPromise.isBanned) {
       alert('귀하는 문의를 제출할 수 없습니다.');
       return;
     }
@@ -91,13 +93,13 @@ const ContactForm = ({isBanned}: { isBanned: boolean }) => {
       />
 
       <div className="text-right">
-        {isBanned && (
+        {isBannedPromise.isBanned && (
             <p className="text-red-500 text-sm float-left py-2">귀하는 문의를 제출할 수 없습니다.</p>
         )}
         <button
           type="submit"
           className="inline-block p-2 bg-purple-500 text-white rounded-md hover:bg-purple-600 focus:outline-none focus:ring-2 focus:ring-purple-500 w-full sm:w-auto disabled:bg-gray-400"
-          disabled={isBanned}
+          disabled={isBannedPromise.isBanned}
         >
           보내기
         </button>

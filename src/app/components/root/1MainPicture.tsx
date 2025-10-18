@@ -6,6 +6,7 @@ import 'swiper/css';
 import 'swiper/css/navigation';
 import 'swiper/css/pagination';
 import { Navigation, Pagination, Autoplay } from 'swiper/modules';
+import { use } from 'react';
 
 export type Banner = {
   id: number;
@@ -13,11 +14,11 @@ export type Banner = {
   imageName: string;
 };
 
-const MainPicture = ({banners}: {banners: Banner[]}) => {
-
+const MainPicture = ({banners}: {banners: Promise<Banner[]>}) => {
+  const bannersPromise = use(banners)
   return (
     <section className="w-full mt-14">
-      {banners.length > 0 && (
+      {bannersPromise.length > 0 && (
         <Swiper
           modules={[Navigation, Pagination, Autoplay]}
           spaceBetween={0}
@@ -27,7 +28,7 @@ const MainPicture = ({banners}: {banners: Banner[]}) => {
           autoplay={{ delay: 3000, disableOnInteraction: false }}
           loop={true}
         >
-          {banners.map((banner) => (
+          {bannersPromise.map((banner) => (
             <SwiperSlide key={banner.id}>
               <Image
                 src={banner.imageUrl}
