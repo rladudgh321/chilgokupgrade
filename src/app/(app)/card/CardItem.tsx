@@ -46,7 +46,7 @@ type Props = {
   };
 };
 
-const CardItem = ({ listing, onClick }: Props & { onClick: (id: number) => void }) => {
+const CardItem = ({ listing, onClick, priority }: Props & { onClick: (id: number) => void; priority?: boolean }) => {
   const formatPrice = (price: number | undefined) => {
     if (price === undefined || price === null) return "";
     return numberToKoreanWithDigits(price);
@@ -79,7 +79,9 @@ const CardItem = ({ listing, onClick }: Props & { onClick: (id: number) => void 
             src={listing.mainImage}
             alt={listing.title || "매물 이미지"}
             fill
+            sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
             className="object-cover"
+            priority={priority}
           />
         ) : (
           <div className="w-full h-full bg-gray-300 flex items-center justify-center text-gray-500">

@@ -152,8 +152,8 @@ const CardList = ({ listings }: { listings: any[] }) => {
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-          {displayListings.map((listing) => (
-            <CardItem key={listing.id} listing={listing} onClick={() => handleCardClick(listing.id)} />
+          {displayListings.map((listing, index) => (
+            <CardItem key={listing.id} listing={listing} onClick={() => handleCardClick(listing.id)} priority={index < 3} />
           ))}
         </div>
 

@@ -95,7 +95,7 @@ const SingleImageUploader = ({ title, getApiEndpoint, updateApiEndpoint, uploadA
         <div className="mt-4">
           <h2 className="text-xl font-semibold">현재 로고</h2>
           <div className="relative w-48 h-48 mt-2">
-            <Image src={imageUrl} alt="Current Logo" layout="fill" objectFit="contain" />
+            <Image src={imageUrl} alt="Current Logo" fill objectFit="contain" />
           </div>
         </div>
       )}

@@ -12,7 +12,8 @@ const Footer = ({ headerPromise }: {headerPromise: HeaderProps}) => {
               src={String(headerPromise?.logoUrl)} 
               alt="logo" 
               width={120} 
-              height={60} 
+              height={60}
+              className="w-auto h-auto" 
             />}
             <p className="mt-4 text-lg font-bold text-white">
               {headerPromise?.companyName}

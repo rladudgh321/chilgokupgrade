@@ -47,7 +47,7 @@ const OptionIcon = ({ option }: OptionIconProps) => {
   return (
     <div className="flex flex-col items-center justify-center text-center">
       <div className="relative w-12 h-12 mb-1">
-        <Image src={iconPath} alt={option.name} layout="fill" objectFit="contain" />
+        <Image src={iconPath} alt={option.name} fill objectFit="contain" />
       </div>
       <span className="text-xs text-gray-700">{option.name}</span>
     </div>

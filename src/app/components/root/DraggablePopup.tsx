@@ -140,7 +140,7 @@ const DraggablePopup = ({ popup, zIndex, onFocus, initialPosition }: DraggablePo
             <Image 
               src={popup.representativeImage}
               alt="Popup Image"
-              layout="fill"
+              fill
               objectFit="contain"
             />
           )
