@@ -1,43 +1,20 @@
 "use client"
-import { useState, useEffect, useCallback, useMemo } from "react"
-import { useInfiniteQuery } from "@tanstack/react-query"
+import { useState, useMemo } from "react"
 import CardItem from "./CardItem"
 import SearchBar from "../landSearch/SearchBar"
 import { useRouter, useSearchParams } from "next/navigation"
 import BuildDetailModalClient from '@/app/components/root/BuildDetailModal'
 import { koreanToNumber } from '@/app/utility/koreanToNumber'
 
-const LIMIT = 12
-
-const fetchListings = async ({ pageParam = 1, queryKey }: any) => {
-  const [, searchParams] = queryKey;
-  const params = new URLSearchParams();
-
-  // We only pass filters that the API can handle
-  params.set("page", pageParam.toString());
-  params.set("limit", LIMIT.toString());
-  if (searchParams.keyword) params.set("keyword", searchParams.keyword);
-  if (searchParams.theme) params.set("theme", searchParams.theme);
-  if (searchParams.propertyType) params.set("propertyType", searchParams.propertyType);
-  if (searchParams.buyType) params.set("buyType", searchParams.buyType);
-  if (searchParams.rooms) params.set("rooms", searchParams.rooms);
-  if (searchParams.bathrooms) params.set("bathrooms", searchParams.bathrooms);
-  if (searchParams.sortBy) params.set("sortBy", searchParams.sortBy);
-
-  const res = await fetch(`/api/listings?${params.toString()}`, {
-    next: { revalidate: 28_800, tags: ['public', 'card'] }
-  });
-  if (!res.ok) {
-    throw new Error('Network response was not ok');
-  }
-  return res.json();
-};
-
-const CardList = ({ initialData }: { initialData: any }) => {
+const CardList = ({ listings }: { listings: any[] }) => {
   const [selectedBuildId, setSelectedBuildId] = useState<number | null>(null);
 
   const handleCardClick = (id: number) => {
     setSelectedBuildId(id);
+  };
+
+  const handleCloseModal = () => {
+    setSelectedBuildId(null);
   };
 
   const router = useRouter()
@@ -53,53 +30,14 @@ const CardList = ({ initialData }: { initialData: any }) => {
     return params;
   }, [searchParams]);
 
-  const handleCloseModal = () => {
-    setSelectedBuildId(null);
-  };
-
-  const { data, fetchNextPage, hasNextPage, isFetchingNextPage, isError } = useInfiniteQuery({
-    queryKey: ["listings", queryParams],
-    queryFn: fetchListings,
-    getNextPageParam: (lastPage) => {
-      if (lastPage.currentPage < lastPage.totalPages) {
-        return lastPage.currentPage + 1;
-      }
-      return undefined;
-    },
-    initialPageParam: 1,
-    initialData: { pages: [initialData], pageParams: [1] },
-  });
-
-  const handleScroll = useCallback(() => {
-    if (
-      window.innerHeight + document.documentElement.scrollTop >=
-      document.documentElement.offsetHeight - 500
-    ) {
-      if (hasNextPage && !isFetchingNextPage) {
-        fetchNextPage()
-      }
-    }
-  }, [hasNextPage, isFetchingNextPage, fetchNextPage])
-
-  useEffect(() => {
-    window.addEventListener("scroll", handleScroll)
-    return () => window.removeEventListener("scroll", handleScroll)
-  }, [handleScroll])
-
   const handleSortChange = (newSortBy: string) => {
     const params = new URLSearchParams(searchParams.toString());
     params.set("sortBy", newSortBy);
     router.push(`/card?${params.toString()}`);
   };
 
-  const allListings = useMemo(() => {
-    if (!data) return [];
-    const listings = data.pages.flatMap((page) => page.listings);
-    return Array.from(new Map(listings.map(item => [item.id, item])).values());
-  }, [data]);
-
   const displayListings = useMemo(() => {
-    let listings = allListings;
+    let filteredListings = listings;
 
     const priceRange = queryParams.priceRange;
     const buyType = queryParams.buyType;
@@ -111,7 +49,7 @@ const CardList = ({ initialData }: { initialData: any }) => {
       else if (buyType === "매매") priceField = "salePrice";
 
       if (priceField) {
-        listings = listings.filter(listing => {
+        filteredListings = filteredListings.filter(listing => {
           const price = listing[priceField];
           if (price === undefined || price === null) return false;
 
@@ -135,7 +73,7 @@ const CardList = ({ initialData }: { initialData: any }) => {
 
     const floor = queryParams.floor;
     if (floor) {
-        listings = listings.filter(listing => {
+        filteredListings = filteredListings.filter(listing => {
             const currentFloor = listing.currentFloor;
             if (currentFloor === undefined || currentFloor === null) return false;
 
@@ -159,7 +97,7 @@ const CardList = ({ initialData }: { initialData: any }) => {
     const areaRange = queryParams.areaRange;
     if (areaRange) {
         const PYEONG_TO_M2 = 3.305785;
-        listings = listings.filter(listing => {
+        filteredListings = filteredListings.filter(listing => {
             const totalArea = listing.totalArea;
             if (totalArea === undefined || totalArea === null) return false;
 
@@ -182,24 +120,8 @@ const CardList = ({ initialData }: { initialData: any }) => {
         });
     }
 
-    return listings;
-  }, [allListings, queryParams]);
-
-  if (isError) {
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
-          <p className="text-red-600 mb-4">데이터를 불러오는 중 오류가 발생했습니다.</p>
-          <button
-            onClick={() => window.location.reload()}
-            className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600"
-          >
-            다시 시도
-          </button>
-        </div>
-      </div>
-    )
-  }
+    return filteredListings;
+  }, [listings, queryParams]);
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -240,23 +162,10 @@ const CardList = ({ initialData }: { initialData: any }) => {
             <p>표시할 매물이 없습니다.</p>
           </div>
         )}
-
-        {isFetchingNextPage && (
-          <div className="flex items-center justify-center mt-8">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
-            <span className="ml-2 text-gray-600">더 많은 매물을 불러오는 중...</span>
-          </div>
-        )}
-
-        {!hasNextPage && displayListings.length > 0 && (
-          <div className="flex items-center justify-center mt-8 text-gray-500">
-            <p>모든 매물을 불러왔습니다.</p>
-          </div>
-        )}
       </div>
       {selectedBuildId && (
         <BuildDetailModalClient
-          build={allListings.find((listing) => listing.id === selectedBuildId)}
+          build={listings.find((listing) => listing.id === selectedBuildId)}
           onClose={handleCloseModal}
         />
       )}
