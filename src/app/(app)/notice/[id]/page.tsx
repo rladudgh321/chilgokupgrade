@@ -1,22 +1,17 @@
-import { cookies } from 'next/headers';
-import { createClient } from '@/app/utils/supabase/server';
 import { notFound } from 'next/navigation';
 import PostView from './PostView';
 import { BoardPost } from './PostView';
 
 async function getPost(id: string): Promise<BoardPost> {
-  const cookieStore = await cookies();
-  const supabase = createClient(cookieStore);
+  const res = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/board/${id}`, {
+    next: { revalidate: 28_800, tags: ['public', 'board'] }
+  });
 
-  const { data, error } = await supabase
-    .from('BoardPost')
-    .select('id, title, content, views, createdAt, registrationDate')
-    .eq('id', id)
-    .single();
-
-  if (error || !data) {
+  if (!res.ok) {
     notFound();
   }
+
+  const data = await res.json();
 
   return {
     ...data,
@@ -30,7 +25,7 @@ export default async function NoticeDetailPage({
 }: {
   params: Promise<{id: string}>;
 }) {
-  const { id } = await params;       // ✅ 먼저 await
+  const { id } = await params;
   const post = await getPost(id);
   return <PostView post={post} />;
 }

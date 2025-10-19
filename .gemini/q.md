@@ -1,51 +1,22 @@
-[Error: No response is returned from route handler '[project]/src/app/api/board/route.ts'. Ensure you return a `Response` or a `NextResponse` in all branches of your handler.]
- GET /api/board 500 in 614ms
- ⨯ SyntaxError: Unexpected end of JSON input
-    at JSON.parse (<anonymous>)
-    at async getPosts (src\app\(app)\notice\page.tsx:11:16)
-    at async NoticePage (src\app\(app)\notice\page.tsx:31:17)
-   9 |   });
-  10 |
-> 11 |   const data = await res.json();
-     |                ^
-  12 |   console.log("Fetched posts:", data);
-  13 |   return data;
-  14 | } {
-  digest: '831585614'
+async function getPost(id: string): Promise<BoardPost> {
+  const cookieStore = await cookies();
+  const supabase = createClient(cookieStore);
+
+  const { data, error } = await supabase
+    .from('BoardPost')
+    .select('id, title, content, views, createdAt, registrationDate')
+    .eq('id', id)
+    .single();
+
+  if (error || !data) {
+    notFound();
+  }
+
+  return {
+    ...data,
+    createdAt: new Date(data.createdAt).toISOString(),
+    registrationDate: data.registrationDate ? new Date(data.registrationDate).toISOString() : undefined,
+  };
 }
-------------
-import NoticeClient from './NoticeClient';
-import { BoardPost } from './NoticeClient';
-
-const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL!;
-
-async function getPosts() {
-  const res = await fetch(`${BASE_URL}/api/board`, {
-    next: { revalidate: 28_800, tags: ['public', 'board'] },
-  });
-
-  const data = await res.json();
-  console.log("Fetched posts:", data);
-  return data;
-}
-
-function serializePosts(posts: any[]): BoardPost[] {
-  return posts.map(post => ({
-    ...post,
-    id: post.id,
-    title: post.title,
-    content: post.content,
-    categoryName: post.BoardCategory?.name,
-    views: post.views,
-    createdAt: new Date(post.createdAt).toISOString(),
-    registrationDate: post.registrationDate ? new Date(post.registrationDate).toISOString() : undefined,
-  }));
-}
-
-
-export default async function NoticePage() {
-  const posts = await getPosts();
-  console.log('posts', posts);
-  const serializedPosts = serializePosts(posts);
-  return <NoticeClient initialPosts={serializedPosts} />;
-}
+----------
+`NoticeDetailPage`를 수정하려고 하는데, `/api/board/[id]/route.ts`를 만들어서 위와 같은 코드를 fetch로 만들어서 NoticeDetailPage에 fetch로 가지고 오려고 하는데 그렇게 코드를 수정해줘
