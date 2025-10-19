@@ -1,24 +1,15 @@
-
-import { cookies } from 'next/headers';
-import { createClient } from '@/app/utils/supabase/server';
 import NoticeClient from './NoticeClient';
 import { BoardPost } from './NoticeClient';
 
+const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL!;
+
 async function getPosts() {
-  const cookieStore = await cookies();
-  const supabase = createClient(cookieStore);
+  const res = await fetch(`${BASE_URL}/api/board`, {
+    next: { revalidate: 28_800, tags: ['public', 'board'] },
+  });
 
-  const { data, error } = await supabase
-    .from('BoardPost')
-    .select('id, title, content, views, createdAt, registrationDate, BoardCategory(name)')
-    .eq('isPublished', true)
-    .order('createdAt', { ascending: false });
-
-  if (error) {
-    console.error('Error fetching posts:', error);
-    return [];
-  }
-
+  const data = await res.json();
+  console.log("Fetched posts:", data);
   return data;
 }
 
@@ -38,6 +29,7 @@ function serializePosts(posts: any[]): BoardPost[] {
 
 export default async function NoticePage() {
   const posts = await getPosts();
+  console.log('posts', posts);
   const serializedPosts = serializePosts(posts);
   return <NoticeClient initialPosts={serializedPosts} />;
 }
