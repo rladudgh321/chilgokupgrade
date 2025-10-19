@@ -2,7 +2,7 @@ import { Suspense } from 'react';
 import CardPageClient from "./CardPageClient";
 
 async function fetchJson(url: string) {
-  const res = await fetch(url, { cache: "no-store" });
+  const res = await fetch(url, { next: { revalidate: 28_800, tags: ['public', 'list'] } });
   if (!res.ok) {
     return { data: [] };
   }
