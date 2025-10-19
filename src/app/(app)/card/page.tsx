@@ -1,17 +1,26 @@
 import { Suspense } from 'react';
 import CardPageClient from "./CardPageClient";
 
-export default async function CardPage({ searchParams }: { searchParams: Promise<{ [key: string]: string | string[] | undefined }> }) {
-  const sh = await searchParams;
+async function fetchJson(url: string) {
+  const res = await fetch(url, { cache: "no-store" });
+  if (!res.ok) {
+    return { data: [] };
+  }
+  return res.json();
+}
+
+export default async function CardPage(props: { searchParams: { [key: string]: string | string[] | undefined } }) {
+  const searchParams = props.searchParams;
+
   const query: Record<string, string> = {};
-  if (sh.keyword) query.keyword = sh.keyword as string;
-  if (sh.theme) query.theme = sh.theme as string;
-  if (sh.propertyType) query.propertyType = sh.propertyType as string;
-  if (sh.buyType) query.buyType = sh.buyType as string;
-  if (sh.rooms) query.rooms = sh.rooms as string;
-  if (sh.bathrooms) query.bathrooms = sh.bathrooms as string;
-  if (sh.sortBy) query.sortBy = sh.sortBy as string;
-  if (sh.page) query.page = sh.page as string;
+  if (searchParams.keyword) query.keyword = searchParams.keyword as string;
+  if (searchParams.theme) query.theme = searchParams.theme as string;
+  if (searchParams.propertyType) query.propertyType = searchParams.propertyType as string;
+  if (searchParams.buyType) query.buyType = searchParams.buyType as string;
+  if (searchParams.rooms) query.rooms = searchParams.rooms as string;
+  if (searchParams.bathrooms) query.bathrooms = searchParams.bathrooms as string;
+  if (searchParams.sortBy) query.sortBy = searchParams.sortBy as string;
+  if (searchParams.page) query.page = searchParams.page as string;
   query.limit = "12";
 
   const params = new URLSearchParams(query);
@@ -24,9 +33,31 @@ export default async function CardPage({ searchParams }: { searchParams: Promise
   }
   const listingsData = await res.json();
 
+  const [settings, roomOptions, bathroomOptions, floorOptions, areaOptions, themeOptions, propertyTypeOptions, buyTypeOptions] = await Promise.all([
+    fetchJson(`${process.env.NEXT_PUBLIC_BASE_URL}/api/admin/search-bar-settings`),
+    fetchJson(`${process.env.NEXT_PUBLIC_BASE_URL}/api/room-options`),
+    fetchJson(`${process.env.NEXT_PUBLIC_BASE_URL}/api/bathroom-options`),
+    fetchJson(`${process.env.NEXT_PUBLIC_BASE_URL}/api/floor-options`),
+    fetchJson(`${process.env.NEXT_PUBLIC_BASE_URL}/api/area`),
+    fetchJson(`${process.env.NEXT_PUBLIC_BASE_URL}/api/theme-images`),
+    fetchJson(`${process.env.NEXT_PUBLIC_BASE_URL}/api/listing-type`),
+    fetchJson(`${process.env.NEXT_PUBLIC_BASE_URL}/api/buy-types`),
+  ]);
+
   return (
     <Suspense>
-      <CardPageClient listings={listingsData.listings} totalPages={listingsData.totalPages} />
+      <CardPageClient 
+        listings={listingsData.listings} 
+        totalPages={listingsData.totalPages} 
+        settings={settings.data}
+        roomOptions={roomOptions.data}
+        bathroomOptions={bathroomOptions.data}
+        floorOptions={floorOptions.data}
+        areaOptions={areaOptions.data}
+        themeOptions={themeOptions.data}
+        propertyTypeOptions={propertyTypeOptions.data}
+        buyTypeOptions={buyTypeOptions.data}
+      />
     </Suspense>
   );
 }

@@ -6,7 +6,27 @@ import { useRouter, useSearchParams } from "next/navigation"
 import BuildDetailModalClient from '@/app/components/root/BuildDetailModal'
 import { koreanToNumber } from '@/app/utility/koreanToNumber'
 
-const CardList = ({ listings }: { listings: any[] }) => {
+const CardList = ({ 
+  listings, 
+  settings,
+  roomOptions,
+  bathroomOptions,
+  floorOptions,
+  areaOptions,
+  themeOptions,
+  propertyTypeOptions,
+  buyTypeOptions
+}: { 
+  listings: any[],
+  settings: any,
+  roomOptions: any[],
+  bathroomOptions: any[],
+  floorOptions: any[],
+  areaOptions: any[],
+  themeOptions: any[],
+  propertyTypeOptions: any[],
+  buyTypeOptions: any[]
+}) => {
   const [selectedBuildId, setSelectedBuildId] = useState<number | null>(null);
 
   const handleCardClick = (id: number) => {
@@ -126,7 +146,16 @@ const CardList = ({ listings }: { listings: any[] }) => {
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="bg-white shadow-sm border-b">
-        <SearchBar />
+        <SearchBar 
+          settings={settings}
+          roomOptions={roomOptions}
+          bathroomOptions={bathroomOptions}
+          floorOptions={floorOptions}
+          areaOptions={areaOptions}
+          themeOptions={themeOptions}
+          propertyTypeOptions={propertyTypeOptions}
+          buyTypeOptions={buyTypeOptions}
+        />
       </div>
 
       <div className="p-2 sm:p-4 md:p-6">
