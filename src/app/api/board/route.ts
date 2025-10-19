@@ -5,20 +5,19 @@ import { NextRequest, NextResponse } from "next/server";
 export async function GET(req: NextRequest) {
   try {
     const cookieStore = await cookies();
-  const supabase = createClient(cookieStore);
+    const supabase = createClient(cookieStore);
 
-  const { data, error } = await supabase
-    .from('BoardPost')
-    .select('id, title, content, views, createdAt, registrationDate, BoardCategory(name)')
-    .eq('isPublished', true)
-    .order('createdAt', { ascending: false });
-    
-  if (error) {
-    console.error('Error fetching posts:', error);
-    return [];
-  }
-  console.log('datadata',data);
-  return data;
+    const { data, error } = await supabase
+      .from('BoardPost')
+      .select('id, title, content, views, createdAt, registrationDate, BoardCategory(name)')
+      .eq('isPublished', true)
+      .order('createdAt', { ascending: false });
+      
+    if (error) {
+      console.error('Error fetching posts:', error);
+      return NextResponse.json({ message: "Error fetching posts", error }, { status: 500 });
+    }
+    return NextResponse.json(data);
   } catch (e: any) {
     return NextResponse.json({ message: e?.message ?? "서버 오류" }, { status: 500 });
   }

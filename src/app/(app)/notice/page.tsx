@@ -7,10 +7,10 @@ async function getPosts() {
   const res = await fetch(`${BASE_URL}/api/board`, {
     next: { revalidate: 28_800, tags: ['public', 'board'] },
   });
-
-  const data = await res.json();
-  console.log("Fetched posts:", data);
-  return data;
+  if (!res.ok) {
+    return { data: [] };
+  }
+  return res.json();
 }
 
 function serializePosts(posts: any[]): BoardPost[] {
@@ -29,7 +29,6 @@ function serializePosts(posts: any[]): BoardPost[] {
 
 export default async function NoticePage() {
   const posts = await getPosts();
-  console.log('posts', posts);
   const serializedPosts = serializePosts(posts);
   return <NoticeClient initialPosts={serializedPosts} />;
 }

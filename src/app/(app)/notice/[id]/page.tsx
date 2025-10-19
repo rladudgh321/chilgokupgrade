@@ -4,8 +4,6 @@ import { notFound } from 'next/navigation';
 import PostView from './PostView';
 import { BoardPost } from './PostView';
 
-export const revalidate = 3600; // Revalidate every hour
-
 async function getPost(id: string): Promise<BoardPost> {
   const cookieStore = await cookies();
   const supabase = createClient(cookieStore);
