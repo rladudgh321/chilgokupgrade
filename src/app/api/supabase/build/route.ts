@@ -9,7 +9,7 @@ export async function GET(req: NextRequest) {
     const page = Math.max(1, parseInt(searchParams.get("page") ?? "1", 10) || 1);
     const limit = Math.min(
       100,
-      Math.max(1, parseInt(searchParams.get("limit") ?? "10", 10) || 10)
+      Math.max(1, parseInt(searchParams.get("limit") ?? "12", 10) || 12)
     );
     const keywordRaw = searchParams.get("keyword")?.trim() ?? "";
     const keyword = keywordRaw.length ? keywordRaw : undefined;

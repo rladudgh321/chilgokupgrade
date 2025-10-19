@@ -1,12 +1,4 @@
-index.tsx:11 Image with src "https://pijtsbicrnsbdaewosgt.supabase.co/storage/v1/object/public/build-public/settings/logo/1760455368784_pupeo8uqphp_2.webp" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: "auto"' or 'height: "auto"' to maintain the aspect ratio.
-"use client"		
-Footer	@	index.tsx:11
-<Footer>		
-AppLayout	@	layout.tsx:41
-<AppLayout>		
-Function.all	@	VM9958 <anonymous>:1
------------
-warn-once.ts:6 Image with src "https://pijtsbicrnsbdaewosgt.supabase.co/storage/v1/object/public/build-public/main/1758691819611_iqfqzcu8gad_2.webp" was detected as the Largest Contentful Paint (LCP). Please add the "priority" property if this image is above the fold.
-Read more: https://nextjs.org/docs/api-reference/next/image#priority
-warnOnce	@	warn-once.ts:6
-(anonymous)	@	get-img-props.ts:631
+`/card`페이지에서 item을 12개로 해줘. api를 확인하여 12개씩 데이터를 내려줘
+------
+지금 한페이지당 10개의 데이터만 내려줘서 마지막 4행에 1열만 남아서 이상해.
+1페이지당 12개의 데이터를 내려줘

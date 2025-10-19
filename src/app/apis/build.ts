@@ -12,7 +12,7 @@ export type Build = Record<string, any>;
 
 export async function BuildFindAll(
   page: number = 1,
-  limit: number = 10,
+  limit: number = 12,
   keyword?: string,
   filters?: { theme?: string; propertyType?: string; buyType?: string; rooms?: string; bathrooms?: string },
   sortBy?: string,
@@ -141,7 +141,7 @@ export async function BuildDeleteSome(ids: number[], opts?: { signal?: AbortSign
 // 삭제된 매물 모두 보기
 export async function BuildFindAllDeleted(
   page: number = 1,
-  limit: number = 10,
+  limit: number = 12,
   keyword?: string,
   opts?: { signal?: AbortSignal }
 ) {

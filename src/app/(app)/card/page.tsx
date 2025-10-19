@@ -1,17 +1,18 @@
 import { Suspense } from 'react';
-import CardList from "./CardList";
+import CardPageClient from "./CardPageClient";
 
-export default async function CardPage(props: { searchParams: Promise<{ [key: string]: string | string[] | undefined }> }) {
-  const searchParams = await props.searchParams;
-
+export default async function CardPage({ searchParams }: { searchParams: Promise<{ [key: string]: string | string[] | undefined }> }) {
+  const sh = await searchParams;
   const query: Record<string, string> = {};
-  if (searchParams.keyword) query.keyword = searchParams.keyword as string;
-  if (searchParams.theme) query.theme = searchParams.theme as string;
-  if (searchParams.propertyType) query.propertyType = searchParams.propertyType as string;
-  if (searchParams.buyType) query.buyType = searchParams.buyType as string;
-  if (searchParams.rooms) query.rooms = searchParams.rooms as string;
-  if (searchParams.bathrooms) query.bathrooms = searchParams.bathrooms as string;
-  if (searchParams.sortBy) query.sortBy = searchParams.sortBy as string;
+  if (sh.keyword) query.keyword = sh.keyword as string;
+  if (sh.theme) query.theme = sh.theme as string;
+  if (sh.propertyType) query.propertyType = sh.propertyType as string;
+  if (sh.buyType) query.buyType = sh.buyType as string;
+  if (sh.rooms) query.rooms = sh.rooms as string;
+  if (sh.bathrooms) query.bathrooms = sh.bathrooms as string;
+  if (sh.sortBy) query.sortBy = sh.sortBy as string;
+  if (sh.page) query.page = sh.page as string;
+  query.limit = "12";
 
   const params = new URLSearchParams(query);
 
@@ -25,7 +26,7 @@ export default async function CardPage(props: { searchParams: Promise<{ [key: st
 
   return (
     <Suspense>
-      <CardList listings={listingsData.listings} />
+      <CardPageClient listings={listingsData.listings} totalPages={listingsData.totalPages} />
     </Suspense>
   );
 }
