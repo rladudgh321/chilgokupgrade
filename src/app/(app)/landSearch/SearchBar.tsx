@@ -1,257 +1,190 @@
-"use client"
-import { useEffect, useState, useRef } from "react"
-import { useRouter, useSearchParams, usePathname } from "next/navigation"
-import { useQuery } from "@tanstack/react-query";
+"use client";
+import { useDeferredValue, useEffect, useMemo, useRef, useState, startTransition } from "react";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 
-const fetchSettings = async () => {
-  const res = await fetch("/api/admin/search-bar-settings");
-  if (!res.ok) {
-    throw new Error('Network response was not ok');
-  }
-  const data = await res.json();
-  return data.data;
+type OptionName = { name: string };
+type BuyType = { id: number; name: string };
+
+type Props = {
+  settings: {
+    showKeyword?: boolean;
+    showPropertyType?: boolean;
+    showbuyType?: boolean;
+    showPriceRange?: boolean;
+    showAreaRange?: boolean;
+    showTheme?: boolean;
+    showRooms?: boolean;
+    showFloor?: boolean;
+    showBathrooms?: boolean;
+    showSubwayLine?: boolean;
+  };
+  roomOptions: OptionName[];
+  bathroomOptions: OptionName[];
+  floorOptions: OptionName[];
+  areaOptions: OptionName[];
+  themeOptions: string[] | Array<{ label: string }>;
+  propertyTypeOptions: OptionName[];
+  buyTypeOptions: BuyType[];
 };
 
-const SearchBar = () => {
-  const router = useRouter()
-  const searchParams = useSearchParams()
-  const isInitialMount = useRef(true)
+export default function SearchBar({
+  settings,
+  roomOptions: roomOpts0,
+  bathroomOptions: bathOpts0,
+  floorOptions: floorOpts0,
+  areaOptions: areaOpts0,
+  themeOptions: themeOpts0,
+  propertyTypeOptions: propTypeOpts0,
+  buyTypeOptions: buyTypeOpts,
+}: Props) {
+  const router = useRouter();
+  const pathname = usePathname();
+  const sp = useSearchParams();
+  const isInitial = useRef(true);
 
-  const { data: settings, isLoading: isLoadingSettings } = useQuery({
-    queryKey: ["search-bar-settings"],
-    queryFn: fetchSettings,
-    staleTime: 1000 * 60 * 5, // 5 minutes
-  });
+  // ── 옵션 파생값: 메모이즈로 고정 (렌더마다 새 배열 생성 방지)
+  const roomOptions = useMemo(
+    () => roomOpts0.map((x) => x.name),
+    [roomOpts0]
+  );
+  const bathroomOptions = useMemo(
+    () => bathOpts0.map((x) => x.name),
+    [bathOpts0]
+  );
+  const floorOptions = useMemo(
+    () => floorOpts0.map((x) => x.name),
+    [floorOpts0]
+  );
+  const areaOptions = useMemo(
+    () => areaOpts0.map((x) => x.name),
+    [areaOpts0]
+  );
+  const themeOptions = useMemo(() => {
+    if (Array.isArray(themeOpts0) && typeof themeOpts0[0] === "string") {
+      return themeOpts0 as string[];
+    }
+    return (themeOpts0 as Array<{ label: string }>).map((x) => x.label);
+  }, [themeOpts0]);
+  const propertyTypeOptions = useMemo(
+    () => propTypeOpts0.map((x) => x.name),
+    [propTypeOpts0]
+  );
 
-  const [searchTerm, setSearchTerm] = useState(searchParams.get("keyword") || "")
-  const [debouncedSearchTerm, setDebouncedSearchTerm] = useState(searchTerm)
-  const [propertyType, setPropertyType] = useState(searchParams.get("propertyType") || "")
-  const [buyType, setbuyType] = useState(searchParams.get("buyType") || "")
-  const [priceRange, setPriceRange] = useState(searchParams.get("priceRange") || "")
-  const [areaRange, setAreaRange] = useState(searchParams.get("areaRange") || "")
-  const [theme, setTheme] = useState(searchParams.get("theme") || "")
-  const [rooms, setRooms] = useState(searchParams.get("rooms") || "")
-  const [floor, setFloor] = useState(searchParams.get("floor") || "")
-  const [bathrooms, setBathrooms] = useState(searchParams.get("bathrooms") || "")
-  const [subwayLine, setSubwayLine] = useState(searchParams.get("subwayLine") || "")
-  const [themeOptions, setThemeOptions] = useState<string[]>([])
-  const [propertyTypeOptions, setPropertyTypeOptions] = useState<string[]>([])
-  const [buyTypeOptions, setBuyTypeOptions] = useState<Array<{id: number, name: string}>>([])
-  const [roomOptions, setRoomOptions] = useState<string[]>([])
-  const [pricePresets, setPricePresets] = useState<Array<{id: number, name: string}>>([]);
+  // ── URL 동기화가 필요한 필터 상태만 state로 관리
+  const [searchTerm, setSearchTerm] = useState(sp.get("keyword") ?? "");
+  const deferredSearch = useDeferredValue(searchTerm); // 디바운스 대체
+  const [propertyType, setPropertyType] = useState(sp.get("propertyType") ?? "");
+  const [buyType, setBuyType] = useState(sp.get("buyType") ?? "");
+  const [priceRange, setPriceRange] = useState(sp.get("priceRange") ?? "");
+  const [areaRange, setAreaRange] = useState(sp.get("areaRange") ?? "");
+  const [theme, setTheme] = useState(sp.get("theme") ?? "");
+  const [rooms, setRooms] = useState(sp.get("rooms") ?? "");
+  const [floor, setFloor] = useState(sp.get("floor") ?? "");
+  const [bathrooms, setBathrooms] = useState(sp.get("bathrooms") ?? "");
+  const [subwayLine, setSubwayLine] = useState(sp.get("subwayLine") ?? "");
 
-  // Fetch price presets when buyType changes
+  const [pricePresets, setPricePresets] = useState<Array<{ id: number; name: string }>>([]);
+  const pricePresetsCache = useRef<Record<number, Array<{ id: number; name: string }>>>({});
+
+  // ── buyType 변경 시 프리셋 (로컬 캐시 적용)
   useEffect(() => {
-    if (buyType) {
-      const selectedBuyType = buyTypeOptions.find(bt => bt.name === buyType);
-      if (selectedBuyType) {
-        let isMounted = true;
-        (async () => {
-          try {
-            const res = await fetch(`/api/price-presets?buyTypeId=${selectedBuyType.id}`);
-            if (!res.ok) return;
-            const json = await res.json();
-            if (isMounted && json.ok) {
-              setPricePresets(json.data);
-            }
-          } catch {
-            // ignore
-          }
-        })();
-        return () => { isMounted = false };
-      }
-    } else {
+    if (!buyType) {
       setPricePresets([]);
+      return;
     }
-  }, [buyType, buyTypeOptions]);
-  const [bathroomOptions, setBathroomOptions] = useState<string[]>([])
-  const [floorOptions, setFloorOptions] = useState<string[]>([])
-  const [areaOptions, setAreaOptions] = useState<string[]>([])
-
-  // 방 갯수 옵션 로드
-  useEffect(() => {
-    let isMounted = true
-    ;(async () => {
+    const bt = buyTypeOpts.find((x) => x.name === buyType);
+    if (!bt) {
+      setPricePresets([]);
+      return;
+    }
+    // 캐시 HIT
+    if (pricePresetsCache.current[bt.id]) {
+      setPricePresets(pricePresetsCache.current[bt.id]);
+      return;
+    }
+    let alive = true;
+    (async () => {
       try {
-        const res = await fetch("/api/room-options", { cache: "no-store" })
-        if (!res.ok) return
-        const json = await res.json()
-        const items: Array<{ name?: string }> = json?.data ?? []
-        const names = items.map(x => x?.name).filter((v): v is string => typeof v === 'string' && v.length > 0)
-        const uniq = Array.from(new Set<string>(names))
-        if (isMounted) setRoomOptions(uniq)
+        const r = await fetch(`/api/price-presets?buyTypeId=${bt.id}`);
+        if (!r.ok) return;
+        const j = await r.json();
+        if (alive && j?.ok) {
+          pricePresetsCache.current[bt.id] = j.data ?? [];
+          setPricePresets(j.data ?? []);
+        }
       } catch {
         // ignore
       }
-    })()
-    return () => { isMounted = false }
-  }, [])
-
-
-
-  // 화장실 갯수 옵션 로드
-  useEffect(() => {
-    let isMounted = true
-    ;(async () => {
-      try {
-        const res = await fetch("/api/bathroom-options", { cache: "no-store" })
-        if (!res.ok) return
-        const json = await res.json()
-        const items: Array<{ name?: string }> = json?.data ?? []
-        const names = items.map(x => x?.name).filter((v): v is string => typeof v === 'string' && v.length > 0)
-        const uniq = Array.from(new Set<string>(names))
-        if (isMounted) setBathroomOptions(uniq)
-      } catch {
-        // ignore
-      }
-    })()
-    return () => { isMounted = false }
-  }, [])
-
-  // 층 단위 옵션 로드
-  useEffect(() => {
-    let isMounted = true
-    ;(async () => {
-      try {
-        const res = await fetch("/api/floor-options", { cache: "no-store" })
-        if (!res.ok) return
-        const json = await res.json()
-        const items: Array<{ name?: string }> = json?.data ?? []
-        const names = items.map(x => x?.name).filter((v): v is string => typeof v === 'string' && v.length > 0)
-        const uniq = Array.from(new Set<string>(names))
-        if (isMounted) setFloorOptions(uniq)
-      } catch {
-        // ignore
-      }
-    })()
-    return () => { isMounted = false }
-  }, [])
-
-  // 면적 옵션 로드
-  useEffect(() => {
-    let isMounted = true
-    ;(async () => {
-      try {
-        const res = await fetch("/api/area", { cache: "no-store" })
-        if (!res.ok) return
-        const json = await res.json()
-        const items: Array<{ name?: string }> = json?.data ?? []
-        const names = items.map(x => x?.name).filter((v): v is string => typeof v === 'string' && v.length > 0)
-        const uniq = Array.from(new Set<string>(names))
-        if (isMounted) setAreaOptions(uniq)
-      } catch {
-        // ignore
-      }
-    })()
-    return () => { isMounted = false }
-  }, [])
-
-  useEffect(() => {
-    let isMounted = true
-    ;(async () => {
-      try {
-        const res = await fetch("/api/theme-images", { cache: "no-store" })
-        if (!res.ok) return
-        const json = await res.json()
-        const items: Array<{ label?: string; isActive?: boolean }> = json?.data ?? []
-        const labels = items
-          .filter((x) => x && x.label && (x.isActive === undefined || x.isActive === true))
-          .map((x) => String(x.label))
-        if (isMounted) setThemeOptions(labels)
-      } catch {
-        // ignore
-      }
-    })()
+    })();
     return () => {
-      isMounted = false
+      alive = false;
+    };
+  }, [buyType, buyTypeOpts]);
+
+  // ── 정렬된 쿼리 문자열 빌더 (키 순서 고정 → 불필요 push 방지)
+  const buildSortedQueryString = (q: Record<string, string>) => {
+    const entries = Object.entries(q).filter(([, v]) => v && v.length > 0);
+    entries.sort(([a], [b]) => (a < b ? -1 : a > b ? 1 : 0));
+    return new URLSearchParams(entries).toString();
+  };
+
+  // ── URL 반영 (정렬/가드 포함)
+  useEffect(() => {
+    if (isInitial.current) {
+      isInitial.current = false;
+      return;
     }
-  }, [])
+    const q: Record<string, string> = {
+      page: "1",
+      ...(deferredSearch ? { keyword: deferredSearch } : {}),
+      ...(propertyType ? { propertyType } : {}),
+      ...(buyType ? { buyType } : {}),
+      ...(priceRange ? { priceRange } : {}),
+      ...(areaRange ? { areaRange } : {}),
+      ...(theme ? { theme } : {}),
+      ...(rooms ? { rooms } : {}),
+      ...(floor ? { floor } : {}),
+      ...(bathrooms ? { bathrooms } : {}),
+      ...(subwayLine ? { subwayLine } : {}),
+    };
+    const nextQS = buildSortedQueryString(q);
+    const currentQS = buildSortedQueryString(Object.fromEntries(sp.entries()));
 
-  // 매물종류 옵션 로드
-  useEffect(() => {
-    let isMounted = true
-    ;(async () => {
-      try {
-        const res = await fetch("/api/listing-type", { cache: "no-store" })
-        if (!res.ok) return
-        const json = await res.json()
-        const items: Array<{ name?: string }> = json?.data ?? []
-        const names = items.map(x => x?.name).filter((v): v is string => typeof v === 'string' && v.length > 0)
-        const uniq = Array.from(new Set<string>(names))
-        if (isMounted) setPropertyTypeOptions(uniq)
-      } catch {
-        // ignore
-      }
-    })()
-    return () => { isMounted = false }
-  }, [])
-
-  // 거래유형 옵션 로드
-  useEffect(() => {
-    let isMounted = true
-    ;(async () => {
-      try {
-        const res = await fetch("/api/buy-types", { cache: "no-store" })
-        if (!res.ok) return
-        const json = await res.json()
-        const items: Array<{ id: number, name?: string }> = json?.data ?? []
-        const options = items.map(x => ({ id: x.id, name: x.name || '' })).filter(x => x.name);
-        if (isMounted) setBuyTypeOptions(options)
-      } catch {
-        // ignore
-      }
-    })()
-    return () => { isMounted = false }
-  }, [])
-
-  useEffect(() => {
-    const handler = setTimeout(() => {
-      setDebouncedSearchTerm(searchTerm)
-    }, 500)
-
-    return () => {
-      clearTimeout(handler)
+    if (nextQS !== currentQS) {
+      startTransition(() => router.push(`${pathname}?${nextQS}`));
     }
-  }, [searchTerm])
-
-  const pathname = usePathname()
-  useEffect(() => {
-    if (isInitialMount.current) {
-      isInitialMount.current = false
-      return
-    }
-
-    const query: { [key:string]: string } = { page: "1" };
-
-    if (debouncedSearchTerm) query.keyword = debouncedSearchTerm;
-    if (propertyType) query.propertyType = propertyType;
-    if (buyType) query.buyType = buyType;
-    if (priceRange) query.priceRange = priceRange;
-    if (areaRange) query.areaRange = areaRange;
-    if (theme) query.theme = theme;
-    if (rooms) query.rooms = rooms;
-    if (floor) query.floor = floor;
-    if (bathrooms) query.bathrooms = bathrooms;
-    if (subwayLine) query.subwayLine = subwayLine;
-
-    router.push(`${pathname}?${new URLSearchParams(query).toString()}`);
-  }, [debouncedSearchTerm, propertyType, buyType, priceRange, areaRange, theme, rooms, floor, bathrooms, subwayLine, router, pathname])
+  }, [
+    deferredSearch,
+    propertyType,
+    buyType,
+    priceRange,
+    areaRange,
+    theme,
+    rooms,
+    floor,
+    bathrooms,
+    subwayLine,
+    router,
+    pathname,
+    sp,
+  ]);
 
   const handleReset = () => {
-    setSearchTerm("")
-    setPropertyType("")
-    setbuyType("")
-    setPriceRange("")
-    setAreaRange("")
-    setTheme("")
-    setRooms("")
-    setFloor("")
-    setBathrooms("")
-    setSubwayLine("")
-    router.push(pathname)
-  }
+    setSearchTerm("");
+    setPropertyType("");
+    setBuyType("");
+    setPriceRange("");
+    setAreaRange("");
+    setTheme("");
+    setRooms("");
+    setFloor("");
+    setBathrooms("");
+    setSubwayLine("");
+    // 초기화는 replace로 히스토리 오염 방지
+    startTransition(() => router.replace(pathname));
+  };
 
-  if (isLoadingSettings) {
+  if (!settings) {
     return <div className="p-4">검색 필터 로딩 중...</div>;
   }
 
@@ -285,10 +218,10 @@ const SearchBar = () => {
             className="px-2 py-1 sm:px-3 sm:py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-xs sm:text-sm"
           >
             <option value="">매물 종류</option>
-            {(propertyTypeOptions && propertyTypeOptions.length > 0
-              && propertyTypeOptions || []
-            ).map((opt) => (
-              <option key={opt} value={opt}>{opt}</option>
+            {propertyTypeOptions.map((opt) => (
+              <option key={opt} value={opt}>
+                {opt}
+              </option>
             ))}
           </select>
         )}
@@ -296,12 +229,14 @@ const SearchBar = () => {
         {settings?.showbuyType && (
           <select
             value={buyType}
-            onChange={(e) => setbuyType(e.target.value)}
+            onChange={(e) => setBuyType(e.target.value)}
             className="px-2 py-1 sm:px-3 sm:py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-xs sm:text-sm"
           >
             <option value="">거래유형</option>
-            {buyTypeOptions.map((opt) => (
-              <option key={opt.id} value={opt.name}>{opt.name}</option>
+            {buyTypeOpts.map((opt) => (
+              <option key={opt.id} value={opt.name}>
+                {opt.name}
+              </option>
             ))}
           </select>
         )}
@@ -315,7 +250,9 @@ const SearchBar = () => {
           >
             <option value="">금액</option>
             {pricePresets.map((preset) => (
-              <option key={preset.id} value={preset.name}>{preset.name}</option>
+              <option key={preset.id} value={preset.name}>
+                {preset.name}
+              </option>
             ))}
           </select>
         )}
@@ -328,7 +265,9 @@ const SearchBar = () => {
           >
             <option value="">면적</option>
             {areaOptions.map((opt) => (
-              <option key={opt} value={opt}>{opt}</option>
+              <option key={opt} value={opt}>
+                {opt}
+              </option>
             ))}
           </select>
         )}
@@ -341,7 +280,9 @@ const SearchBar = () => {
           >
             <option value="">테마</option>
             {themeOptions.map((label) => (
-              <option key={label} value={label}>{label}</option>
+              <option key={label} value={label}>
+                {label}
+              </option>
             ))}
           </select>
         )}
@@ -354,7 +295,9 @@ const SearchBar = () => {
           >
             <option value="">방</option>
             {roomOptions.map((opt) => (
-              <option key={opt} value={opt}>{opt}</option>
+              <option key={opt} value={opt}>
+                {opt}
+              </option>
             ))}
           </select>
         )}
@@ -362,16 +305,14 @@ const SearchBar = () => {
         {settings?.showFloor && (
           <select
             value={floor}
-            onChange={(e) => {
-              const newFloor = e.target.value;
-              console.log("Selected floor:", newFloor);
-              setFloor(newFloor);
-            }}
+            onChange={(e) => setFloor(e.target.value)}
             className="px-2 py-1 sm:px-3 sm:py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-xs sm:text-sm"
           >
             <option value="">층수</option>
             {floorOptions.map((opt) => (
-              <option key={opt} value={opt}>{opt}</option>
+              <option key={opt} value={opt}>
+                {opt}
+              </option>
             ))}
           </select>
         )}
@@ -384,7 +325,9 @@ const SearchBar = () => {
           >
             <option value="">화장실</option>
             {bathroomOptions.map((opt) => (
-              <option key={opt} value={opt}>{opt}</option>
+              <option key={opt} value={opt}>
+                {opt}
+              </option>
             ))}
           </select>
         )}
@@ -409,7 +352,5 @@ const SearchBar = () => {
         )}
       </div>
     </div>
-  )
+  );
 }
-
-export default SearchBar

@@ -19,6 +19,14 @@ type Listing = {
 
 type Props = {
   initialListings: Listing[];
+  settings: any;
+  roomOptions: any[];
+  bathroomOptions: any[];
+  floorOptions: any[];
+  areaOptions: any[];
+  themeOptions: any[];
+  propertyTypeOptions: any[];
+  buyTypeOptions: any[];
 };
 
 const fetchListings = async ({ pageParam = 1, queryKey }: any) => {
@@ -55,7 +63,17 @@ const fetchMapListings = async ({ queryKey }: any) => {
   return data.data; // The new endpoint wraps data in a `data` property
 };
 
-export default function LandSearchClient({ initialListings }: Props) {
+export default function LandSearchClient({ 
+  initialListings,
+  settings,
+  roomOptions,
+  bathroomOptions,
+  floorOptions,
+  areaOptions,
+  themeOptions,
+  propertyTypeOptions,
+  buyTypeOptions
+}: Props) {
   const [selectedBuild, setSelectedBuild] = useState<Listing | null>(null);
   const handleCardClick = (id: number) => {
     const build = allListings.find(l => l.id === id);
@@ -431,7 +449,16 @@ export default function LandSearchClient({ initialListings }: Props) {
 
       <div className="bg-white shadow-sm border-b">
 
-        <SearchBar />
+        <SearchBar 
+          settings={settings}
+          roomOptions={roomOptions}
+          bathroomOptions={bathroomOptions}
+          floorOptions={floorOptions}
+          areaOptions={areaOptions}
+          themeOptions={themeOptions}
+          propertyTypeOptions={propertyTypeOptions}
+          buyTypeOptions={buyTypeOptions}
+        />
 
       </div>
 
