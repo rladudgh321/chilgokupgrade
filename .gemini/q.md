@@ -1,3 +1,6 @@
-`shema.prisma`에서 `BoardPost` 테이블의 views 컬럼을 제거하고 `notice`페이지의 views도 삭제해줘.
-----------------
-notice페이지에서 개별적으로 클릭했는데 `[id]/page.tsx` 부분이 작동을 안하는 것 같아 404가 뜨네
+`DashboardPage`컴포넌트 즉 `/admin`페이지를 수정하고자해.
+
+나는 직접적으로 page.tsx에 supabase를 부르기보다 `fetch`를 선호해.
+`/api/**`폴더 아래에 적합한 api가 있으면 가져다 사용하고 없으면 새로 생성해줘.
+----------
+DashboardClient컴포넌트
