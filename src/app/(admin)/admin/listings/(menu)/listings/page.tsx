@@ -1,5 +1,3 @@
-export const dynamic = 'force-dynamic';
-
 import { BuildFindAll } from "@/app/apis/build";
 import ListingsShell from "./ListingsShell";
 

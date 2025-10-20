@@ -67,6 +67,7 @@ const ChartWithSortedList = ({ title, data, topListings }) => (
 
 export default function DashboardClient({ dashboardData }) {
   const { listingStats, inquiryStats, contactRequests, categoryViews, themeViews, topListings } = dashboardData;
+  // console.log('contactRequests',contactRequests);
 
   return (
     <div className="p-8 bg-gray-50 min-h-screen">

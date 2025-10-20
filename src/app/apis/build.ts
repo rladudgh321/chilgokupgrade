@@ -33,6 +33,7 @@ export async function BuildFindAll(
   const res = await fetch(`${baseURL}/api/supabase/build?${qs.toString()}`, {
     method: "GET",
     signal: opts?.signal,
+    next: { revalidate: 28_800, tags: ['public', 'admin-listings']}
   });
 
   if (!res.ok) {
@@ -85,7 +86,9 @@ export async function BuildFindOne(id: number) {
   const url = `${baseURL}/api/supabase/build/${id}`;
   console.log(`Fetching build data from: ${url}`);
   try {
-    const res = await fetch(url, { method: "GET", cache: "no-store" });
+    const res = await fetch(url, { method: "GET", next: {
+      revalidate: 28_800, tags: ['public', 'admin-build-id']
+    } });
     if (!res.ok) {
       const errorText = await res.text();
       console.error(`API Error: ${res.status} ${res.statusText}`, errorText);

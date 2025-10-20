@@ -22,30 +22,6 @@ const tabBtn = (active: boolean) =>
 const Selected = ({ totalCount, sortKey, onChangeSort }: SelectedProps) => {
   return (
     <>
-      {/* 네비게이션 - 추후 개발 예정*/}
-      {/* <div className="bg-slate-100 p-4">
-        <div className="flex flex-wrap gap-x-2">
-          <Select />
-          <Select options="구 / 군" />
-          <Select options="읍 / 면 / 동" />
-          <Select options="매물 종류" />
-          <Select options="거래 유형" />
-          <Select options="금액" />
-          <Select options="면적" />
-          <Select options="테마" />
-          <Select options="방" />
-          <Select options="층수" />
-          <Select options="화장실" />
-          <Button>초기화</Button>
-        </div>
-        <div className="flex flex-wrap gap-x-2 pt-4">
-          <Select options="공개여부" />
-          <Select options="계약만료순" />
-          <Select options="10개씩보기" />
-          <Select options="거래구분" />
-        </div>
-      </div> */}
-
       {/* 컨트롤 인풋창 */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center bg-slate-200 flex-wrap p-4 gap-3">
         <div className="border border-slate-500 p-2 rounded bg-white" role="presentation">
