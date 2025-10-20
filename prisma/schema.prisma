@@ -99,7 +99,6 @@ model Build {
   createdAt        DateTime       @default(now())
   updatedAt        DateTime       @default(now()) @updatedAt
   deletedAt        DateTime?
-  views            Int?           @default(0)
   confirmDate      DateTime?
 }
 

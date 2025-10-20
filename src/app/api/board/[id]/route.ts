@@ -2,15 +2,15 @@ import { createClient } from "@/app/utils/supabase/server";
 import { cookies } from "next/headers";
 import { NextRequest, NextResponse } from "next/server";
 
-export async function GET(req: NextRequest, { params }: { params: { id: string } }) {
+export async function GET(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const cookieStore = await cookies();
     const supabase = createClient(cookieStore);
-    const id = params.id;
+    const id = (await params).id;
 
     const { data, error } = await supabase
       .from('BoardPost')
-      .select('id, title, content, views, createdAt, registrationDate, BoardCategory(name)')
+      .select('id, title, content, createdAt, registrationDate, BoardCategory(name)')
       .eq('id', id)
       .single();
       

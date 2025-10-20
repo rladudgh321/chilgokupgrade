@@ -9,7 +9,7 @@ export async function GET(req: NextRequest) {
 
     const { data, error } = await supabase
       .from('BoardPost')
-      .select('id, title, content, views, createdAt, registrationDate, BoardCategory(name)')
+      .select('id, title, content, createdAt, registrationDate, BoardCategory(name)')
       .eq('isPublished', true)
       .order('createdAt', { ascending: false });
       
