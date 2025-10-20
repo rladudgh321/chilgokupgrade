@@ -1,8 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import { createClient } from "@/app/utils/supabase/server";
+import * as Sentry from "@sentry/nextjs";
+import { notifySlack } from "@/app/utils/sentry/slack";
 
-export async function PUT(_req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const { id } = await params;                  // ✅ params는 Promise
     const idNum = Number(id);
@@ -23,7 +25,11 @@ export async function PUT(_req: NextRequest, { params }: { params: Promise<{ id:
       .eq("id", idNum)
       .maybeSingle();
 
-    if (findErr) return NextResponse.json({ message: findErr.message }, { status: 500 });
+    if (findErr) {
+      Sentry.captureException(findErr);
+      await notifySlack(findErr, req.url);
+      return NextResponse.json({ message: findErr.message }, { status: 500 });
+    }
     if (!found) return NextResponse.json({ message: "없는 매물" }, { status: 404 });
     if (found[deletedCol] == null) {
       return NextResponse.json({ message: "이미 활성 상태" }, { status: 400 });
@@ -38,7 +44,11 @@ export async function PUT(_req: NextRequest, { params }: { params: Promise<{ id:
       .select("id")
       .maybeSingle();
 
-    if (updErr) return NextResponse.json({ message: updErr.message }, { status: 500 });
+    if (updErr) {
+      Sentry.captureException(updErr);
+      await notifySlack(updErr, req.url);
+      return NextResponse.json({ message: updErr.message }, { status: 500 });
+    }
     if (!updated) return NextResponse.json({ message: "복원 대상 없음" }, { status: 409 });
 
     return NextResponse.json({
@@ -47,6 +57,8 @@ export async function PUT(_req: NextRequest, { params }: { params: Promise<{ id:
       restoredAt: new Date().toISOString(),
     });
   } catch (e: any) {
+    Sentry.captureException(e);
+    await notifySlack(e, req.url);
     return NextResponse.json({ message: e?.message ?? "서버 오류" }, { status: 500 });
   }
 }

@@ -1,9 +1,47 @@
-`DashboardPage`컴포넌트 즉 `/admin`페이지를 수정하고자해.
+export async function POST(request: Request) {
+  try {
+    const body = await request.json();
+    const {
+      category,
+      transactionType,
+      author,
+      propertyType,
+      estimatedAmount,
+      contact,
+      region,
+      title,
+      description,
+      note,
+    } = body;
 
-나는 직접적으로 page.tsx에 supabase를 부르기보다 `fetch`를 선호해.
-`/api/**`폴더 아래에 적합한 api가 있으면 가져다 사용하고 없으면 새로 생성해줘.
-----------
-DashboardClient컴포넌트 아래에 자식 컴포넌트에 대해서 fetch를 사용하는 컴포넌트가 있다면 서버컴포넌트인 `page.tsx`에서 props로 전달해서
-성능최적화를 실현해줘
------------
-dash
+    const ipAddress = request.headers.get('x-forwarded-for') || request.headers.get('x-real-ip') || request.socket?.remoteAddress;
+
+
+    const newOrder = await prisma.order.create({
+      data: {
+        category,
+        transactionType,
+        author,
+        propertyType,
+        estimatedAmount,
+        contact,
+        ipAddress: ipAddress || 'unknown',
+        region,
+        title,
+        description,
+        note,
+      },
+    });
+
+    return NextResponse.json(newOrder, { status: 201 });
+  } catch (error) {
+    Sentry.captureException(error);
+    await notifySlack(error, request.url);
+    return NextResponse.json({ error: 'Error creating order' }, { status: 500 });
+  }
+}
+
+--------------
+`/api/inquiries/orders/route.ts`파일에 POST 매서드에는 나는 prisma가 아니라 supabase로 했으면 좋겠어
+`const cookieStore = await cookies();
+    const supabase = createClient(cookieStore);`을 이용하면 supabase를 사용할 수 있어

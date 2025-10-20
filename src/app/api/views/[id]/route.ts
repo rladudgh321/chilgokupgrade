@@ -3,9 +3,11 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/app/utils/supabase/server';
 import { prisma } from '@/lib/prisma';
 import { cookies } from 'next/headers';
+import * as Sentry from "@sentry/nextjs";
+import { notifySlack } from "@/app/utils/sentry/slack";
 
-export async function POST(request: NextRequest, { params }: { params: { id: string } }) {
-  const postId = params.id;
+export async function POST(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  const postId = (await params).id;
 
   if (!postId) {
     return NextResponse.json({ ok: false, error: { message: 'ID가 누락되었습니다.' } }, { status: 400 });
@@ -17,6 +19,8 @@ export async function POST(request: NextRequest, { params }: { params: { id: str
     const { data: { user }, error: authError } = await supabase.auth.getUser();
 
     if (authError || !user) {
+      Sentry.captureException(authError);
+      await notifySlack(authError, request.url);
       return NextResponse.json({ ok: false, error: { message: '인증되지 않은 사용자입니다.' } }, { status: 401 });
     }
 
@@ -24,6 +28,8 @@ export async function POST(request: NextRequest, { params }: { params: { id: str
 
     return NextResponse.json({ ok: true, message: '조회수가 1 증가했습니다.' });
   } catch (error: any) {
+    Sentry.captureException(error);
+    await notifySlack(error, request.url);
     return NextResponse.json({ ok: false, error: { message: error.message } }, { status: 500 });
   }
 }

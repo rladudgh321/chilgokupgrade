@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import { createClient } from "@/app/utils/supabase/server";
 import { z } from "zod";
+import * as Sentry from "@sentry/nextjs";
+import { notifySlack } from "@/app/utils/sentry/slack";
 
 const TABLE = "Build";
 const ID_COL = "id";
@@ -58,6 +60,8 @@ export async function PATCH(
       .single();
 
     if (error) {
+      Sentry.captureException(error);
+      await notifySlack(error, req.url);
       return NextResponse.json({ message: error.message }, { status: 500 });
     }
     if (!data) {
@@ -70,6 +74,8 @@ export async function PATCH(
       confirmDate: data.confirmDate 
     });
   } catch (e: any) {
+    Sentry.captureException(e);
+    await notifySlack(e, req.url);
     return NextResponse.json({ message: e?.message ?? "서버 오류" }, { status: 500 });
   }
 }
@@ -106,6 +112,8 @@ export async function PUT(
       .single();
 
     if (error) {
+       Sentry.captureException(error);
+      await notifySlack(error, req.url);
       return NextResponse.json({ message: error.message }, { status: 500 });
     }
     if (!data) {
@@ -118,6 +126,8 @@ export async function PUT(
       confirmDate: data.confirmDate 
     });
   } catch (e: any) {
+     Sentry.captureException(e);
+      await notifySlack(e, req.url);
     return NextResponse.json({ message: e?.message ?? "서버 오류" }, { status: 500 });
   }
 }

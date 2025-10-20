@@ -1,10 +1,12 @@
 import { NextResponse } from 'next/server';
 import { createClient } from "@/app/utils/supabase/server";
 import { cookies } from "next/headers";
+import * as Sentry from "@sentry/nextjs";
+import { notifySlack } from "@/app/utils/sentry/slack";
 
-export async function PUT(request: Request, { params }: { params: { id: string } }) {
+export async function PUT(request: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
-    const { id } = params;
+    const { id } = await params;
     const body = await request.json();
     const { confirm, note } = body;
 
@@ -32,21 +34,22 @@ export async function PUT(request: Request, { params }: { params: { id: string }
       .select();
 
     if (error) {
-      console.error(`Error updating order ${id}:`, error);
+      Sentry.captureException(error);
+      await notifySlack(error, request.url);
       return NextResponse.json({ error: `Error updating order ${id}` }, { status: 500 });
     }
 
     return NextResponse.json(data, { status: 200 });
   } catch (error) {
-    console.error(`Error updating order ${params.id}:`, error);
+    Sentry.captureException(error);
+    await notifySlack(error, request.url);
     return NextResponse.json({ error: `Error updating order ${params.id}` }, { status: 500 });
   }
 }
 
-export async function DELETE(request: Request, { params }: { params: { id: string } }) {
+export async function DELETE(request: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
-    const { id } = params;
-
+    const { id } = await params;
     const cookieStore = await cookies();
     const supabase = createClient(cookieStore);
 
@@ -56,13 +59,15 @@ export async function DELETE(request: Request, { params }: { params: { id: strin
       .eq('id', parseInt(id, 10));
 
     if (error) {
-      console.error(`Error deleting order ${id}:`, error);
+      Sentry.captureException(error);
+      await notifySlack(error, request.url);
       return NextResponse.json({ error: `Error deleting order ${id}` }, { status: 500 });
     }
 
     return new NextResponse(null, { status: 204 }); // No Content
   } catch (error) {
-    console.error(`Error deleting order ${params.id}:`, error);
+    Sentry.captureException(error);
+    await notifySlack(error, request.url);
     return NextResponse.json({ error: `Error deleting order ${params.id}` }, { status: 500 });
   }
 }

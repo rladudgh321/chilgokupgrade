@@ -1,6 +1,7 @@
-
 import { BuildFindAll } from "@/app/apis/build";
 import { NextResponse } from "next/server";
+import * as Sentry from "@sentry/nextjs";
+import { notifySlack } from "@/app/utils/sentry/slack";
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
@@ -35,7 +36,8 @@ export async function GET(request: Request) {
       currentPage: page,
     });
   } catch (error) {
-    console.error("Failed to fetch listings:", error);
+    Sentry.captureException(error);
+    await notifySlack(error, request.url);
     return NextResponse.json(
       { message: "Failed to fetch listings" },
       { status: 500 }

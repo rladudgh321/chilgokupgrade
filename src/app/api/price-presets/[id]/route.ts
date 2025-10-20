@@ -1,14 +1,16 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/app/utils/supabase/server";
 import { cookies } from "next/headers";
+import * as Sentry from "@sentry/nextjs";
+import { notifySlack } from "@/app/utils/sentry/slack";
 
 // PUT: Update a preset
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const id = params.id;
+    const id = (await params).id;
     const { name } = await request.json();
     if (!name || typeof name !== "string" || name.trim() === "") {
       return NextResponse.json(
@@ -27,6 +29,8 @@ export async function PUT(
       .select();
 
     if (error) {
+      Sentry.captureException(error);
+      await notifySlack(error, request.url);
       return NextResponse.json({ ok: false, error }, { status: 400 });
     }
 
@@ -42,6 +46,8 @@ export async function PUT(
       { status: 200 }
     );
   } catch (e: any) {
+    Sentry.captureException(e);
+    await notifySlack(e, request.url);
     return NextResponse.json(
       { ok: false, error: { message: e?.message ?? "Unknown error" } },
       { status: 500 }
@@ -52,10 +58,10 @@ export async function PUT(
 // DELETE: Delete a preset
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const id = params.id;
+    const id = (await params).id;
 
     const cookieStore = await cookies();
     const supabase = createClient(cookieStore);
@@ -63,6 +69,8 @@ export async function DELETE(
     const { error } = await supabase.from("PricePreset").delete().eq("id", id);
 
     if (error) {
+      Sentry.captureException(error);
+      await notifySlack(error, request.url);
       return NextResponse.json({ ok: false, error }, { status: 400 });
     }
 
@@ -71,6 +79,8 @@ export async function DELETE(
       { status: 200 }
     );
   } catch (e: any) {
+    Sentry.captureException(e);
+    await notifySlack(e, request.url);
     return NextResponse.json(
       { ok: false, error: { message: e?.message ?? "Unknown error" } },
       { status: 500 }

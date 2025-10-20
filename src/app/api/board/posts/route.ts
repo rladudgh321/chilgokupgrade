@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import { createClient } from "@/app/utils/supabase/server";
 import { z } from "zod";
+import * as Sentry from "@sentry/nextjs";
+import { notifySlack } from "@/app/utils/sentry/slack";
 
 const CreatePostSchema = z.object({
   title: z.string().min(1, "제목은 필수입니다"),
@@ -37,6 +39,8 @@ export async function POST(req: NextRequest) {
       .single();
 
     if (error) {
+      Sentry.captureException(error);
+      await notifySlack(error, req.url);
       return NextResponse.json({ message: error.message }, { status: 500 });
     }
 
@@ -45,6 +49,8 @@ export async function POST(req: NextRequest) {
       data 
     });
   } catch (e: any) {
+    Sentry.captureException(e);
+    await notifySlack(e, req.url);
     if (e.name === 'ZodError') {
       return NextResponse.json({ 
         message: "입력 데이터가 올바르지 않습니다", 
@@ -80,11 +86,15 @@ export async function GET(req: NextRequest) {
       .range(from, to);
 
     if (error) {
+      Sentry.captureException(error);
+      await notifySlack(error, req.url);
       return NextResponse.json({ message: error.message }, { status: 500 });
     }
 
     return NextResponse.json({ data, count });
   } catch (e: any) {
+    Sentry.captureException(e);
+    await notifySlack(e, req.url);
     return NextResponse.json({ message: e?.message ?? "서버 오류" }, { status: 500 });
   }
 }

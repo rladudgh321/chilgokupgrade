@@ -1,3 +1,6 @@
+import * as Sentry from "@sentry/nextjs";
+import { notifySlack } from "@/app/utils/sentry/slack";
+
 const baseURL = process.env.NEXT_PUBLIC_BASE_URL;
 
 export interface Paginated<T> {

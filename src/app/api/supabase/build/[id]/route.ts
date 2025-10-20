@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/app/utils/supabase/server";
 import { cookies } from "next/headers";
+import * as Sentry from "@sentry/nextjs";
+import { notifySlack } from "@/app/utils/sentry/slack";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -9,7 +11,7 @@ const corsHeaders = {
 };
 
 export async function GET(
-  _req: NextRequest,
+  req: NextRequest,
   ctx: { params: Promise<{ id: string }> }
 ) {
   try {
@@ -38,6 +40,8 @@ export async function GET(
       .single();
 
     if (error) {
+      Sentry.captureException(error);
+            await notifySlack(error, req.url);
       return NextResponse.json({ message: error.message }, { status: 500, headers: corsHeaders });
     }
     if (!data) {
@@ -50,9 +54,10 @@ export async function GET(
       .from('Build')
       .update({ views: newViews })
       .eq("id", idNum)
-      .then(({ error: updateError }) => {
+      .then(async ({ error: updateError }) => {
         if (updateError) {
-          console.error(`Failed to increment view count for listing ${idNum}:`, updateError);
+          Sentry.captureException(updateError);
+          await notifySlack(updateError, req.url);
         }
       });
 
@@ -65,6 +70,8 @@ export async function GET(
 
     return NextResponse.json(result, { headers: corsHeaders });
   } catch (e: any) {
+    Sentry.captureException(e);
+    await notifySlack(e, req.url);
     return NextResponse.json({ message: e?.message ?? "서버 오류" }, { status: 500, headers: corsHeaders });
   }
 }
@@ -152,6 +159,8 @@ export async function PATCH(
         .eq("id", idNum);
 
     if (updateError) {
+      Sentry.captureException(updateError);
+    await notifySlack(updateError, req.url);
         return NextResponse.json({ ok: false, error: updateError }, { status: 400, headers: corsHeaders });
     }
 
@@ -177,12 +186,13 @@ export async function PATCH(
         if (joinTableData.length > 0) {
             const { error: joinError } = await supabase.from("_BuildToBuildingOption").insert(joinTableData);
             if (joinError) {
-                console.error("Error inserting into join table:", joinError);
+                Sentry.captureException(joinError);
+                await notifySlack(joinError, req.url);
             }
         }
     }
 
-    const { data: finalData } = await supabase
+    const { data: finalData, error } = await supabase
         .from("Build")
         .select(`*, label:Label(name), buildingOptions:BuildingOption(id, name), listingType:ListingType(name), buyType:BuyType(name)`)
         .eq("id", idNum)
@@ -196,9 +206,15 @@ export async function PATCH(
         buyType: (finalData as any).buyType?.name,
     };
 
+    if(error) {
+      Sentry.captureException(error);
+      await notifySlack(error, req.url);
+    } 
+
     return NextResponse.json({ message: "수정 완료", data: result }, { headers: corsHeaders });
   } catch (e: any) {
-    console.error(e);
+    Sentry.captureException(e);
+    await notifySlack(e, req.url);
     return NextResponse.json({ message: e?.message ?? "서버 오류" }, { status: 500, headers: corsHeaders });
   }
 }

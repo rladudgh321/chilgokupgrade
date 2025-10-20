@@ -1,8 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import { createClient } from "@/app/utils/supabase/server";
+import * as Sentry from "@sentry/nextjs";
+import { notifySlack } from "@/app/utils/sentry/slack";
 
-export async function DELETE(_req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+export async function DELETE(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const { id } = await params;                 // ✅ params await
     const idNum = Number(id);
@@ -22,11 +24,17 @@ export async function DELETE(_req: NextRequest, { params }: { params: Promise<{ 
       .select("id")
       .maybeSingle();
 
-    if (error) return NextResponse.json({ message: error.message }, { status: 500 });
+    if (error) {
+       Sentry.captureException(error);
+        await notifySlack(error, req.url);
+        return NextResponse.json({ message: error.message }, { status: 500 });
+    }
     if (!deleted) return NextResponse.json({ message: "삭제 대상 없음" }, { status: 404 });
 
     return NextResponse.json({ message: "영구 삭제 완료", deletedId: deleted.id });
   } catch (e: any) {
+    Sentry.captureException(e);
+      await notifySlack(e, req.url);
     return NextResponse.json({ message: e?.message ?? "서버 오류" }, { status: 500 });
   }
 }

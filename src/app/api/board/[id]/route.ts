@@ -1,6 +1,8 @@
 import { createClient } from "@/app/utils/supabase/server";
 import { cookies } from "next/headers";
 import { NextRequest, NextResponse } from "next/server";
+import * as Sentry from "@sentry/nextjs";
+import { notifySlack } from "@/app/utils/sentry/slack";
 
 export async function GET(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
@@ -15,7 +17,8 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
       .single();
       
     if (error) {
-      console.error('Error fetching post:', error);
+      Sentry.captureException(error);
+      await notifySlack(error, req.url);
       return NextResponse.json({ message: "Error fetching post", error }, { status: 500 });
     }
 
@@ -25,6 +28,8 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
 
     return NextResponse.json(data);
   } catch (e: any) {
+    Sentry.captureException(e);
+    await notifySlack(e, req.url);
     return NextResponse.json({ message: e?.message ?? "서버 오류" }, { status: 500 });
   }
 }

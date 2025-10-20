@@ -1,9 +1,13 @@
-
 import { NextResponse } from 'next/server';
-import { prisma } from '@/lib/prisma';
+import * as Sentry from "@sentry/nextjs";
+import { notifySlack } from "@/app/utils/sentry/slack";
+import { createClient } from "@/app/utils/supabase/server";
+import { cookies } from "next/headers";
 
 export async function POST(request: Request) {
   try {
+    const cookieStore = await cookies();
+    const supabase = createClient(cookieStore);
     const body = await request.json();
     const {
       category,
@@ -20,9 +24,8 @@ export async function POST(request: Request) {
 
     const ipAddress = request.headers.get('x-forwarded-for') || request.headers.get('x-real-ip') || request.socket?.remoteAddress;
 
-
-    const newOrder = await prisma.order.create({
-      data: {
+    const { data: newOrder, error } = await supabase.from('Order').insert([
+      {
         category,
         transactionType,
         author,
@@ -35,17 +38,23 @@ export async function POST(request: Request) {
         description,
         note,
       },
-    });
+    ]).select();
+
+    if (error) {
+      Sentry.captureException(error);
+      await notifySlack(error, request.url);
+      return NextResponse.json({ error: 'Error creating order' }, { status: 500 });
+    }
 
     return NextResponse.json(newOrder, { status: 201 });
   } catch (error) {
-    console.error('Error creating order:', error);
+    Sentry.captureException(error);
+    await notifySlack(error, request.url);
     return NextResponse.json({ error: 'Error creating order' }, { status: 500 });
   }
 }
 
-import { createClient } from "@/app/utils/supabase/server";
-import { cookies } from "next/headers";
+
 
 export async function GET(request: Request) {
   try {
@@ -64,14 +73,16 @@ export async function GET(request: Request) {
       .range(from, to);
 
     if (error) {
-      console.error('Error fetching orders:', error);
+      Sentry.captureException(error);
+      await notifySlack(error, request.url);
       return NextResponse.json({ error: 'Error fetching orders' }, { status: 500 });
     }
     
     return NextResponse.json({ data, count });
 
   } catch (error) {
-    console.error('Error fetching orders:', error);
+    Sentry.captureException(error);
+    await notifySlack(error, request.url);
     return NextResponse.json({ error: 'Error fetching orders' }, { status: 500 });
   }
 }

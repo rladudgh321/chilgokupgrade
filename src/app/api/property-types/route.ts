@@ -1,9 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/app/utils/supabase/server";
 import { cookies } from "next/headers";
+import * as Sentry from "@sentry/nextjs";
+import { notifySlack } from "@/app/utils/sentry/slack";
 
 // GET: 모든 매물 종류(propertyType) 조회
-export async function GET() {
+export async function GET(req: NextRequest) {
   try {
     const cookieStore = await cookies();
     const supabase = createClient(cookieStore);
@@ -16,13 +18,15 @@ export async function GET() {
       .not("propertyType", "eq", "");
 
     if (buildError) {
+      Sentry.captureException(buildError);
+      await notifySlack(buildError, req.url);
       return NextResponse.json({ ok: false, error: buildError }, { status: 400 });
     }
 
     const uniqueTypes = Array.from(new Set((builds || []).map(b => b.propertyType).filter(Boolean))).sort();
 
     // ThemeImage 테이블에서 label이 propertyType과 일치하는 항목을 조인처럼 매핑
-    const { data: themeImages } = await supabase
+    const { data: themeImages, error } = await supabase
       .from("ThemeImage")
       .select("id,label,imageUrl,imageName")
       .is("deletedAt", null);
@@ -38,11 +42,18 @@ export async function GET() {
       };
     });
 
+    if(error) {
+      Sentry.captureException(buildError);
+      await notifySlack(buildError, req.url);
+    }
+
     return new NextResponse(JSON.stringify({ ok: true, data: items }), {
       status: 200,
       headers: { "Content-Type": "application/json; charset=utf-8" },
     });
   } catch (e: any) {
+    Sentry.captureException(e);
+    await notifySlack(e, req.url);
     return NextResponse.json(
       { ok: false, error: { message: e?.message ?? "Unknown error" } },
       { status: 500 }

@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { createClient } from "@/app/utils/supabase/server";
 import { cookies } from "next/headers";
+import * as Sentry from "@sentry/nextjs";
+import { notifySlack } from "@/app/utils/sentry/slack";
 
 const BodySchema = z.object({
   ids: z.array(z.union([z.number().int(), z.string()]))
@@ -40,6 +42,8 @@ export async function DELETE(req: NextRequest) {
       .in("id", ids); // ✅ number[]만 전달
 
     if (selErr) {
+      Sentry.captureException(selErr);
+      await notifySlack(selErr, req.url);
       return NextResponse.json({ message: "조회 중 오류", error: selErr.message }, { status: 500 });
     }
 
@@ -62,6 +66,8 @@ export async function DELETE(req: NextRequest) {
       .select("id");
 
     if (updErr) {
+      Sentry.captureException(updErr);
+      await notifySlack(updErr, req.url);
       return NextResponse.json({ message: "삭제 처리 중 오류", error: updErr.message }, { status: 500 });
     }
 
@@ -72,6 +78,8 @@ export async function DELETE(req: NextRequest) {
       deletedAt: now,
     });
   } catch (e: any) {
+    Sentry.captureException(e);
+      await notifySlack(e, req.url);
     return NextResponse.json({ message: e?.message ?? "서버 오류" }, { status: 500 });
   }
 }

@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import { createClient } from "@/app/utils/supabase/server";
+import * as Sentry from "@sentry/nextjs";
+import { notifySlack } from "@/app/utils/sentry/slack";
 
 export async function GET(req: NextRequest) {
   try {
@@ -40,6 +42,8 @@ export async function GET(req: NextRequest) {
     const { data, error, count } = await q;
 
     if (error) {
+      Sentry.captureException(error);
+      await notifySlack(error, req.url);
       return NextResponse.json({ ok: false, error }, { status: 400 });
     }
 
@@ -51,6 +55,8 @@ export async function GET(req: NextRequest) {
       data: data ?? [],
     });
   } catch (e: any) {
+    Sentry.captureException(e);
+    await notifySlack(e, req.url);
     return NextResponse.json(
       { ok: false, error: { message: e?.message ?? "Unknown error" } },
       { status: 500 }

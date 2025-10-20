@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { PutObjectCommand } from '@aws-sdk/client-s3';
 import { S3client, PUBLIC_BUCKET, supabasePublicUrl, makeObjectKey } from '@/app/api/supabase/S3';
-
+import * as Sentry from "@sentry/nextjs";
+import { notifySlack } from "@/app/utils/sentry/slack";
 export const runtime = 'nodejs';
 
 export async function POST(req: NextRequest) {
@@ -28,7 +29,8 @@ export async function POST(req: NextRequest) {
     const url = supabasePublicUrl(bucket, Key);
     return NextResponse.json({ bucket, key: Key, url });
   } catch (e: any) {
-    console.error('upload error', e);
+    Sentry.captureException(e);
+    await notifySlack(e, req.url);
     return NextResponse.json({ message: e?.message ?? '업로드 실패' }, { status: 500 });
   }
 }

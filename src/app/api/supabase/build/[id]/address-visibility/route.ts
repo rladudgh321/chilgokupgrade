@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { cookies } from "next/headers";
 import { createClient } from "@/app/utils/supabase/server";
+import * as Sentry from "@sentry/nextjs";
+import { notifySlack } from "@/app/utils/sentry/slack";
 
 // body 유효성
 const BodySchema = z.object({
@@ -36,7 +38,11 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
       .eq("id", idNum)
       .maybeSingle();
 
-    if (findErr) return NextResponse.json({ message: findErr.message }, { status: 500 });
+    if (findErr) {
+      Sentry.captureException(findErr);
+      await notifySlack(findErr, req.url);
+      return NextResponse.json({ message: findErr.message }, { status: 500 });
+    }
     if (!found) return NextResponse.json({ message: "매물이 존재하지 않습니다." }, { status: 404 });
     if (found[deletedCol] != null) {
       return NextResponse.json({ message: "삭제된 매물은 수정할 수 없습니다." }, { status: 400 });
@@ -51,7 +57,13 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
       .select("id, isAddressPublic")
       .maybeSingle();
 
-    if (updErr) return NextResponse.json({ message: updErr.message }, { status: 500 });
+
+
+    if (updErr) {
+      Sentry.captureException(updErr);
+      await notifySlack(updErr, req.url);
+      return NextResponse.json({ message: updErr.message }, { status: 500 });
+    }
     if (!updated) return NextResponse.json({ message: "업데이트 대상이 없습니다." }, { status: 409 });
 
     return NextResponse.json({
@@ -60,6 +72,8 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
       isAddressPublic: updated.isAddressPublic,
     });
   } catch (e: any) {
+    Sentry.captureException(e);
+    await notifySlack(e, req.url);
     return NextResponse.json({ message: e?.message ?? "서버 오류" }, { status: 500 });
   }
 }

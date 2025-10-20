@@ -1,9 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/app/utils/supabase/server";
 import { cookies } from "next/headers";
-
+import * as Sentry from "@sentry/nextjs";
+import { notifySlack } from "@/app/utils/sentry/slack";
 // GET: 모든 카테고리 조회
-export async function GET() {
+export async function GET(req: NextRequest) {
   try {
     const cookieStore = await cookies();
     const supabase = createClient(cookieStore);
@@ -14,11 +15,15 @@ export async function GET() {
       .order("order", { ascending: true, nullsLast: true });
 
     if (error) {
+      Sentry.captureException(error);
+      await notifySlack(error, req.url);
       return NextResponse.json({ ok: false, error }, { status: 400 });
     }
 
     return NextResponse.json({ ok: true, data }, { status: 200 });
   } catch (e: any) {
+    Sentry.captureException(e);
+      await notifySlack(e, req.url);
     return NextResponse.json(
       { ok: false, error: { message: e?.message ?? "Unknown error" } },
       { status: 500 }
@@ -46,6 +51,8 @@ export async function POST(request: NextRequest) {
       .select();
 
     if (error) {
+      Sentry.captureException(error);
+      await notifySlack(error, request.url);
         if (error.code === '23505') { // unique constraint violation
             return NextResponse.json(
                 { ok: false, error: { message: "이미 존재하는 카테고리입니다." } },
@@ -60,6 +67,8 @@ export async function POST(request: NextRequest) {
       { status: 201 }
     );
   } catch (e: any) {
+    Sentry.captureException(e);
+    await notifySlack(e, request.url);
     return NextResponse.json(
       { ok: false, error: { message: e?.message ?? "Unknown error" } },
       { status: 500 }
@@ -88,6 +97,8 @@ export async function PUT(request: NextRequest) {
       .select();
 
     if (error) {
+      Sentry.captureException(error);
+      await notifySlack(error, request.url);
         if (error.code === '23505') { // unique constraint violation
             return NextResponse.json(
                 { ok: false, error: { message: "이미 존재하는 카테고리입니다." } },
@@ -102,6 +113,8 @@ export async function PUT(request: NextRequest) {
       { status: 200 }
     );
   } catch (e: any) {
+    Sentry.captureException(e);
+    await notifySlack(e, request.url);
     return NextResponse.json(
       { ok: false, error: { message: e?.message ?? "Unknown error" } },
       { status: 500 }
@@ -130,6 +143,8 @@ export async function DELETE(request: NextRequest) {
       .eq("name", label);
 
     if (error) {
+      Sentry.captureException(error);
+      await notifySlack(error, request.url);
       return NextResponse.json({ ok: false, error }, { status: 400 });
     }
 
@@ -138,6 +153,8 @@ export async function DELETE(request: NextRequest) {
       { status: 200 }
     );
   } catch (e: any) {
+    Sentry.captureException(e);
+    await notifySlack(e, request.url);
     return NextResponse.json(
       { ok: false, error: { message: e?.message ?? "Unknown error" } },
       { status: 500 }
