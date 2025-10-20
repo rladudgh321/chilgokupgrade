@@ -1,47 +1,18 @@
-export async function POST(request: Request) {
-  try {
-    const body = await request.json();
-    const {
-      category,
-      transactionType,
-      author,
-      propertyType,
-      estimatedAmount,
-      contact,
-      region,
-      title,
-      description,
-      note,
-    } = body;
-
-    const ipAddress = request.headers.get('x-forwarded-for') || request.headers.get('x-real-ip') || request.socket?.remoteAddress;
-
-
-    const newOrder = await prisma.order.create({
-      data: {
-        category,
-        transactionType,
-        author,
-        propertyType,
-        estimatedAmount,
-        contact,
-        ipAddress: ipAddress || 'unknown',
-        region,
-        title,
-        description,
-        note,
-      },
-    });
-
-    return NextResponse.json(newOrder, { status: 201 });
-  } catch (error) {
-    Sentry.captureException(error);
-    await notifySlack(error, request.url);
-    return NextResponse.json({ error: 'Error creating order' }, { status: 500 });
-  }
-}
+`/api/inquiries/orders/routes.ts`에서 `"error":"Error creating order"` 오류가 났어.
+http://127.0.0.1:3000/api/inquiries/orders
+요청 메서드
+POST
+상태 코드
+500 Internal Server Error
+원격 주소
+127.0.0.1:3000
+리퍼러 정책
+strict-origin-when-cross-origin
 
 --------------
-`/api/inquiries/orders/route.ts`파일에 POST 매서드에는 나는 prisma가 아니라 supabase로 했으면 좋겠어
-`const cookieStore = await cookies();
-    const supabase = createClient(cookieStore);`을 이용하면 supabase를 사용할 수 있어
+{
+  code: '23502',
+  details: 'Failing row contains (10, f, 구해요, 월세, 이도령, 신축빌라, 3억 오천, 01012345678, ::ffff:127.0.0.1, 좋아요군, ㅎㅎㅎ, ㅋㅋㅋㅋㅋㅋㅋㅋㅋㅋㅋㅋㅋㅋㅋ, null, 2025-10-20 13:39:54.078, null).',
+  hint: null,
+  message: 'null value in column "updatedAt" of relation "Order" violates not-null constraint'
+}

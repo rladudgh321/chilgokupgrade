@@ -38,7 +38,7 @@ async function notifySlack(row: {
   confirm: boolean;
   date: Date | string;
 }) {
-  const webhook = process.env.SLACK_WEBHOOK_URL;
+  const webhook = process.env.SLACK_WEBHOOK_CONTACT!;
   if (!webhook) return; // 설정 안 되어 있으면 조용히 패스(운영에 영향 X)
 
   // 보기 좋게 블록 메시지 구성
