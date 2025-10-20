@@ -10,7 +10,6 @@ export type BoardPost = {
   title: string;
   content?: string;
   categoryName?: string;
-  views: number;
   createdAt: string;
   registrationDate?: string;
 };
@@ -69,13 +68,12 @@ const NoticeClient = ({ initialPosts }: { initialPosts: BoardPost[] }) => {
               <th className="p-2 text-center text-sm sm:text-base">번호</th>
               <th className="p-2 text-center text-sm sm:text-base">제목</th>
               <th className="p-2 text-center text-xs sm:text-sm">등록일</th>
-              <th className="p-2 text-center text-xs sm:text-sm">조회수</th>
             </tr>
           </thead>
           <tbody>
             {paginatedPosts.length === 0 ? (
               <tr>
-                <td colSpan={4} className="p-8 text-center text-gray-500">
+                <td colSpan={3} className="p-8 text-center text-gray-500">
                   게시물이 없습니다.
                 </td>
               </tr>
@@ -99,7 +97,6 @@ const NoticeClient = ({ initialPosts }: { initialPosts: BoardPost[] }) => {
                       ? new Date(post.registrationDate).toLocaleDateString('ko-KR')
                       : new Date(post.createdAt).toLocaleDateString('ko-KR')}
                   </td>
-                  <td className="p-2 text-center text-xs sm:text-sm">{post.views}</td>
                 </tr>
               ))
             )}

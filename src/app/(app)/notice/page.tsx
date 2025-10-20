@@ -20,7 +20,6 @@ function serializePosts(posts: any[]): BoardPost[] {
     title: post.title,
     content: post.content,
     categoryName: post.BoardCategory?.name,
-    views: post.views,
     createdAt: new Date(post.createdAt).toISOString(),
     registrationDate: post.registrationDate ? new Date(post.registrationDate).toISOString() : undefined,
   }));
