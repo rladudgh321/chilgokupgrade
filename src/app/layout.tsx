@@ -1,5 +1,4 @@
 import TanstackProvider from "./components/shared/TanstackProvider";
-import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import "react-datepicker/dist/react-datepicker.css";
 import Script from "next/script";

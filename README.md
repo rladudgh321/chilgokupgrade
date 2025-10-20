@@ -24,6 +24,10 @@ select Element에는 기본값설정을 컴포넌트 인자로 설정해두었�
 만일 select값을 바꿀 일이 있으면 기본값 설정 확인을 잊지말 것
 
 
+## sentry & slack
+npx @sentry/wizard@latest -i nextjs --saas --org chilgok --project javascript-nextjs
+npm i @slack/webhook
+
 ## 사용자 일러주기
 1. 매물관리/옵션등록 사항에 순서 바꾸는 것 교육시키기 꽤 어려울 수 있음
 

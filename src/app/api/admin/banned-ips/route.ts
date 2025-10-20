@@ -1,6 +1,8 @@
 import { createClient } from "@/app/utils/supabase/server";
 import { cookies } from "next/headers";
 import { NextRequest, NextResponse } from "next/server";
+import * as Sentry from "@sentry/nextjs";
+import { notifySlack } from "@/app/utils/sentry/slack";
 
 export async function POST(req: NextRequest) {
   try {
@@ -31,6 +33,8 @@ export async function POST(req: NextRequest) {
 
     if (banError) {
       // Handle potential unique constraint violation gracefully
+      Sentry.captureException(banError);
+          await notifySlack(banError, req.url);
       if (banError.code === "23505") {
         console.log(`IP address ${ipAddress} is already banned.`);
       } else {
@@ -44,18 +48,28 @@ export async function POST(req: NextRequest) {
         .from("ContactRequest")
         .delete()
         .match({ ipAddress: ipAddress });
-      if (contactError) throw contactError;
+      if (contactError) {
+          Sentry.captureException(contactError);
+          await notifySlack(contactError, req.url);
+        throw contactError
+      }
 
       const { error: orderError } = await supabase
         .from("Order")
         .delete()
         .match({ ipAddress: ipAddress });
-      if (orderError) throw orderError;
+      if (orderError) {
+        Sentry.captureException(orderError);
+        await notifySlack(orderError, req.url);
+        throw orderError;
+
+      }
     }
 
     return NextResponse.json({ message: "IP address processed successfully" });
   } catch (error) {
-    console.error("Error processing ban request:", error);
+      Sentry.captureException(error);
+      await notifySlack(error, req.url);
     const errorMessage = error instanceof Error ? error.message : "An unknown error occurred";
     return NextResponse.json(
       { error: "An error occurred while processing the request.", details: errorMessage },

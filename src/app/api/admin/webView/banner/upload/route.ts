@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { PutObjectCommand } from "@aws-sdk/client-s3";
 import { S3client, PUBLIC_BUCKET, supabasePublicUrl, makeObjectKey } from "@/app/api/supabase/S3";
+import * as Sentry from "@sentry/nextjs";
+import { notifySlack } from "@/app/utils/sentry/slack";
 
 export async function POST(request: NextRequest) {
   try {
@@ -31,6 +33,8 @@ export async function POST(request: NextRequest) {
       data: { imageUrl: url, imageName: Key, bucket }
     }, { status: 201 });
   } catch (e: any) {
+    Sentry.captureException(e);
+    await notifySlack(e, request.url);
     return NextResponse.json({ ok: false, error: { message: e?.message ?? 'Unknown error' } }, { status: 500 });
   }
 }

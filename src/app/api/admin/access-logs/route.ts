@@ -1,6 +1,8 @@
 import { createClient } from "@/app/utils/supabase/server";
 import { cookies } from "next/headers";
 import { NextRequest, NextResponse } from 'next/server';
+import * as Sentry from "@sentry/nextjs";
+import { notifySlack } from "@/app/utils/sentry/slack";
 
 export async function GET(req: NextRequest) {
   try {
@@ -12,13 +14,15 @@ export async function GET(req: NextRequest) {
       .order('createdAt', { ascending: false });
 
     if (error) {
-      console.error('Error fetching access logs:', error);
+      Sentry.captureException(error);
+    await notifySlack(error, req.url);
       return NextResponse.json({ error: error.message }, { status: 500 });
     }
 
     return NextResponse.json(data);
   } catch (error: any) {
-    console.error('Error in access logs route:', error);
+    Sentry.captureException(error);
+    await notifySlack(error, req.url);
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 }

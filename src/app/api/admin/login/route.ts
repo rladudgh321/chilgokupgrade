@@ -1,6 +1,8 @@
 import { createClient } from "@/app/utils/supabase/server";
 import { cookies } from "next/headers";
 import { type NextRequest, NextResponse } from "next/server";
+import * as Sentry from "@sentry/nextjs";
+import { notifySlack } from "@/app/utils/sentry/slack";
 
 export async function POST(request: NextRequest) {
   try {
@@ -26,6 +28,8 @@ export async function POST(request: NextRequest) {
     if (error) {
       // 이메일 미인증/자격증명 오류 등은 여기서 잡힙니다.
       // error.status가 undefined인 경우가 있어 기본 401로 처리
+      Sentry.captureException(error);
+      await notifySlack(error, request.url);
       return NextResponse.json(
         { ok: false, error: error.message },
         { status: error.status || 401 }
@@ -44,7 +48,8 @@ export async function POST(request: NextRequest) {
       { status: 200 }
     );
   } catch (e: any) {
-    console.error("[LOGIN]", e);
+     Sentry.captureException(e);
+      await notifySlack(e, request.url);
     return NextResponse.json(
       { ok: false, error: e?.message ?? "Internal Server Error" },
       { status: 500 }
@@ -65,17 +70,10 @@ function getClientIp(req: NextRequest) {
 }
 
 async function createAccessLog(request: NextRequest, supabase: any) {
-  console.log("--- createAccessLog started ---");
   try {
     const ip = getClientIp(request);
-    console.log("IP Address:", ip);
-
     const userAgent = request.headers.get("user-agent");
-    console.log("User Agent:", userAgent);
-
     const referrer = request.headers.get("referer");
-    console.log("Referrer:", referrer);
-
     let browser = "Unknown";
     let os = "Unknown";
 
@@ -98,20 +96,18 @@ async function createAccessLog(request: NextRequest, supabase: any) {
     let location = null;
     if (ip && ip !== 'unknown') {
         try {
-            console.log(`Fetching geolocation for ${ip}...`);
             const geoRes = await fetch(`http://ip-api.com/json/${ip}?fields=status,message,country,countryCode,region,regionName,city,zip,lat,lon,timezone,isp,org,as,query`);
             const geoData = await geoRes.json();
-            console.log("Geolocation API response:", geoData);
             if (geoData.status === 'success') {
               location = `${geoData.country}, ${geoData.regionName}, ${geoData.city}, ${geoData.zip}`;
             } else {
               console.warn("Geolocation fetch was not successful:", geoData.message);
             }
-        } catch (e) {
-            console.error("!!! Exception fetching geolocation:", e);
+        } catch (error) {
+          Sentry.captureException(error);
+                await notifySlack(error, req.url);
         }
     }
-    console.log("Final location:", location);
 
     const logData = {
       ip,
@@ -121,17 +117,17 @@ async function createAccessLog(request: NextRequest, supabase: any) {
       location,
     };
 
-    console.log("Attempting to insert log into Supabase with data:", logData);
     const { data: insertData, error: logError } = await supabase.from("access_logs").insert(logData).select();
 
     if (logError) {
-      console.error("!!! Supabase insert error:", logError);
+      Sentry.captureException(logError);
+      await notifySlack(logError, request.url);
     } else {
       console.log("+++ Supabase insert successful:", insertData);
     }
 
-  } catch (e) {
-    console.error("!!! Critical error in createAccessLog:", e);
+  } catch (error) {
+    Sentry.captureException(error);
+    await notifySlack(error, request.url);
   }
-  console.log("--- createAccessLog finished ---");
 }

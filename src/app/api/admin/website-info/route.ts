@@ -1,10 +1,12 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/app/utils/supabase/server";
 import { cookies } from "next/headers";
 import { workInfoSchema } from "@/app/(admin)/admin/websiteSettings/website-info/schema";
 import { z } from "zod";
+import * as Sentry from "@sentry/nextjs";
+import { notifySlack } from "@/app/utils/sentry/slack";
 
-export async function GET() {
+export async function GET(req: NextRequest) {
   const cookieStore = await cookies();
   const supabase = createClient(cookieStore);
 
@@ -15,11 +17,16 @@ export async function GET() {
       .eq("id", "main")
       .single();
 
-    if (error && error.code !== 'PGRST116') { throw error; }
+    if (error && error.code !== 'PGRST116') {
+      Sentry.captureException(error);
+      await notifySlack(error, req.url);
+      throw error
+    }
 
     return NextResponse.json(data);
   } catch (error) {
-    console.error("GET /api/admin/website-info error:", error);
+      Sentry.captureException(error);
+      await notifySlack(error, req.url);
     return NextResponse.json({ error: "Failed to fetch data from Supabase" }, { status: 500 });
   }
 }
@@ -52,10 +59,15 @@ export async function POST(request: Request) {
       .select()
       .single();
 
-    if (error) throw error;
+    if (error) {
+      Sentry.captureException(error);
+      await notifySlack(error, request.url);
+      throw error
+    }
     return NextResponse.json(data);
   } catch (err: any) {
-    console.error("POST /api/admin/website-info error:", err);
+    Sentry.captureException(err);
+      await notifySlack(err, request.url);
     if (err instanceof z.ZodError) {
       return NextResponse.json({ error: err.errors }, { status: 400 });
     }

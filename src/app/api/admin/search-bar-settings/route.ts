@@ -1,6 +1,8 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/app/utils/supabase/server";
 import { cookies } from "next/headers";
+import * as Sentry from "@sentry/nextjs";
+import { notifySlack } from "@/app/utils/sentry/slack";
 
 const DEFAULT_SETTINGS = {
   showKeyword: true,
@@ -16,7 +18,7 @@ const DEFAULT_SETTINGS = {
 };
 
 // GET handler to fetch search bar settings
-export async function GET() {
+export async function GET(req: NextRequest) {
   try {
     const cookieStore = await cookies();
     const supabase = createClient(cookieStore);
@@ -28,6 +30,8 @@ export async function GET() {
       .single();
 
     if (error && error.code !== 'PGRST116') { // PGRST116 = 'exact-single-row-not-found'
+      Sentry.captureException(error);
+          await notifySlack(error, req.url);
         throw error;
     }
 
@@ -38,7 +42,8 @@ export async function GET() {
     const { id, updatedAt, ...rest } = settings;
     return NextResponse.json({ data: rest });
   } catch (error: any) {
-    console.error("Failed to fetch search bar settings:", error);
+    Sentry.captureException(error);
+          await notifySlack(error, req.url);
     return NextResponse.json(
       { error: "Failed to fetch settings", details: error.message },
       { status: 500 }
@@ -75,13 +80,16 @@ export async function PUT(request: Request) {
         .single();
 
     if (error) {
+      Sentry.captureException(error);
+          await notifySlack(error, request.url);
         throw error;
     }
 
     const { id, updatedAt, ...rest } = updatedSettings;
     return NextResponse.json({ data: rest });
   } catch (error: any) {
-    console.error("Failed to update search bar settings:", error);
+      Sentry.captureException(error);
+      await notifySlack(error, request.url);
     return NextResponse.json(
       { error: "Failed to update settings", details: error.message },
       { status: 500 }

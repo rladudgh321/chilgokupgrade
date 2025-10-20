@@ -2,6 +2,8 @@ import { koreanToNumber } from "@/app/utility/koreanToNumber";
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/app/utils/supabase/server";
 import { cookies } from "next/headers";
+import * as Sentry from "@sentry/nextjs";
+import { notifySlack } from "@/app/utils/sentry/slack";
 
 export async function GET(req: NextRequest) {
   try {
@@ -179,11 +181,11 @@ export async function GET(req: NextRequest) {
             }
         }
     }
-    console.log(q);
     const { data, error, count } = await q;
 
     if (error) {
-      console.error('Supabase error:', error);
+      Sentry.captureException(error);
+      await notifySlack(error, req.url);
       return NextResponse.json({ ok: false, error }, { status: 400 });
     }
 
@@ -203,6 +205,8 @@ export async function GET(req: NextRequest) {
       data: processedData ?? [],
     });
   } catch (e: any) {
+     Sentry.captureException(e);
+    await notifySlack(e, req.url);
     return NextResponse.json(
       { ok: false, error: { message: e?.message ?? "Unknown error" } },
       { status: 500 }
@@ -265,7 +269,8 @@ export async function POST(request: NextRequest) {
         .single();
 
     if (buildError) {
-      console.error('Supabase error:', buildError);
+      Sentry.captureException(buildError);
+    await notifySlack(buildError, request.url);
         return NextResponse.json({ ok: false, error: buildError }, { status: 400 });
     }
     if (!newBuild) {
@@ -300,7 +305,8 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ ok: true, data: [newBuild] }, { status: 201 });
 
   } catch (e: any) {
-    console.error(e);
+    Sentry.captureException(e);
+    await notifySlack(e, request.url);
     return NextResponse.json(
       { ok: false, error: { message: e?.message ?? "Unknown error" } },
       { status: 500 }

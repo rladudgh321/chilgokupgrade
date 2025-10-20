@@ -1,9 +1,11 @@
 
 import { createClient } from "@/app/utils/supabase/server";
 import { cookies } from "next/headers";
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
+import * as Sentry from "@sentry/nextjs";
+import { notifySlack } from "@/app/utils/sentry/slack";
 
-export async function GET() {
+export async function GET(req: NextRequest) {
   try {
     const cookieStore = await cookies();
     const supabase = createClient(cookieStore);
@@ -16,7 +18,11 @@ export async function GET() {
 
     // Inquiry Stats
     const { data: inquiryData, error: inquiryError } = await supabase.from('Order').select('category').eq('confirm', false);
-    if (inquiryError) console.error('Error fetching inquiries:', inquiryError);
+    if (inquiryError) {
+        Sentry.captureException(inquiryError);
+          await notifySlack(inquiryError, req.url);
+    }
+    
     const inquiryStats = {
       buy: inquiryData?.filter(i => i.category === '매수').length || 0,
       sell: inquiryData?.filter(i => i.category === '매도').length || 0,
@@ -28,9 +34,15 @@ export async function GET() {
 
     // Category Views
     const { data: buildsForCategories, error: buildsForCatError } = await supabase.from('Build').select('views, listingTypeId').gt('views', 0).not('listingTypeId', 'is', null);
-    if (buildsForCatError) console.error('Error fetching builds for categories:', buildsForCatError);
+    if (buildsForCatError) {
+      Sentry.captureException(buildsForCatError);
+          await notifySlack(buildsForCatError, req.url);
+    }
     const { data: listingTypes, error: listingTypesError } = await supabase.from('ListingType').select('id, name');
-    if (listingTypesError) console.error('Error fetching listing types:', listingTypesError);
+    if (listingTypesError) {
+      Sentry.captureException(listingTypesError);
+          await notifySlack(listingTypesError, req.url);
+    }
 
     const categoryViewsMap = new Map<number, { name: string; value: number }>();
     if (listingTypes) {
@@ -67,7 +79,10 @@ export async function GET() {
 
     // Top 5 Listings
     const { data: topListings, error: topListingsError } = await supabase.from('Build').select('address, views').eq('visibility', true).not('address', 'is', null).order('views', { ascending: false }).limit(5);
-    if (topListingsError) console.error('Error fetching top listings:', topListingsError);
+    if (topListingsError) {
+      Sentry.captureException(topListingsError);
+          await notifySlack(topListingsError, req.url);
+    }
 
     const data = {
       listingStats: { totalListings: totalListings || 0, totalViews },
@@ -80,6 +95,8 @@ export async function GET() {
 
     return NextResponse.json(data);
   } catch (e: any) {
+      Sentry.captureException(e);
+      await notifySlack(e, req.url);
     return NextResponse.json({ message: e?.message ?? "서버 오류" }, { status: 500 });
   }
 }

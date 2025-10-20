@@ -2,6 +2,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import { createClient } from "@/app/utils/supabase/server";
+import * as Sentry from "@sentry/nextjs";
+import { notifySlack } from "@/app/utils/sentry/slack";
 
 // 세션 쿠키 기반 Supabase 클라이언트
 async function getSupabase() {
@@ -43,7 +45,8 @@ export async function DELETE(req: NextRequest) {
         .maybeSingle();
 
       if (error) {
-        console.error("Supabase delete by id error:", error);
+        Sentry.captureException(error);
+            await notifySlack(error, req.url);
         return NextResponse.json(
           { success: false, message: "Failed to delete item" },
           { status: 500 }
@@ -70,7 +73,8 @@ export async function DELETE(req: NextRequest) {
         .select("id"); // 삭제된 id 목록만 받아와도 충분
 
       if (error) {
-        console.error("Supabase delete by ipAddress error:", error);
+            Sentry.captureException(error);
+            await notifySlack(error, req.url);
         return NextResponse.json(
           { success: false, message: "Failed to remove items by IP" },
           { status: 500 }
@@ -90,7 +94,8 @@ export async function DELETE(req: NextRequest) {
       { status: 400 }
     );
   } catch (error) {
-    console.error("Error during cleanup:", error);
+        Sentry.captureException(error);
+        await notifySlack(error, req.url);
     return NextResponse.json(
       { success: false, message: "Failed to perform cleanup" },
       { status: 500 }
