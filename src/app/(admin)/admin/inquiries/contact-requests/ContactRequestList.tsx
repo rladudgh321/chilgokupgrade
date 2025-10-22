@@ -1,10 +1,11 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import ToggleSwitch from '@/app/components/admin/listings/ToggleSwitch';
 import Pagination from '@/app/components/shared/Pagination';
 import IpActions from '@/app/(admin)/shared/IpActions';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 
 type Request = {
   id: number;
@@ -25,33 +26,50 @@ interface ContactRequestListProps {
 
 const ContactRequestList = ({ initialRequests, totalPages, currentPage }: ContactRequestListProps) => {
   const router = useRouter();
-  const [requests, setRequests] = useState<Request[]>(initialRequests);
+  const queryClient = useQueryClient();
   const [searchQuery, setSearchQuery] = useState('');
-  const [notes, setNotes] = useState<{ [key: number]: string }>({});
-
-  useEffect(() => {
-    setRequests(initialRequests);
-    const initialNotes = initialRequests.reduce((acc, r) => {
+  const [notes, setNotes] = useState<{ [key: number]: string }>(
+    initialRequests.reduce((acc, r) => {
       acc[r.id] = r.note;
       return acc;
-    }, {} as { [key:number]: string });
-    setNotes(initialNotes);
-  }, [initialRequests]);
+    }, {} as { [key: number]: string })
+  );
 
-  const handleToggleChange = async (id: string, value: boolean) => {
-    const numericId = parseInt(id, 10);
-    setRequests((prev) => prev.map((r) => (r.id === numericId ? { ...r, confirm: value } : r)));
-    try {
-      await fetch('/api/supabase/contact-requests', {
+  const updateRequestMutation = useMutation({
+    mutationFn: async ({ id, data }: { id: number; data: Partial<Request> }) => {
+      const res = await fetch('/api/supabase/contact-requests', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ id: numericId, confirm: value }),
+        body: JSON.stringify({ id, ...data }),
       });
-    } catch {
-      // 실패 시 롤백
-      setRequests((prev) => prev.map((r) => (r.id === numericId ? { ...r, confirm: !value } : r)));
-      alert('확인여부 변경 실패');
-    }
+      if (!res.ok) throw new Error('업데이트 실패');
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['contactRequests'] });
+    },
+    onError: (error) => {
+      alert(error?.message ?? '업데이트 실패');
+    },
+  });
+
+  const deleteRequestMutation = useMutation({
+    mutationFn: async (id: number) => {
+      const res = await fetch(`/api/supabase/contact-requests?id=${id}`, { method: 'DELETE' });
+      if (!res.ok) throw new Error('삭제 실패');
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['contactRequests'] });
+    },
+    onError: (error) => {
+      alert(error?.message ?? '삭제 실패');
+    },
+  });
+
+  const handleToggleChange = (id: string, value: boolean) => {
+    const numericId = parseInt(id, 10);
+    updateRequestMutation.mutate({ id: numericId, data: { confirm: value } });
   };
 
   const handleNoteChange = (id: number, note: string) => {
@@ -61,40 +79,22 @@ const ContactRequestList = ({ initialRequests, totalPages, currentPage }: Contac
     }));
   };
 
-  const handleSaveNote = async (id: number) => {
+  const handleSaveNote = (id: number) => {
     const note = notes[id] ?? '';
-    try {
-      const res = await fetch('/api/supabase/contact-requests', {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ id, note }),
-      });
-      if (!res.ok) throw new Error('메모 저장 실패');
-      alert('메모가 저장되었습니다');
-      router.refresh();
-    } catch (e) {
-      alert((e as Error)?.message ?? '메모 저장 실패');
-    }
+    updateRequestMutation.mutate({ id, data: { note } });
   };
 
-  const handleDelete = async (id: number) => {
+  const handleDelete = (id: number) => {
     const confirmDelete = window.confirm('정말로 삭제하시겠습니까?');
     if (!confirmDelete) return;
-    try {
-      const res = await fetch(`/api/supabase/contact-requests?id=${id}`, { method: 'DELETE' });
-      if (!res.ok) throw new Error('삭제 실패');
-      alert('삭제되었습니다.');
-      setRequests((prev) => prev.filter((r) => r.id !== id));
-    } catch (e) {
-      alert((e as Error)?.message ?? '삭제 실패');
-    }
+    deleteRequestMutation.mutate(id);
   };
 
   const filteredRequests = useMemo(() => {
     const q = searchQuery.trim();
-    if (!q) return requests;
-    return requests.filter((request) => request.contact.includes(q) || request.description.includes(q));
-  }, [requests, searchQuery]);
+    if (!q) return initialRequests;
+    return initialRequests.filter((request) => request.contact.includes(q) || request.description.includes(q));
+  }, [initialRequests, searchQuery]);
 
   const onPageChange = (page: number) => {
     router.push(`/admin/inquiries/contact-requests?page=${page}`);

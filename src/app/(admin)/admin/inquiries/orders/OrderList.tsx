@@ -1,10 +1,11 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import ToggleSwitch from '@/app/components/admin/listings/ToggleSwitch';
 import Pagination from '@/app/components/shared/Pagination';
 import IpActions from '@/app/(admin)/shared/IpActions';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 
 type Order = {
   id: number;
@@ -32,45 +33,59 @@ interface OrderListProps {
 
 const OrderList = ({ initialOrders, totalPages, currentPage }: OrderListProps) => {
   const router = useRouter();
-  const [orders, setOrders] = useState<Order[]>(initialOrders);
+  const queryClient = useQueryClient();
   const [categoryFilter, setCategoryFilter] = useState<'전체' | '구해요' | '팔아요' | '기타'>('전체');
   const [searchQuery, setSearchQuery] = useState('');
-  const [notes, setNotes] = useState<{ [key: number]: string }>({});
-
-  useEffect(() => {
-    setOrders(initialOrders);
-    const initialNotes: { [key: number]: string } = {};
-    initialOrders.forEach(order => {
+  const [notes, setNotes] = useState<{ [key: number]: string }>(
+    initialOrders.reduce((acc, order) => {
       if (order.note) {
-        initialNotes[order.id] = order.note;
+        acc[order.id] = order.note;
       }
-    });
-    setNotes(initialNotes);
-  }, [initialOrders]);
+      return acc;
+    }, {} as { [key: number]: string })
+  );
 
-  const handleToggleChange = async (id: number, value: boolean) => {
-    try {
+  const updateOrderMutation = useMutation({
+    mutationFn: async ({ id, data }: { id: number; data: Partial<Order> }) => {
       const response = await fetch(`/api/inquiries/orders/${id}`,
         {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ confirm: value }),
+          body: JSON.stringify(data),
         });
 
       if (!response.ok) {
-        throw new Error('Failed to update confirm status');
+        throw new Error('Failed to update order');
       }
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['orders'] });
+    },
+    onError: (error) => {
+      alert(error?.message ?? '업데이트 실패');
+    },
+  });
 
-      setOrders((prev) =>
-        prev.map((order) =>
-          order.id === id
-            ? { ...order, confirm: value }
-            : order
-        )
-      );
-    } catch (err) {
-      alert((err as Error).message);
-    }
+  const deleteOrderMutation = useMutation({
+    mutationFn: async (id: number) => {
+      const response = await fetch(`/api/inquiries/orders/${id}`, { method: 'DELETE' });
+
+      if (!response.ok) {
+        throw new Error('Failed to delete order');
+      }
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['orders'] });
+    },
+    onError: (error) => {
+      alert(error?.message ?? '삭제 실패');
+    },
+  });
+
+  const handleToggleChange = (id: number, value: boolean) => {
+    updateOrderMutation.mutate({ id, data: { confirm: value } });
   };
 
   const handleNoteChange = (id: number, note: string) => {
@@ -80,61 +95,28 @@ const OrderList = ({ initialOrders, totalPages, currentPage }: OrderListProps) =
     }));
   };
 
-  const handleSaveNote = async (id: number) => {
-    try {
-      const response = await fetch(`/api/inquiries/orders/${id}`,
-        {
-          method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ note: notes[id] || '' }),
-        });
-
-      if (!response.ok) {
-        throw new Error('Failed to save note');
-      }
-
-      alert(`메모가 저장되었습니다.`);
-
-    } catch (err) {
-      alert('메모 저장에 실패했습니다.');
-    }
+  const handleSaveNote = (id: number) => {
+    updateOrderMutation.mutate({ id, data: { note: notes[id] || null } });
   };
 
-  const handleDelete = async (id: number) => {
+  const handleDelete = (id: number) => {
     if (!window.confirm('정말로 이 의뢰를 삭제하시겠습니까?')) {
       return;
     }
-
-    try {
-      const response = await fetch(`/api/inquiries/orders/${id}`, { method: 'DELETE' });
-
-      if (!response.ok) {
-        throw new Error('Failed to delete order');
-      }
-
-      setOrders((prev) => prev.filter((order) => order.id !== id));
-      alert('삭제되었습니다.');
-
-    } catch (err) {
-      alert('삭제에 실패했습니다.');
-    }
+    deleteOrderMutation.mutate(id);
   };
 
   const onPageChange = (page: number) => {
     router.push(`/admin/inquiries/orders?page=${page}`);
   };
 
-  const filteredOrders = orders.filter((order) => {
-    if (categoryFilter === '전체') {
-      return (
-        (order.contact.includes(searchQuery) || order.title.includes(searchQuery))
-      );
-    }
-    return (
-      order.category === categoryFilter &&
-      (order.contact.includes(searchQuery) || order.title.includes(searchQuery))
-    );
-  });
+  const filteredOrders = useMemo(() => {
+    return initialOrders.filter((order) => {
+      const matchesCategory = categoryFilter === '전체' || order.category === categoryFilter;
+      const matchesSearch = order.contact.includes(searchQuery) || order.title.includes(searchQuery);
+      return matchesCategory && matchesSearch;
+    });
+  }, [initialOrders, categoryFilter, searchQuery]);
 
   return (
     <div className="p-2 sm:p-4 md:p-6">
