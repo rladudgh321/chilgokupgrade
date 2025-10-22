@@ -1,22 +1,14 @@
 import BoardClient from './BoardClient';
-import { cookies } from 'next/headers';
-import { createClient } from '@/app/utils/supabase/server';
 import { BoardPost } from './BoardClient';
-
+const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL!
 async function getPosts() {
-  const cookieStore = await cookies();
-    const supabase = createClient(cookieStore);
 
-  const { data, error } = await supabase
-    .from("BoardPost")
-    .select(`*`)
-    .order('createdAt', { ascending: false });
-
-  if (error) {
-    console.error('Error fetching posts:', error);
+  const response = await fetch(`${BASE_URL}/api/board/posts`, { next: { revalidate: 28_800, tags: ['public', 'admin-board'] } });
+  if (!response.ok) {
+    console.error('Error fetching posts:', await response.text());
     return [];
   }
-
+  const { data } = await response.json();
   return data;
 }
 

@@ -4,13 +4,13 @@ import { cookies } from "next/headers";
 import AdminBoardEditClient from "./client";
 
 interface AdminBoardEditPageProps {
-  params: {
+  params: Promise<{
     id: string;
-  };
+  }>
 }
 
 export default async function AdminBoardEditPage({ params }: AdminBoardEditPageProps) {
-  const { id } = params;
+  const { id } = await params;
   const cookieStore = await cookies();
   const supabase = createClient(cookieStore);
 

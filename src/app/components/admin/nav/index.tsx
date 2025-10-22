@@ -46,6 +46,7 @@ const webViewData = [
 
 const otherData = [
   { title: "접속 기록", url: "access-logs" },
+  { title: "차단된 IP", url: "banned-ips" },
 ];
 
 // 메뉴 설정
