@@ -1,11 +1,1 @@
-const { data: post, error } = await supabase
-    .from("BoardPost")
-    .select("*")
-    .eq("id", Number(id))
-    .single();
-
-  if (error || !post) {
-    notFound();
-  }
------------
-`AdminBoardEditPage` 컴포넌트에 있는 supabase를 route.ts로 옮겨서 fetch로 가지고 와줘
+`BoardClient` 컴포넌트에서 useEffect 내부에서 get방식의 fetch는 서버에서 props로 가지고 오고, post방식은 @tanstack query를 사용해주고 전체적으로 성능최적화를 해줘

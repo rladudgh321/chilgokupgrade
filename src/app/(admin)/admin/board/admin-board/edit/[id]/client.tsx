@@ -22,12 +22,18 @@ interface PostForForm {
   order?: number | null;
 }
 
-interface AdminBoardEditClientProps {
-  post: PostForForm;
+interface Category {
+  id: number;
+  name: string;
 }
 
-const AdminBoardEditClient = ({ post }: AdminBoardEditClientProps) => {
-  return <AdminBoardForm initialData={post} isEdit={true} />;
+interface AdminBoardEditClientProps {
+  post: PostForForm;
+  categories: Category[];
+}
+
+const AdminBoardEditClient = ({ post, categories }: AdminBoardEditClientProps) => {
+  return <AdminBoardForm initialData={post} isEdit={true} categories={categories} />;
 };
 
 export default AdminBoardEditClient;

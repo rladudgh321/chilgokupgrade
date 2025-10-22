@@ -1,28 +1,55 @@
-import { createClient } from "@/app/utils/supabase/server";
-import { notFound } from "next/navigation";
-import { cookies } from "next/headers";
 import AdminBoardEditClient from "./client";
 
+interface PostForForm {
+  id: number;
+  title: string;
+  content: string;
+  popupContent: string | null;
+  representativeImage: string | null;
+  registrationDate: string;
+  manager: string;
+  isAnnouncement?: boolean;
+  isPopup: boolean;
+  popupWidth: number | null;
+  popupHeight: number | null;
+  isPublished: boolean;
+  popupType?: 'IMAGE' | 'CONTENT';
+  createdAt: string;
+  updatedAt: string;
+  views: number;
+  order?: number | null;
+}
+
+interface Category {
+  id: number;
+  name: string;
+}
+
 interface AdminBoardEditPageProps {
-  params: Promise<{
+  params: {
     id: string;
-  }>
+  }
 }
 
 export default async function AdminBoardEditPage({ params }: AdminBoardEditPageProps) {
-  const { id } = await params;
-  const cookieStore = await cookies();
-  const supabase = createClient(cookieStore);
+  const { id } = params;
 
-  const { data: post, error } = await supabase
-    .from("BoardPost")
-    .select("*")
-    .eq("id", Number(id))
-    .single();
+  const postResponse = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/board/posts/${id}`, { cache: 'no-store' });
 
-  if (error || !post) {
-    notFound();
+  if (!postResponse.ok) {
+    const errorText = await postResponse.text();
+    console.error('Error fetching post:', errorText);
+    throw new Error('Failed to fetch post');
   }
+
+  const post: PostForForm = await postResponse.json();
+
+  const categoriesResponse = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/categories`, { cache: 'no-store' });
+  if (!categoriesResponse.ok) {
+    console.error('Failed to fetch categories');
+    return <AdminBoardEditClient post={post} categories={[]} />;
+  }
+  const categories: Category[] = await categoriesResponse.json();
 
   const plainPost = {
     ...post,
@@ -31,5 +58,5 @@ export default async function AdminBoardEditPage({ params }: AdminBoardEditPageP
     updatedAt: new Date(post.updatedAt).toISOString(),
   };
 
-  return <AdminBoardEditClient post={plainPost} />;
+  return <AdminBoardEditClient post={plainPost} categories={categories} />;
 };

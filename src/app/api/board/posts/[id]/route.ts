@@ -18,6 +18,31 @@ const UpdatePostSchema = z.object({
   popupType: z.enum(['IMAGE', 'CONTENT']).optional(),
 });
 
+export async function GET(req: NextRequest, { params }: { params: { id: string } }) {
+  try {
+    const cookieStore = await cookies();
+    const supabase = createClient(cookieStore);
+
+    const { data: post, error } = await supabase
+      .from("BoardPost")
+      .select("*")
+      .eq("id", Number(params.id))
+      .single();
+
+    if (error) {
+      return NextResponse.json({ message: error.message }, { status: 500 });
+    }
+
+    if (!post) {
+      return NextResponse.json({ message: "Post not found" }, { status: 404 });
+    }
+
+    return NextResponse.json(post);
+  } catch (e: any) {
+    return NextResponse.json({ message: e?.message ?? "서버 오류" }, { status: 500 });
+  }
+}
+
 export async function PUT(req: NextRequest, { params }: { params: { id: string } }) {
   try {
     const raw = await req.json().catch(() => null);

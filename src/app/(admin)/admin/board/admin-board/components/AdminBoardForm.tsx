@@ -1,12 +1,18 @@
 "use client"
-import { useState, useCallback, useEffect } from "react"
+import { useState, useCallback } from "react"
 import { useRouter } from "next/navigation"
 import Image from "next/image"
 import dynamic from 'next/dynamic'
 import "react-datepicker/dist/react-datepicker.css";
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 
 const Editor = dynamic(() => import('@/app/components/shared/Editor'), { ssr: false });
-const DatePicker = dynamic(() => import('react-datepicker'), { ssr: false });
+const DatePicker = dynamic<
+  any
+>(
+  () => import('react-datepicker').then(m => m.default),
+  { ssr: false }
+);
 
 interface Post {
   id?: number
@@ -32,12 +38,13 @@ interface Category {
 interface AdminBoardFormProps {
   initialData?: Post
   isEdit?: boolean
+  categories: Category[];
 }
 
-const AdminBoardForm = ({ initialData, isEdit = false }: AdminBoardFormProps) => {
+const AdminBoardForm = ({ initialData, isEdit = false, categories }: AdminBoardFormProps) => {
   const router = useRouter()
-  const [categories, setCategories] = useState<Category[]>([]);
-  
+  const queryClient = useQueryClient();
+
   const [formData, setFormData] = useState({
     representativeImage: null as File | null,
     representativeImageUrl: initialData?.representativeImage || null,
@@ -54,22 +61,6 @@ const AdminBoardForm = ({ initialData, isEdit = false }: AdminBoardFormProps) =>
     popupType: initialData?.popupType || 'IMAGE',
   });
 
-  useEffect(() => {
-    const fetchCategories = async () => {
-      try {
-        const response = await fetch('/api/categories');
-        if (!response.ok) {
-          throw new Error('Failed to fetch categories');
-        }
-        const data = await response.json();
-        setCategories(data);
-      } catch (error) {
-        console.error(error);
-      }
-    };
-    fetchCategories();
-  }, []);
-
   const handleContentChange = useCallback((value: string) => {
     setFormData(prev => ({ ...prev, content: value }))
   }, []);
@@ -85,19 +76,56 @@ const AdminBoardForm = ({ initialData, isEdit = false }: AdminBoardFormProps) =>
     }
   }
 
+  const uploadImageMutation = useMutation({
+    mutationFn: async (file: File) => {
+      const fd = new FormData();
+      fd.append('file', file);
+      fd.append('prefix', 'board');
+      const uploadRes = await fetch('/api/image/upload', { method: 'POST', body: fd });
+      const uploadJson = await uploadRes.json();
+      if (!uploadRes.ok) throw new Error(uploadJson.message || '이미지 업로드 실패');
+      return uploadJson.url as string;
+    },
+  });
+
+  const postMutation = useMutation({
+    mutationFn: async (data: any) => {
+      const apiUrl = isEdit ? `/api/board/posts/${initialData?.id}` : '/api/board/posts';
+      const method = isEdit ? 'PUT' : 'POST';
+
+      const response = await fetch(apiUrl, {
+        method: method,
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(data),
+      });
+
+      const result = await response.json();
+      if (!response.ok) {
+        throw new Error(result.message || `게시글 ${isEdit ? '수정' : '저장'}에 실패했습니다`);
+      }
+      return result;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['boardPosts'] });
+      alert(`게시글이 ${isEdit ? '수정' : '저장'}되었습니다.`);
+      router.push("/admin/board/admin-board");
+      router.refresh();
+    },
+    onError: (error: any) => {
+      console.error(`Error ${isEdit ? 'updating' : 'creating'} post:`, error);
+      alert(error.message || `게시글 ${isEdit ? '수정' : '저장'}에 실패했습니다.`);
+    },
+  });
+
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    
+    e.preventDefault();
+
     try {
-      let representativeImageUrl: string | undefined | null = initialData?.representativeImage
+      let representativeImageUrl: string | undefined | null = initialData?.representativeImage;
       if (formData.representativeImage) {
-        const fd = new FormData()
-        fd.append('file', formData.representativeImage)
-        fd.append('prefix', 'board')
-        const uploadRes = await fetch('/api/image/upload', { method: 'POST', body: fd })
-        const uploadJson = await uploadRes.json()
-        if (!uploadRes.ok) throw new Error(uploadJson.message || '이미지 업로드 실패')
-        representativeImageUrl = uploadJson.url as string
+        representativeImageUrl = await uploadImageMutation.mutateAsync(formData.representativeImage);
       }
 
       const submitData = {
@@ -113,36 +141,17 @@ const AdminBoardForm = ({ initialData, isEdit = false }: AdminBoardFormProps) =>
         popupHeight: formData.popupHeight ? parseInt(formData.popupHeight) : undefined,
         isPublished: formData.isPublished,
         popupType: formData.popupType,
-      }
+      };
 
-      const apiUrl = isEdit ? `/api/board/posts/${initialData?.id}` : '/api/board/posts'
-      const method = isEdit ? 'PUT' : 'POST'
+      await postMutation.mutateAsync(submitData);
 
-      const response = await fetch(apiUrl, {
-        method: method,
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(submitData),
-      })
-
-      const result = await response.json()
-
-      if (!response.ok) {
-        throw new Error(result.message || `게시글 ${isEdit ? '수정' : '저장'}에 실패했습니다`)
-      }
-
-      alert(`게시글이 ${isEdit ? '수정' : '저장'}되었습니다.`)
-      router.push("/admin/board/admin-board")
-      router.refresh()
     } catch (error: any) {
-      console.error(`Error ${isEdit ? 'updating' : 'creating'} post:`, error)
-      alert(error.message || `게시글 ${isEdit ? '수정' : '저장'}에 실패했습니다.`)
+      console.error(`Error in handleSubmit:`, error);
+      alert(error.message || `작업에 실패했습니다.`);
     }
-  }
+  };
 
-  return (
-    <div className="min-h-screen bg-gray-50">
+  return (    <div className="min-h-screen bg-gray-50">
       <div className="bg-purple-600 text-white py-3 sm:py-4 px-4 sm:px-6">
         <h1 className="text-xl sm:text-2xl font-bold">{isEdit ? '글수정' : '글쓰기'}</h1>
       </div>
