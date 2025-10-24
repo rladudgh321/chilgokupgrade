@@ -1,6 +1,6 @@
 "use client";
 
-import React, { MouseEventHandler, useEffect, useState } from "react";
+import React, { MouseEventHandler } from "react";
 import { useFormContext, Controller } from "react-hook-form";
 import dynamic from 'next/dynamic'
 import { ko } from "date-fns/locale";
@@ -35,6 +35,54 @@ type InputFieldProps = {
   className?: string;
   isDatePicker?: boolean;
 };
+
+/* ---------- 유틸 함수 ---------- */
+// Date -> "YYYY-MM-DD"
+const dateToDateOnlyString = (d: Date) => {
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  return `${y}-${m}-${day}`;
+};
+
+// value (string | Date | null | undefined) -> Date | null (로컬 자정으로 생성)
+const parseValueToDate = (val: any): Date | null => {
+  if (!val) return null;
+
+  if (val instanceof Date && !isNaN(val.getTime())) {
+    // 새로운 Date를 만들어 시간(로컬)으로 맞춤 (시간 00:00)
+    return new Date(val.getFullYear(), val.getMonth(), val.getDate());
+  }
+
+  if (typeof val === "string") {
+    // "YYYY-MM-DD" 예상
+    const m = val.match(/^(\d{4})-(\d{1,2})-(\d{1,2})$/);
+    if (m) {
+      const y = Number(m[1]);
+      const mo = Number(m[2]) - 1;
+      const d = Number(m[3]);
+      return new Date(y, mo, d);
+    }
+    // fallback: 시도해서 파싱 (브라우저에 따라 timezone 문제가 있어 권장하지 않음)
+    const parsed = new Date(val);
+    if (!isNaN(parsed.getTime())) {
+      return new Date(parsed.getFullYear(), parsed.getMonth(), parsed.getDate());
+    }
+  }
+
+  // fallback: 시도해서 Date 생성
+  try {
+    const dt = new Date(val);
+    if (!isNaN(dt.getTime())) {
+      return new Date(dt.getFullYear(), dt.getMonth(), dt.getDate());
+    }
+  } catch {
+    return null;
+  }
+
+  return null;
+};
+
 const InputField = ({
   label,
   name,
@@ -58,15 +106,16 @@ const InputField = ({
           isDatePicker ? (
             <DatePicker
               id={name}
-              /* 폼 값이 string | Date | null 이어도 안전하게 선택값 계산 */
-              selected={
-                field.value instanceof Date
-                  ? field.value
-                  : field.value
-                  ? new Date(field.value)
-                  : null
-              }
-              onChange={(date: Date | null) => field.onChange(date)}
+              selected={parseValueToDate(field.value)}
+              onChange={(date: Date | null) => {
+                if (date) {
+                  // 사용자 선택한 로컬 날짜를 "YYYY-MM-DD" 형식 문자열로 저장
+                  const only = dateToDateOnlyString(new Date(date.getFullYear(), date.getMonth(), date.getDate()));
+                  field.onChange(only);
+                } else {
+                  field.onChange(null);
+                }
+              }}
               placeholderText={placeholder || "날짜 선택"}
               dateFormat="yyyy/MM/dd"
               locale={ko}
@@ -79,17 +128,18 @@ const InputField = ({
               )}
             />
           ) : (
-                          <input
-                          id={name}
-                          type={type}
-                          placeholder={placeholder}
-                          className={clsx(
-                            "mt-1 block w-full p-3 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500",
-                            className
-                          )}
-                          {...field}
-                          value={field.value ?? ""}
-                        />          )
+            <input
+              id={name}
+              type={type}
+              placeholder={placeholder}
+              className={clsx(
+                "mt-1 block w-full p-3 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500",
+                className
+              )}
+              {...field}
+              value={field.value ?? ""}
+            />
+          )
         }
       />
     </div>

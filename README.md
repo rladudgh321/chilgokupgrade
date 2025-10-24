@@ -37,6 +37,11 @@ npm i @slack/webhook
 ### 제마나이 계정변경
 rm -f ~/.gemini/settings.json
 
+const DatePicker = React.lazy(() => import('react-datepicker'));
+
+<Suspense>
+  <DatePicker />
+</Suspense>
 ##api/inquiries/orders/route.ts에서는 post 요청이 prisma 방식으로 api작성됨 rls할때 참고.
 
 ------
