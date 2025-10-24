@@ -80,17 +80,17 @@ const InputField = ({
               )}
             />
           ) : (
-            <input
-              id={name}
-              type={type}
-              placeholder={placeholder}
-              className={clsx(
-                "mt-1 block w-full p-3 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500",
-                className
-              )}
-              {...field}
-            />
-          )
+                          <input
+                          id={name}
+                          type={type}
+                          placeholder={placeholder}
+                          className={clsx(
+                            "mt-1 block w-full p-3 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500",
+                            className
+                          )}
+                          {...field}
+                          value={field.value ?? ""}
+                        />          )
         }
       />
     </div>

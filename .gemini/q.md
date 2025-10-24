@@ -1,2 +1,1 @@
-`OrdersPage`페이지와 `OrderList`컴포넌트를 성능최적화해줘.
-`OrderList` 컴포넌트의 fetch의 get방식은 `OrdersPage`페이지에서 fetch하여 props로 넘겨주고, 나머지 `put`,`delete` 방식은 @tansctack query를 사용하여 코드를 수정해줘
+`BuildForm.tsx`컴포넌트에서 `/admin/listings/(menu)/listings/[id]/edit/page.tsx`에 진입할 때 데이터가 채워져있길 바래. 어떤 것은 채워져있고 어떤것은 안채워져 있는데 props를 잘 전달되길 바래 `/api`를 잘 이용해봐
