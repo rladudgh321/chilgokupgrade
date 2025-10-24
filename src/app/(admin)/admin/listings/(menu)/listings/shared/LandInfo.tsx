@@ -3,6 +3,7 @@
 import { useFormContext, useWatch } from "react-hook-form";
 import { useEffect, useState } from "react";
 import { numberToKoreanWithDigits } from "@/app/utility/NumberToKoreanWithDigits";
+import { FormData } from "@/app/(admin)/admin/listings/(menu)/listings/shared/BuildForm";
 
 const PriceInput = ({ name, label, enabledName }) => {
   const { register, watch } = useFormContext();
@@ -36,46 +37,25 @@ const PriceInput = ({ name, label, enabledName }) => {
 };
 
 const LandInfo = () => {
-  const { register, setValue, control, watch } = useFormContext<{
-    propertyType: string;
-    buyType: string;
-    dealScope: string;
-    visibility: boolean;
-    priceDisplay: string;
-    salePrice: number;
-    isSalePriceEnabled: boolean;
-    lumpSumPrice: number;
-    isLumpSumPriceEnabled: boolean;
-    actualEntryCost: number;
-    isActualEntryCostEnabled: boolean;
-    rentalPrice: number;
-    isRentalPriceEnabled: boolean;
-    halfLumpSumMonthlyRent: number;
-    isHalfLumpSumMonthlyRentEnabled: boolean;
-    deposit: number;
-    isDepositEnabled: boolean;
-    managementFee: number;
-    isManagementFeeEnabled: boolean;
-    managementEtc: string;
-  }>();
+  const { register, setValue, control } = useFormContext<FormData>();
 
   // ✅ RHF 값 구독 (reset로 내려온 서버 데이터가 바로 들어옴)
-  const propertyType  = useWatch({ control, name: "propertyType" })  ?? "";
-  const buyType      = useWatch({ control, name: "buyType" })      ?? "";
-  const dealScope     = useWatch({ control, name: "dealScope" })     ?? "";
-  const visibility    = useWatch({ control, name: "visibility" })    ?? true;   // 불린
-  const priceDisplay  = useWatch({ control, name: "priceDisplay" })  ?? "";
+  const propertyType = useWatch({ control, name: "propertyType" }) ?? "";
+  const buyTypeId = useWatch({ control, name: "buyTypeId" });
+  const dealScope = useWatch({ control, name: "dealScope" }) ?? "";
+  const visibility = useWatch({ control, name: "visibility" }) ?? true; // 불린
+  const priceDisplay = useWatch({ control, name: "priceDisplay" }) ?? "";
 
-  const onPick = <K extends keyof any>(field: K, value: any) => {
-    setValue(field as any, value, { shouldDirty: true, shouldTouch: true });
+  const onPick = <K extends keyof FormData>(field: K, value: FormData[K]) => {
+    setValue(field, value, { shouldDirty: true, shouldTouch: true });
   };
 
-  const isActive = (curr: string | boolean, item: string | boolean) => curr === item;
+  const isActive = (curr: any, item: any) => curr === item;
 
   const chip = (active: boolean) =>
     ({
       backgroundColor: active ? "#2b6cb0" : "white",
-      color:          active ? "white"    : "gray",
+      color: active ? "white" : "gray",
       borderColor: "#cbd5e0",
       padding: "0.4rem 0.8rem",
       fontSize: "0.75rem",
@@ -88,7 +68,7 @@ const LandInfo = () => {
 
   // 매물종류 옵션 동적 로드
   const [propertyTypeOptions, setPropertyTypeOptions] = useState<string[]>([]);
-  const [buyTypeOptions, setBuyTypeOptions] = useState<string[]>([]);
+  const [buyTypeOptions, setBuyTypeOptions] = useState<{ id: number; name: string }[]>([]);
   useEffect(() => {
     let cancelled = false;
     (async () => {
@@ -98,7 +78,7 @@ const LandInfo = () => {
         if (!cancelled && json?.ok && Array.isArray(json.data)) {
           const names = (json.data as Array<{ name?: string }>)
             .map((r) => r?.name)
-            .filter((v): v is string => typeof v === 'string' && v.length > 0);
+            .filter((v): v is string => typeof v === "string" && v.length > 0);
           const uniq = Array.from(new Set<string>(names));
           setPropertyTypeOptions(uniq);
         }
@@ -118,11 +98,7 @@ const LandInfo = () => {
         const res = await fetch("/api/buy-types");
         const json = await res.json();
         if (!cancelled && json?.ok && Array.isArray(json.data)) {
-          const names = (json.data as Array<{ name?: string }>)
-            .map((r) => r?.name)
-            .filter((v): v is string => typeof v === 'string' && v.length > 0);
-          const uniq = Array.from(new Set<string>(names));
-          setBuyTypeOptions(uniq);
+          setBuyTypeOptions(json.data);
         }
       } catch {
         // ignore; keep defaults empty
@@ -139,7 +115,9 @@ const LandInfo = () => {
       <div className="flex flex-col">
         <label className="block text-sm font-medium text-gray-700">매물종류</label>
         <div className="flex space-x-0 mt-2 flex-wrap gap-y-4 gap-x-2">
-          {(propertyTypeOptions.length > 0 ? propertyTypeOptions : ["아파트","신축빌라","원룸","투룸","쓰리룸","사무실","상가","오피스텔"]).map((item) => (
+          {(propertyTypeOptions.length > 0
+            ? propertyTypeOptions
+            : ["아파트", "신축빌라", "원룸", "투룸", "쓰리룸", "사무실", "상가", "오피스텔"]).map((item) => (
             <label key={item} className="cursor-pointer">
               <input
                 type="radio"
@@ -159,17 +137,17 @@ const LandInfo = () => {
       <div className="flex flex-col">
         <label className="block text-sm font-medium text-gray-700">거래유형</label>
         <div className="flex space-x-0 mt-2 flex-wrap gap-y-4 gap-x-2">
-          {(buyTypeOptions.length > 0 && buyTypeOptions || []).map((item) => (
-            <label key={item} className="cursor-pointer">
+          {buyTypeOptions.map((item) => (
+            <label key={item.id} className="cursor-pointer">
               <input
                 type="radio"
                 className="hidden"
-                {...register("buyType")}
-                value={item}
-                checked={buyType === item}
-                onChange={() => onPick("buyType", item)}
+                {...register("buyTypeId")}
+                value={item.id}
+                checked={buyTypeId === item.id}
+                onChange={() => onPick("buyTypeId", item.id)}
               />
-              <span style={chip(isActive(buyType, item))}>{item}</span>
+              <span style={chip(isActive(buyTypeId, item.id))}>{item.name}</span>
             </label>
           ))}
         </div>
@@ -179,7 +157,7 @@ const LandInfo = () => {
       <div className="flex flex-col">
         <label className="block text-sm font-medium text-gray-700">거래범위</label>
         <div className="flex space-x-0 mt-2 flex-wrap gap-y-4 gap-x-2">
-          {["부분","전체"].map((item) => (
+          {["부분", "전체"].map((item) => (
             <label key={item} className="cursor-pointer">
               <input
                 type="radio"
@@ -219,7 +197,7 @@ const LandInfo = () => {
                 {...register("visibility")}
                 value={String(value)}
                 checked={visibility === value}
-                onChange={() => onPick("visibility", value)}   // ✅ 불린으로 저장
+                onChange={() => onPick("visibility", value)} // ✅ 불린으로 저장
               />
               <span style={chip(isActive(visibility, value))}>{label}</span>
             </label>
@@ -231,7 +209,7 @@ const LandInfo = () => {
       <div className="flex flex-col">
         <label className="block text-sm font-medium text-gray-700">금액 표기 방법</label>
         <div className="flex space-x-0 mt-2 flex-wrap gap-y-4 gap-x-2">
-          {["공개","비공개","협의가능"].map((item) => (
+          {["공개", "비공개", "협의가능"].map((item) => (
             <label key={item} className="cursor-pointer">
               <input
                 type="radio"

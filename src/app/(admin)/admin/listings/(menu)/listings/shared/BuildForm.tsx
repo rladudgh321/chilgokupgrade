@@ -48,15 +48,15 @@ export interface FormData {
   managementEtc: string | null;
 
   // BuildBasic
-  popularity: string | null;         // 스키마는 String?
-  labelId: number | null;            // ✅ relation
+  popularity: string | null;
+  label: string | null;
   floorType: string | null;
   currentFloor: number | null;
   totalFloors: number | null;
   basementFloors: number | null;
   floorDescription: string | null;
-  rooms: number | null;
-  bathrooms: number | null;
+  rooms: string | null;
+  bathrooms: string | null;
   actualArea: number | null;
   supplyArea: number | null;
   landArea: number | null;
@@ -144,14 +144,14 @@ export const BASE_DEFAULTS: FormData = {
 
   // BuildBasic
   popularity: "",
-  labelId: null,
+  label: "",
   floorType: "지상",
   currentFloor: null,
   totalFloors: null,
   basementFloors: null,
   floorDescription: "",
-  rooms: null,
-  bathrooms: null,
+  rooms: "",
+  bathrooms: "",
   actualArea: null,
   supplyArea: null,
   landArea: null,
@@ -214,6 +214,7 @@ type Props = {
   roomOptions: string[];      // 필요하면 { id:number; name:string }[] 로 전환
   bathroomOptions: string[];  // 동일
   themeOptions: string[];
+  labelOptions: string[];
 };
 
 export default function BuildForm({
@@ -226,6 +227,7 @@ export default function BuildForm({
   roomOptions,
   bathroomOptions,
   themeOptions,
+  labelOptions,
 }: Props) {
   return (
     <FormProvider {...methods}>
@@ -248,6 +250,7 @@ export default function BuildForm({
             roomOptions={roomOptions}
             bathroomOptions={bathroomOptions}
             themeOptions={themeOptions}
+            labelOptions={labelOptions}
           />
         </Container>
 

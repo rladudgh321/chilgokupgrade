@@ -167,7 +167,14 @@ const Button = ({
 /* =========================
    BuildBasic 본문
    ========================= */
-const BuildBasic = () => {
+interface BuildBasicProps {
+  roomOptions: string[];
+  bathroomOptions: string[];
+  themeOptions: string[];
+  labelOptions: string[];
+}
+
+const BuildBasic = ({ roomOptions, bathroomOptions, themeOptions, labelOptions }: BuildBasicProps) => {
   const { watch, setValue, register, getValues } = useFormContext();
 
   // ✅ 폼 값 watch (오타 수정 및 값 보정)
@@ -182,92 +189,7 @@ const BuildBasic = () => {
 
 
   const [buildingOptionItems, setBuildingOptionItems] = useState<string[]>([]);
-  const [labelOptions, setLabelOptions] = useState<string[]>([]);
-  const [roomOptions, setRoomOptions] = useState<string[]>([]);
-  const [bathroomOptions, setBathroomOptions] = useState<string[]>([]);
-  const [themeOptions, setThemeOptions] = useState<string[]>([]);
 
-  // 방 옵션 로드
-  useEffect(() => {
-    let isMounted = true;
-    (async () => {
-      try {
-        const res = await fetch("/api/room-options", { cache: "no-store" });
-        if (!res.ok) return;
-        const json = await res.json();
-        const items: Array<{ name?: string }> = json?.data ?? [];
-        const names = items.map((x) => x.name).filter((v): v is string => !!v);
-        if (isMounted) setRoomOptions(names);
-      } catch {
-        // ignore
-      }
-    })();
-    return () => {
-      isMounted = false;
-    };
-  }, []);
-
-  // 화장실 옵션 로드
-  useEffect(() => {
-    let isMounted = true;
-    (async () => {
-      try {
-        const res = await fetch("/api/bathroom-options", { cache: "no-store" });
-        if (!res.ok) return;
-        const json = await res.json();
-        const items: Array<{ name?: string }> = json?.data ?? [];
-        const names = items.map((x) => x.name).filter((v): v is string => !!v);
-        if (isMounted) setBathroomOptions(names);
-      } catch {
-        // ignore
-      }
-    })();
-    return () => {
-      isMounted = false;
-    };
-  }, []);
-
-  // 라벨 옵션 로드
-  useEffect(() => {
-    let isMounted = true;
-    (async () => {
-      try {
-        const res = await fetch("/api/labels", { cache: "no-store" });
-        if (!res.ok) return;
-        const json = await res.json();
-        const items: Array<{ name?: string }> = json?.data ?? [];
-        const names = items.map((x) => x.name).filter((v): v is string => !!v);
-        if (isMounted) setLabelOptions(names);
-      } catch {
-        // ignore
-      }
-    })();
-    return () => {
-      isMounted = false;
-    };
-  }, []);
-
-  // ✅ 테마 옵션을 서버에서 로드 (ThemeImage.label 사용)
-  useEffect(() => {
-    let isMounted = true;
-    (async () => {
-      try {
-        const res = await fetch("/api/theme-images", { cache: "no-store" });
-        if (!res.ok) return;
-        const json = await res.json();
-        const items: Array<{ label?: string; isActive?: boolean }> = json?.data ?? [];
-        const labels = items
-          .filter((x) => x && x.label && (x.isActive === undefined || x.isActive === true))
-          .map((x) => x.label as string);
-        if (isMounted) setThemeOptions(labels);
-  } catch {
-        // ignore
-      }
-    })();
-    return () => {
-      isMounted = false;
-    };
-  }, []);
 
   // 옵션(빌딩 옵션) 목록 로드
   useEffect(() => {

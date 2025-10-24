@@ -1,1 +1,3 @@
-`BuildForm.tsx`컴포넌트에서 `/admin/listings/(menu)/listings/[id]/edit/page.tsx`에 진입할 때 데이터가 채워져있길 바래. 어떤 것은 채워져있고 어떤것은 안채워져 있는데 props를 잘 전달되길 바래 `/api`를 잘 이용해봐
+
+      ------------
+      `/admin/listings/listings/[id]/edit`페이지에 진입하게 되면 themes와 buildingOptions을 누락되게 하네. 나는 기존 데이터를 불러와서 어떤 것이 눌려진지 확인하고 싶어

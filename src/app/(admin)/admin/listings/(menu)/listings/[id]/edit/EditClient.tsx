@@ -22,6 +22,13 @@ const fetchBathroomOptions = async (): Promise<Option[]> => {
   const json = await res.json();
   return json.data;
 };
+const fetchLabelOptions = async (): Promise<Option[]> => {
+  const res = await fetch("/api/labels", { cache: "no-store" });
+  if (!res.ok) throw new Error("Failed to fetch label options");
+  const json = await res.json();
+  return json.data;
+};
+
 const fetchThemeOptions = async () => {
   const res = await fetch("/api/theme-images", { cache: "no-store" });
   if (!res.ok) throw new Error("Failed to fetch theme options");
@@ -101,7 +108,7 @@ function normalizeForForm(d: any, themeOptions: string[]): FormData {
 
     // 기본 정보
     popularity: d.popularity ?? "",
-    labelId: d.labelId ?? null,
+    label: d.label?.name ?? "",
     floorType: d.floorType ?? "지상",
     currentFloor: d.currentFloor ?? null,
     totalFloors: d.totalFloors ?? null,
@@ -113,10 +120,8 @@ function normalizeForForm(d: any, themeOptions: string[]): FormData {
     buildingArea: d.buildingArea ?? null,
     totalArea: d.totalArea ?? null,
 
-    // relation 선택(id)들 — 폼에서 select로 바인딩해 사용
-    roomOptionId: d.roomOptionId ?? null,          // ← FormData에 이 필드가 있다고 가정(스키마와 일치)
-    bathroomOptionId: d.bathroomOptionId ?? null,  // ← 동일
-    floorOptionId: d.floorOptionId ?? null,        // ← 선택 시 사용(있으면)
+    rooms: d.roomOption?.name ?? "",
+    bathrooms: d.bathroomOption?.name ?? "",
 
     // 배열들
     themes: Array.isArray(d.themes) ? d.themes : (themeOptions ?? []),
@@ -194,12 +199,16 @@ export default function EditClient({ id }: { id: number }) {
     queryKey: ["themeOptions"],
     queryFn: fetchThemeOptions,
   });
+  const { data: labelOptions = [], isLoading: isLoadingLabelOptions } = useQuery<Option[]>({
+    queryKey: ["labelOptions"],
+    queryFn: fetchLabelOptions,
+  });
 
   const methods = useForm<FormData>({ defaultValues: BASE_DEFAULTS });
 
   const allLoaded = useMemo(
-    () => !isLoading && !isLoadingRoomOptions && !isLoadingBathroomOptions && !isLoadingThemeOptions,
-    [isLoading, isLoadingRoomOptions, isLoadingBathroomOptions, isLoadingThemeOptions]
+    () => !isLoading && !isLoadingRoomOptions && !isLoadingBathroomOptions && !isLoadingThemeOptions && !isLoadingLabelOptions,
+    [isLoading, isLoadingRoomOptions, isLoadingBathroomOptions, isLoadingThemeOptions, isLoadingLabelOptions]
   );
 
   // 데이터 → 폼 reset
@@ -211,6 +220,9 @@ export default function EditClient({ id }: { id: number }) {
 
   const { mutate, isPending } = useMutation({
     mutationFn: (payload: FormData) => {
+      const roomOptionId = roomOptions.find((o) => o.name === payload.rooms)?.id ?? null;
+      const bathroomOptionId = bathroomOptions.find((o) => o.name === payload.bathrooms)?.id ?? null;
+      const labelId = labelOptions.find((o) => o.name === payload.label)?.id ?? null;
       // 서버에 맞게 변환
       const serverPayload = {
         // 위치/기본
@@ -248,7 +260,7 @@ export default function EditClient({ id }: { id: number }) {
 
         // 기본/관계
         popularity: payload.popularity ?? null,
-        labelId: payload.labelId ?? null,
+        labelId: labelId,
         floorType: payload.floorType ?? null,
         currentFloor: payload.currentFloor ?? null,
         totalFloors: payload.totalFloors ?? null,
@@ -256,9 +268,8 @@ export default function EditClient({ id }: { id: number }) {
         floorDescription: payload.floorDescription ?? null,
 
         // relation: 옵션 선택
-        roomOptionId: (payload as any).roomOptionId ?? null,          // ← 폼에서 select로 바인딩했다고 가정
-        bathroomOptionId: (payload as any).bathroomOptionId ?? null,  // ← 동일
-        floorOptionId: (payload as any).floorOptionId ?? null,
+        roomOptionId: roomOptionId,
+        bathroomOptionId: bathroomOptionId,
 
         // 면적
         actualArea: payload.actualArea ?? null,
@@ -341,6 +352,7 @@ export default function EditClient({ id }: { id: number }) {
       roomOptions={roomOptions.map(o => o.name)}
       bathroomOptions={bathroomOptions.map(o => o.name)}
       themeOptions={themeOptions}
+      labelOptions={labelOptions.map(o => o.name)}
     />
   );
 }
