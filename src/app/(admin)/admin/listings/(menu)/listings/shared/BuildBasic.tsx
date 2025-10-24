@@ -66,7 +66,7 @@ const parseValueToDate = (val: any): Date | null => {
     // fallback: 시도해서 파싱 (브라우저에 따라 timezone 문제가 있어 권장하지 않음)
     const parsed = new Date(val);
     if (!isNaN(parsed.getTime())) {
-      return new Date(parsed.getFullYear(), parsed.getMonth(), parsed.getDate());
+      return new Date(parsed.getUTCFullYear(), parsed.getUTCMonth(), parsed.getUTCDate());
     }
   }
 

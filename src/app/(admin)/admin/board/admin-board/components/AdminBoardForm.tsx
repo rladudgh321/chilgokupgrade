@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation"
 import Image from "next/image"
 import dynamic from 'next/dynamic'
 import "react-datepicker/dist/react-datepicker.css";
+import { ko } from "date-fns/locale/ko";
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 
 const Editor = dynamic(() => import('@/app/components/shared/Editor'), { ssr: false });
@@ -48,7 +49,7 @@ const AdminBoardForm = ({ initialData, isEdit = false, categories }: AdminBoardF
   const [formData, setFormData] = useState({
     representativeImage: null as File | null,
     representativeImageUrl: initialData?.representativeImage || null,
-    registrationDate: initialData?.registrationDate ? new Date(initialData.registrationDate) : new Date(),
+    registrationDate: initialData?.registrationDate ? new Date(initialData.registrationDate).toISOString().slice(0, 10) : new Date().toISOString().slice(0, 10),
     manager: initialData?.manager || "데모",
     title: initialData?.title || "",
     content: initialData?.content || "",
@@ -164,10 +165,20 @@ const AdminBoardForm = ({ initialData, isEdit = false, categories }: AdminBoardF
                 등록일
               </label>
               <DatePicker
-                selected={formData.registrationDate}
-                onChange={(date: Date) => setFormData(prev => ({ ...prev, registrationDate: date }))}
+                selected={formData.registrationDate ? new Date(formData.registrationDate.replace(/-/g, '/')) : null}
+                onChange={(date: Date | null) => {
+                  if (date) {
+                    const y = date.getFullYear();
+                    const m = String(date.getMonth() + 1).padStart(2, '0');
+                    const d = String(date.getDate()).padStart(2, '0');
+                    setFormData(prev => ({ ...prev, registrationDate: `${y}-${m}-${d}` }));
+                  } else {
+                    setFormData(prev => ({ ...prev, registrationDate: '' }));
+                  }
+                }}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
                 dateFormat="yyyy-MM-dd"
+                locale={ko}
               />
             </div>
 

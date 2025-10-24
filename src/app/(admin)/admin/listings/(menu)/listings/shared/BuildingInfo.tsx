@@ -22,8 +22,13 @@ const toDate = (v: unknown): Date | null => {
 };
 
 // Date|null -> 'YYYY-MM-DD' 또는 ''
-const toYMD = (d: Date | null): YMD =>
-  d ? d.toISOString().slice(0, 10) : "";
+const toYMD = (d: Date | null): YMD => {
+  if (!d) return "";
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  return `${y}-${m}-${day}`;
+};
 
 const BuildingInfo = () => {
   const { register, setValue, control, watch } = useFormContext();
