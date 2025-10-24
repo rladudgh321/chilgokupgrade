@@ -46,6 +46,38 @@ export async function BuildFindAll(
   return res.json();
 }
 
+export async function BuildFindAllAdmin(
+  page: number = 1,
+  limit: number = 12,
+  keyword?: string,
+  filters?: { theme?: string; propertyType?: string; buyType?: string; rooms?: string; bathrooms?: string },
+  sortBy?: string,
+  opts?: { signal?: AbortSignal }
+) {
+  const qs = new URLSearchParams({
+    page: String(page),
+    limit: String(limit),
+    ...(keyword?.trim() ? { keyword: keyword.trim() } : {}),
+    ...(filters?.theme ? { theme: filters.theme } : {}),
+    ...(filters?.propertyType ? { propertyType: filters.propertyType } : {}),
+    ...(filters?.buyType ? { buyType: filters.buyType } : {}),
+    ...(filters?.rooms ? { rooms: filters.rooms } : {}),
+    ...(filters?.bathrooms ? { bathrooms: filters.bathrooms } : {}),
+    ...(sortBy ? { sortBy: sortBy } : {}),
+  });
+
+  const res = await fetch(`${baseURL}/api/supabase/build?${qs.toString()}`, {
+    method: "GET",
+    signal: opts?.signal,
+  });
+
+  if (!res.ok) {
+    const text = await res.text().catch(() => "");
+    throw new Error(`GET /api/supabase/build failed (${res.status}): ${text}`);
+  }
+  return res.json();
+}
+
 export async function BuildCreate(data: object){
   const res = await fetch(`${baseURL}/api/supabase/build`, {
     method: "POST",
