@@ -164,30 +164,25 @@ export async function PATCH(
         return NextResponse.json({ ok: false, error: updateError }, { status: 400, headers: corsHeaders });
     }
 
-    if (buildingOptions && Array.isArray(buildingOptions)) {
+    if (buildingOptions && typeof buildingOptions === 'object' && 'set' in buildingOptions && Array.isArray(buildingOptions.set)) {
+        // First, remove existing relations for this build
         await supabase.from("_BuildToBuildingOption").delete().eq("A", idNum);
 
-        const optionIds = [];
-        for (const optionName of buildingOptions) {
-            const { data: optionRec } = await supabase.from("BuildingOption").select("id").eq("name", optionName).single();
-            if (!optionRec) {
-                const { data: newOption } = await supabase.from("BuildingOption").insert({ name: optionName }).select("id").single();
-                if (newOption) optionIds.push(newOption.id);
-            } else {
-                optionIds.push(optionRec.id);
-            }
-        }
+        // Extract the IDs from the 'set' array. The items are objects like { id: ... }
+        const optionIds = buildingOptions.set.map(opt => opt.id).filter(id => typeof id === 'number');
 
-        const joinTableData = optionIds.map(optionId => ({
-            A: idNum,
-            B: optionId,
-        }));
+        if (optionIds.length > 0) {
+            const joinTableData = optionIds.map(optionId => ({
+                A: idNum, // buildId
+                B: optionId, // buildingOptionId
+            }));
 
-        if (joinTableData.length > 0) {
             const { error: joinError } = await supabase.from("_BuildToBuildingOption").insert(joinTableData);
             if (joinError) {
                 Sentry.captureException(joinError);
                 await notifySlack(joinError, req.url);
+                // We might want to return an error response here
+                return NextResponse.json({ ok: false, error: joinError }, { status: 400, headers: corsHeaders });
             }
         }
     }

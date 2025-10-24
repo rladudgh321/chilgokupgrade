@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo } from "react";
 import { useRouter } from "next/navigation";
-import { useQuery, useMutation } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
 import BuildForm, { BASE_DEFAULTS, FormData } from "@/app/(admin)/admin/listings/(menu)/listings/shared/BuildForm";
 import { BuildFindOne, BuildUpdate } from "@/app/apis/build";
@@ -25,6 +25,13 @@ const fetchBathroomOptions = async (): Promise<Option[]> => {
 const fetchLabelOptions = async (): Promise<Option[]> => {
   const res = await fetch("/api/labels", { cache: "no-store" });
   if (!res.ok) throw new Error("Failed to fetch label options");
+  const json = await res.json();
+  return json.data;
+};
+
+const fetchBuildingOptions = async (): Promise<Option[]> => {
+  const res = await fetch("/api/building-options", { cache: "no-store" });
+  if (!res.ok) throw new Error("Failed to fetch building options");
   const json = await res.json();
   return json.data;
 };
@@ -178,6 +185,7 @@ function normalizeForForm(d: any, themeOptions: string[]): FormData {
 }
 
 export default function EditClient({ id }: { id: number }) {
+  const queryClient = useQueryClient();
   const router = useRouter();
 
   // 단건
@@ -203,12 +211,16 @@ export default function EditClient({ id }: { id: number }) {
     queryKey: ["labelOptions"],
     queryFn: fetchLabelOptions,
   });
+  const { data: buildingOptions = [], isLoading: isLoadingBuildingOptions } = useQuery<Option[]>({
+    queryKey: ["buildingOptions"],
+    queryFn: fetchBuildingOptions,
+  });
 
   const methods = useForm<FormData>({ defaultValues: BASE_DEFAULTS });
 
   const allLoaded = useMemo(
-    () => !isLoading && !isLoadingRoomOptions && !isLoadingBathroomOptions && !isLoadingThemeOptions && !isLoadingLabelOptions,
-    [isLoading, isLoadingRoomOptions, isLoadingBathroomOptions, isLoadingThemeOptions, isLoadingLabelOptions]
+    () => !isLoading && !isLoadingRoomOptions && !isLoadingBathroomOptions && !isLoadingThemeOptions && !isLoadingLabelOptions && !isLoadingBuildingOptions,
+    [isLoading, isLoadingRoomOptions, isLoadingBathroomOptions, isLoadingThemeOptions, isLoadingLabelOptions, isLoadingBuildingOptions]
   );
 
   // 데이터 → 폼 reset
@@ -280,7 +292,9 @@ export default function EditClient({ id }: { id: number }) {
 
         // 배열
         themes: Array.isArray(payload.themes) ? payload.themes : [],
-        buildingOptions: Array.isArray(payload.buildingOptions) ? payload.buildingOptions : [],
+        buildingOptions: Array.isArray(payload.buildingOptions)
+          ? { set: payload.buildingOptions.map((id) => ({ id })) }
+          : { set: [] },
         parking: Array.isArray(payload.parking) ? payload.parking : [],
 
         // 날짜 (문자열이면 Date로 변환, null 허용)
@@ -330,7 +344,10 @@ export default function EditClient({ id }: { id: number }) {
 
       return BuildUpdate(id, serverPayload);
     },
-    onSuccess: () => router.back(),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["build", id] });
+      router.back();
+    },
     onError: (e) => {
       console.error(e);
       alert("수정 중 에러가 발생했습니다.");
@@ -353,6 +370,7 @@ export default function EditClient({ id }: { id: number }) {
       bathroomOptions={bathroomOptions.map(o => o.name)}
       themeOptions={themeOptions}
       labelOptions={labelOptions.map(o => o.name)}
+      buildingOptions={buildingOptions}
     />
   );
 }

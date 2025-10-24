@@ -215,6 +215,7 @@ type Props = {
   bathroomOptions: string[];  // 동일
   themeOptions: string[];
   labelOptions: string[];
+  buildingOptions: { id: number, name: string }[];
 };
 
 export default function BuildForm({
@@ -228,6 +229,7 @@ export default function BuildForm({
   bathroomOptions,
   themeOptions,
   labelOptions,
+  buildingOptions,
 }: Props) {
   return (
     <FormProvider {...methods}>
@@ -251,6 +253,7 @@ export default function BuildForm({
             bathroomOptions={bathroomOptions}
             themeOptions={themeOptions}
             labelOptions={labelOptions}
+            buildingOptions={buildingOptions}
           />
         </Container>
 
