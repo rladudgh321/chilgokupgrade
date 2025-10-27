@@ -13,11 +13,27 @@ type YMD = string; // 'YYYY-MM-DD'로 폼에 저장한다고 가정
 // 문자열('YYYY-MM-DD') 또는 Date -> Date|null
 const toDate = (v: unknown): Date | null => {
   if (!v) return null;
-  if (v instanceof Date) return isNaN(v.getTime()) ? null : v;
-  if (typeof v === "string" && v.trim() !== "") {
-    const d = new Date(v);
-    return isNaN(d.getTime()) ? null : d;
+
+  if (typeof v === 'string') {
+    const datePart = v.split('T')[0];
+    const [year, month, day] = datePart.split('-').map(Number);
+    if (year && month && day) {
+      return new Date(year, month - 1, day);
+    }
   }
+
+  if (v instanceof Date) {
+    return new Date(v.getFullYear(), v.getMonth(), v.getDate());
+  }
+
+  // Fallback for other types or failed parsing
+  try {
+    const d = new Date(v);
+    if (!isNaN(d.getTime())) {
+      return new Date(d.getFullYear(), d.getMonth(), d.getDate());
+    }
+  } catch {}
+
   return null;
 };
 

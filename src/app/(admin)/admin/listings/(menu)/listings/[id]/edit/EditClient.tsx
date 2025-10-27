@@ -48,7 +48,13 @@ const toDateStr = (v: unknown): string | null => {
   if (!v) return null;
   const d = typeof v === "string" ? new Date(v) : v instanceof Date ? v : null;
   if (!d || Number.isNaN(d.getTime())) return null;
-  return d.toISOString().slice(0, 10); // YYYY-MM-DD
+
+  // 로컬 기준 날짜
+  const year = d.getFullYear();
+  const month = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+
+  return `${year}-${month}-${day}`; // YYYY-MM-DD (로컬 기준)
 };
 
 const toStrArray = (v: unknown): string[] => {
@@ -188,6 +194,7 @@ export default function EditClient({ id }: { id: number }) {
   const queryClient = useQueryClient();
   const router = useRouter();
 
+  
   // 단건
   const { data, isLoading, isError } = useQuery({
     queryKey: ["build", id],
