@@ -94,7 +94,7 @@ export async function PUT(request: NextRequest) {
   try {
     const cookieStore = await cookies();
     const supabase = createClient(cookieStore);
-    const { id, label, imageUrl, imageName } = await request.json();
+    const { id, newName, imageUrl, imageName } = await request.json();
 
     if (!id) {
       return NextResponse.json(
@@ -104,9 +104,13 @@ export async function PUT(request: NextRequest) {
     }
 
     const updateData: any = {};
-    if (label !== undefined) updateData.name = label.trim();
+    if (newName !== undefined) updateData.name = newName.trim();
     if (imageUrl !== undefined) updateData.imageUrl = imageUrl.trim();
     if (imageName !== undefined) updateData.imageName = imageName?.trim() || null;
+
+    if (Object.keys(updateData).length === 0) {
+        return NextResponse.json({ ok: false, error: { message: "수정할 필드가 없습니다." } }, { status: 400 });
+    }
 
     const { data, error } = await supabase
       .from("BuildingOption")
