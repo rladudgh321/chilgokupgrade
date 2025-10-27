@@ -26,6 +26,23 @@ const Header = ({ isOpen, setIsOpen, logoUrl }: HeaderProps) => {
     }
   };
 
+  const handleRevalidate = async () => {
+    const response = await fetch('/api/revalidate', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ tag: 'public' }),
+    });
+
+    if (response.ok) {
+      alert('데이터가 최신화되었습니다.');
+    } else {
+      alert('데이터 최신화에 실패했습니다.');
+      console.error('Revalidation failed');
+    }
+  };
+
   return (
     <header className="fixed grow top-0 left-0 right-0 flex items-center h-14 px-4 bg-gray-800 text-white z-10">
       <button 
@@ -41,9 +58,12 @@ const Header = ({ isOpen, setIsOpen, logoUrl }: HeaderProps) => {
           <Image alt="logo" src={logoUrl} fill objectFit="contain" priority={true} />
         </div>
       </div>
-      <button onClick={handleLogout} className="px-4 py-2 hover:bg-gray-700 rounded">
-        로그아웃
-      </button>
+      <div>
+        <button onClick={handleRevalidate} className="px-4 py-2 hover:bg-gray-700 rounded">데이터 최신화</button>
+        <button onClick={handleLogout} className="px-4 py-2 hover:bg-gray-700 rounded">
+          로그아웃
+        </button>
+      </div>
     </header>
   );
 }
