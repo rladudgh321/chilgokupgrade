@@ -80,10 +80,10 @@ export async function POST(request: NextRequest) {
 // PUT: 라벨 수정
 export async function PUT(request: NextRequest) {
   try {
-    const { oldLabel, newLabel } = await request.json();
-    if (!oldLabel || !newLabel || typeof oldLabel !== "string" || typeof newLabel !== "string") {
+    const { id, newName } = await request.json();
+    if (!id || !newName || typeof newName !== "string") {
       return NextResponse.json(
-        { ok: false, error: { message: "기존 라벨과 새 라벨이 필요합니다." } },
+        { ok: false, error: { message: "ID와 새 라벨 이름이 필요합니다." } },
         { status: 400 }
       );
     }
@@ -93,8 +93,8 @@ export async function PUT(request: NextRequest) {
 
     const { data, error } = await supabase
       .from("Label")
-      .update({ name: newLabel.trim() })
-      .eq("name", oldLabel.trim())
+      .update({ name: newName.trim() })
+      .eq("id", id)
       .select();
 
     if (error) {
@@ -107,6 +107,13 @@ export async function PUT(request: NextRequest) {
               );
         }
       return NextResponse.json({ ok: false, error }, { status: 400 });
+    }
+
+    if (data.length === 0) {
+        return NextResponse.json(
+            { ok: false, error: { message: "수정할 라벨을 찾을 수 없습니다." } },
+            { status: 404 }
+          );
     }
 
     return NextResponse.json(
@@ -127,10 +134,10 @@ export async function PUT(request: NextRequest) {
 export async function DELETE(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
-    const label = searchParams.get("label");
-    if (!label) {
+    const id = searchParams.get("id");
+    if (!id) {
       return NextResponse.json(
-        { ok: false, error: { message: "삭제할 라벨이 필요합니다." } },
+        { ok: false, error: { message: "삭제할 ID가 필요합니다." } },
         { status: 400 }
       );
     }
@@ -142,7 +149,7 @@ export async function DELETE(request: NextRequest) {
     const { error } = await supabase
       .from("Label")
       .delete()
-      .eq("name", label);
+      .eq("id", Number(id));
 
     if (error) {
       Sentry.captureException(error);
