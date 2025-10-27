@@ -64,6 +64,8 @@ export async function POST(request: NextRequest) {
       .select();
 
     if (error) {
+      Sentry.captureException(error);
+      await notifySlack(error, request.url);
       return NextResponse.json({ ok: false, error }, { status: 400 });
     }
 
@@ -78,6 +80,8 @@ export async function POST(request: NextRequest) {
       },
     });
   } catch (e: any) {
+    Sentry.captureException(e);
+    await notifySlack(e, request.url);
     return NextResponse.json(
       { ok: false, error: { message: e?.message ?? "Unknown error" } },
       { status: 500 }
@@ -90,7 +94,7 @@ export async function PUT(request: NextRequest) {
   try {
     const cookieStore = await cookies();
     const supabase = createClient(cookieStore);
-    const { id, label, imageUrl, imageName } = await request.json();
+    const { id, newName, imageUrl, imageName } = await request.json();
 
     if (!id) {
       return NextResponse.json(
@@ -99,18 +103,32 @@ export async function PUT(request: NextRequest) {
       );
     }
 
+    const parsedId = parseInt(id, 10);
+    if (isNaN(parsedId)) {
+      return NextResponse.json(
+        { ok: false, error: { message: "ID는 유효한 숫자여야 합니다." } },
+        { status: 400 }
+      );
+    }
+
     const updateData: any = {};
-    if (label !== undefined) updateData.name = label.trim();
+    if (newName !== undefined) updateData.name = newName.trim();
     if (imageUrl !== undefined) updateData.imageUrl = imageUrl.trim();
     if (imageName !== undefined) updateData.imageName = imageName?.trim() || null;
+
+    if (Object.keys(updateData).length === 0) {
+        return NextResponse.json({ ok: false, error: { message: "수정할 필드가 없습니다." } }, { status: 400 });
+    }
 
     const { data, error } = await supabase
       .from("RoomOption")
       .update(updateData)
-      .eq("id", id)
+      .eq("id", parsedId)
       .select();
 
     if (error) {
+      Sentry.captureException(error);
+      await notifySlack(error, request.url);
       return NextResponse.json({ ok: false, error }, { status: 400 });
     }
 
@@ -125,6 +143,8 @@ export async function PUT(request: NextRequest) {
       },
     });
   } catch (e: any) {
+    Sentry.captureException(e);
+    await notifySlack(e, request.url);
     return NextResponse.json(
       { ok: false, error: { message: e?.message ?? "Unknown error" } },
       { status: 500 }
@@ -153,6 +173,8 @@ export async function DELETE(request: NextRequest) {
       .eq("id", parseInt(id));
 
     if (error) {
+      Sentry.captureException(error);
+      await notifySlack(error, request.url);
       return NextResponse.json({ ok: false, error }, { status: 400 });
     }
 
@@ -166,6 +188,8 @@ export async function DELETE(request: NextRequest) {
       },
     });
   } catch (e: any) {
+    Sentry.captureException(e);
+    await notifySlack(e, request.url);
     return NextResponse.json(
       { ok: false, error: { message: e?.message ?? "Unknown error" } },
       { status: 500 }
