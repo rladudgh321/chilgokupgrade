@@ -35,8 +35,8 @@ export async function GET(req: NextRequest) {
 // POST: 새 거래유형 추가
 export async function POST(request: NextRequest) {
   try {
-    const { name } = await request.json();
-    if (!name || typeof name !== "string" || name.trim() === "") {
+    const { label } = await request.json();
+    if (!label || typeof label !== "string" || label.trim() === "") {
       return NextResponse.json(
         { ok: false, error: { message: "이름은 필수입니다." } },
         { status: 400 }
@@ -48,7 +48,7 @@ export async function POST(request: NextRequest) {
 
     const { data, error } = await supabase
       .from("BuyType")
-      .insert([{ name: name.trim() }])
+      .insert([{ name: label.trim() }])
       .select();
 
     if (error) {
@@ -80,10 +80,10 @@ export async function POST(request: NextRequest) {
 // PUT: 거래유형 수정
 export async function PUT(request: NextRequest) {
   try {
-    const { oldName, newName } = await request.json();
-    if (!oldName || !newName || typeof oldName !== "string" || typeof newName !== "string") {
+    const { id, newName } = await request.json();
+    if (!id || !newName || typeof newName !== "string") {
       return NextResponse.json(
-        { ok: false, error: { message: "기존 이름과 새 이름이 필요합니다." } },
+        { ok: false, error: { message: "ID와 새 이름이 필요합니다." } },
         { status: 400 }
       );
     }
@@ -94,7 +94,7 @@ export async function PUT(request: NextRequest) {
     const { data, error } = await supabase
       .from("BuyType")
       .update({ name: newName.trim() })
-      .eq("name", oldName.trim())
+      .eq("id", id)
       .select();
 
     if (error) {
@@ -107,6 +107,13 @@ export async function PUT(request: NextRequest) {
               );
         }
       return NextResponse.json({ ok: false, error }, { status: 400 });
+    }
+
+    if (data.length === 0) {
+        return NextResponse.json(
+            { ok: false, error: { message: "수정할 거래유형을 찾을 수 없습니다." } },
+            { status: 404 }
+          );
     }
 
     return NextResponse.json(
@@ -127,10 +134,10 @@ export async function PUT(request: NextRequest) {
 export async function DELETE(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
-    const name = searchParams.get("name");
-    if (!name) {
+    const id = searchParams.get("id");
+    if (!id) {
       return NextResponse.json(
-        { ok: false, error: { message: "삭제할 이름이 필요합니다." } },
+        { ok: false, error: { message: "삭제할 ID가 필요합니다." } },
         { status: 400 }
       );
     }
@@ -141,7 +148,7 @@ export async function DELETE(request: NextRequest) {
     const { error } = await supabase
       .from("BuyType")
       .delete()
-      .eq("name", name);
+      .eq("id", Number(id));
 
     if (error) {
       Sentry.captureException(error);
