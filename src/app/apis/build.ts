@@ -1,6 +1,3 @@
-import * as Sentry from "@sentry/nextjs";
-import { notifySlack } from "@/app/utils/sentry/slack";
-
 const baseURL = process.env.NEXT_PUBLIC_BASE_URL;
 
 export interface Paginated<T> {
@@ -141,7 +138,6 @@ export async function BuildUpdate(id: number, data: object) {
     method: "PATCH",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(data),
-    cache: "no-store",
   });
   if (!res.ok) {
     const txt = await res.text().catch(() => "");
