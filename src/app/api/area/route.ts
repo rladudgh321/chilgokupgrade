@@ -80,10 +80,18 @@ export async function POST(request: NextRequest) {
 // PUT: 면적 수정
 export async function PUT(request: NextRequest) {
   try {
-    const { oldLabel, newLabel } = await request.json();
-    if (!oldLabel || !newLabel || typeof oldLabel !== "string" || typeof newLabel !== "string") {
+    const { id, newName } = await request.json();
+    if (!id || !newName || typeof newName !== "string") {
       return NextResponse.json(
-        { ok: false, error: { message: "기존 면적과 새 면적이 필요합니다." } },
+        { ok: false, error: { message: "ID와 새 면적이 필요합니다." } },
+        { status: 400 }
+      );
+    }
+
+    const parsedId = parseInt(id, 10);
+    if (isNaN(parsedId)) {
+      return NextResponse.json(
+        { ok: false, error: { message: "ID는 유효한 숫자여야 합니다." } },
         { status: 400 }
       );
     }
@@ -93,8 +101,8 @@ export async function PUT(request: NextRequest) {
 
     const { data, error } = await supabase
       .from("AreaPreset")
-      .update({ name: newLabel.trim() })
-      .eq("name", oldLabel.trim())
+      .update({ name: newName.trim() })
+      .eq("id", parsedId)
       .select();
 
     if (error) {
@@ -127,10 +135,18 @@ export async function PUT(request: NextRequest) {
 export async function DELETE(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
-    const label = searchParams.get("label");
-    if (!label) {
+    const id = searchParams.get("id");
+    if (!id) {
       return NextResponse.json(
-        { ok: false, error: { message: "삭제할 면적이 필요합니다." } },
+        { ok: false, error: { message: "삭제할 ID가 필요합니다." } },
+        { status: 400 }
+      );
+    }
+
+    const parsedId = parseInt(id, 10);
+    if (isNaN(parsedId)) {
+      return NextResponse.json(
+        { ok: false, error: { message: "ID는 유효한 숫자여야 합니다." } },
         { status: 400 }
       );
     }
@@ -141,7 +157,7 @@ export async function DELETE(request: NextRequest) {
     const { error } = await supabase
       .from("AreaPreset")
       .delete()
-      .eq("name", label);
+      .eq("id", parsedId);
 
     if (error) {
       Sentry.captureException(error);
