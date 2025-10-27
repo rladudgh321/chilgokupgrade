@@ -81,30 +81,35 @@ export async function POST(request: NextRequest) {
 export async function PUT(request: NextRequest) {
   try {
     const body = await request.json();
-    const { id, oldLabel, newLabel, imageUrl, imageName } = body;
+    const { id, newName, imageUrl, imageName } = body;
+
+    if (!id) {
+        return NextResponse.json({ ok: false, error: { message: "ID is required for update" } }, { status: 400 });
+    }
 
     const cookieStore = await cookies();
     const supabase = createClient(cookieStore);
     
-    let response;
-
-    if (oldLabel && newLabel) { // From onEdit
-        response = await supabase
-            .from("ListingType")
-            .update({ name: newLabel })
-            .eq("name", oldLabel)
-            .select();
-    } else if (id && (imageUrl !== undefined || imageName !== undefined)) { // From onImageEdit
-        response = await supabase
-            .from("ListingType")
-            .update({ imageUrl, imageName })
-            .eq("id", Number(id))
-            .select();
-    } else {
-        return NextResponse.json({ ok: false, error: { message: "Invalid request" } }, { status: 400 });
+    const updateData: { name?: string; imageUrl?: string; imageName?: string } = {};
+    if (newName) {
+        updateData.name = newName;
+    }
+    if (imageUrl !== undefined) {
+        updateData.imageUrl = imageUrl;
+    }
+    if (imageName !== undefined) {
+        updateData.imageName = imageName;
     }
 
-    const { data, error } = response;
+    if (Object.keys(updateData).length === 0) {
+        return NextResponse.json({ ok: false, error: { message: "No fields to update" } }, { status: 400 });
+    }
+
+    const { data, error } = await supabase
+        .from("ListingType")
+        .update(updateData)
+        .eq("id", id)
+        .select();
 
     if (error) {
       Sentry.captureException(error);
@@ -134,10 +139,10 @@ export async function PUT(request: NextRequest) {
 export async function DELETE(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
-    const label = searchParams.get("label");
-    if (!label) {
+    const id = searchParams.get("id");
+    if (!id) {
       return NextResponse.json(
-        { ok: false, error: { message: "삭제할 라벨이 필요합니다." } },
+        { ok: false, error: { message: "삭제할 ID가 필요합니다." } },
         { status: 400 }
       );
     }
@@ -148,7 +153,7 @@ export async function DELETE(request: NextRequest) {
     const { error } = await supabase
       .from("ListingType")
       .delete()
-      .eq("name", label);
+      .eq("id", id);
 
     if (error) {
       Sentry.captureException(error);
