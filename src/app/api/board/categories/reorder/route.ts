@@ -4,7 +4,7 @@ import { cookies } from "next/headers";
 import * as Sentry from "@sentry/nextjs";
 import { notifySlack } from "@/app/utils/sentry/slack";
 
-export async function POST(request: NextRequest) {
+export async function PUT(request: NextRequest) {
   try {
     const { orderedIds } = await request.json();
     if (!Array.isArray(orderedIds)) {

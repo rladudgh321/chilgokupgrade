@@ -79,10 +79,10 @@ export async function POST(request: NextRequest) {
 // PUT: 카테고리 수정
 export async function PUT(request: NextRequest) {
   try {
-    const { oldLabel, newLabel } = await request.json();
-    if (!oldLabel || !newLabel || typeof oldLabel !== "string" || typeof newLabel !== "string") {
+    const { id, newName: name } = await request.json();
+    if (!id || !name || typeof name !== "string") {
       return NextResponse.json(
-        { ok: false, error: { message: "기존 카테고리와 새 카테고리 이름이 필요합니다." } },
+        { ok: false, error: { message: "ID와 새 카테고리 이름이 필요합니다." } },
         { status: 400 }
       );
     }
@@ -92,8 +92,8 @@ export async function PUT(request: NextRequest) {
 
     const { data, error } = await supabase
       .from("BoardCategory")
-      .update({ name: newLabel.trim() })
-      .eq("name", oldLabel.trim())
+      .update({ name: name.trim() })
+      .eq("id", id)
       .select();
 
     if (error) {
@@ -126,10 +126,10 @@ export async function PUT(request: NextRequest) {
 export async function DELETE(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
-    const label = searchParams.get("label");
-    if (!label) {
+    const id = searchParams.get("id");
+    if (!id) {
       return NextResponse.json(
-        { ok: false, error: { message: "삭제할 카테고리 라벨이 필요합니다." } },
+        { ok: false, error: { message: "삭제할 카테고리 ID가 필요합니다." } },
         { status: 400 }
       );
     }
@@ -137,10 +137,7 @@ export async function DELETE(request: NextRequest) {
     const cookieStore = await cookies();
     const supabase = createClient(cookieStore);
 
-    const { error } = await supabase
-      .from("BoardCategory")
-      .delete()
-      .eq("name", label);
+    const { error } = await supabase.from("BoardCategory").delete().eq("id", id);
 
     if (error) {
       Sentry.captureException(error);

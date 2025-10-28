@@ -1,1 +1,18 @@
-`/admin/websiteSettings/website-info`페이지에서 email만 정상적으로 반영되고 나머지 항목은 반영되고 있지 않아 수정해줘
+요청 URL
+http://127.0.0.1:3000/api/board/categories
+요청 메서드
+PUT
+상태 코드
+400 Bad Request
+원격 주소
+127.0.0.1:3000
+리퍼러 정책
+strict-origin-when-cross-origin
+---------
+{id: 4, newName: "bbb"}
+id
+: 
+4
+newName
+: 
+"bbb"
