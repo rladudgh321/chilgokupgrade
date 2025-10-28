@@ -71,6 +71,60 @@ export async function POST(request: NextRequest) {
   }
 }
 
+// PUT: 배너 수정
+export async function PUT(request: NextRequest) {
+  try {
+    const body = await request.json();
+    const { id, imageUrl, imageName } = body;
+
+    if (!id) {
+      return NextResponse.json(
+        { ok: false, error: { message: "ID가 필요합니다." } },
+        { status: 400 }
+      );
+    }
+
+    const updateData: {
+      imageUrl?: string;
+      imageName?: string;
+    } = {};
+
+    if (imageUrl !== undefined) updateData.imageUrl = imageUrl;
+    if (imageName !== undefined) updateData.imageName = imageName;
+    
+    if (Object.keys(updateData).length === 0) {
+      return NextResponse.json(
+        { ok: false, error: { message: "수정할 내용이 없습니다." } },
+        { status: 400 }
+      );
+    }
+
+    const cookieStore = await cookies();
+    const supabase = createClient(cookieStore);
+
+    const { data, error } = await supabase
+      .from("WebViewBanner")
+      .update(updateData)
+      .eq("id", Number(id))
+      .select();
+
+    if (error) {
+      Sentry.captureException(error);
+      await notifySlack(error, request.url);
+      return NextResponse.json({ ok: false, error }, { status: 400 });
+    }
+
+    return NextResponse.json({ ok: true, data: data[0] }, { status: 200 });
+  } catch (e: any) {
+    Sentry.captureException(e);
+    await notifySlack(e, request.url);
+    return NextResponse.json(
+      { ok: false, error: { message: e?.message ?? "Unknown error" } },
+      { status: 500 }
+    );
+  }
+}
+
 // DELETE: 배너 삭제
 export async function DELETE(request: NextRequest) {
   try {

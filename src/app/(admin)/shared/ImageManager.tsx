@@ -49,7 +49,7 @@ const ImageManager = ({ title, apiEndpoint = '' }: ImageManagerProps) => {
 
 
   // 데이터 로드
-  const loadItems = async () => {
+  const loadItems = useCallback(async () => {
     try {
       setLoading(true);
       const response = await fetch(apiEndpoint);
@@ -72,12 +72,12 @@ const ImageManager = ({ title, apiEndpoint = '' }: ImageManagerProps) => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [apiEndpoint]);
 
   // 컴포넌트 마운트 시 데이터 로드
   useEffect(() => {
     loadItems();
-  }, [apiEndpoint]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [loadItems]);
 
   const handleAddItem = async () => {
     if (!selectedFile) return;
@@ -114,6 +114,36 @@ const ImageManager = ({ title, apiEndpoint = '' }: ImageManagerProps) => {
         }
       } else {
         setError(result.error?.message || '추가에 실패했습니다.');
+      }
+    } catch {
+      setError('네트워크 오류가 발생했습니다.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleImageEdit = async (id: number, newImageUrl: string, newImageName: string) => {
+    try {
+      setLoading(true);
+      const response = await fetch(apiEndpoint, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          id,
+          imageUrl: newImageUrl,
+          imageName: newImageName,
+        }),
+      });
+
+      const result = await response.json();
+
+      if (result.ok) {
+        await loadItems();
+        setError(null);
+      } else {
+        setError(result.error?.message || '이미지 수정에 실패했습니다.');
       }
     } catch {
       setError('네트워크 오류가 발생했습니다.');
@@ -206,6 +236,8 @@ const ImageManager = ({ title, apiEndpoint = '' }: ImageManagerProps) => {
             imageName={item.imageName}
             moveItem={moveItem}
             onDelete={handleDeleteItem}
+            onImageEdit={handleImageEdit}
+            uploadEndpoint={`${apiEndpoint}/upload`}
             disabled={loading}
           />
         ))}

@@ -205,13 +205,15 @@ const DraggableItem = ({ id, name, url, imageUrl, imageName, moveItem, onEdit, o
             </>
           ) : (
             <>
-              <button
-                onClick={handleEdit}
-                disabled={disabled}
-                className="px-3 py-1 bg-blue-500 text-white rounded text-sm hover:bg-blue-600 disabled:opacity-50 w-full sm:w-auto"
-              >
-                수정
-              </button>
+              {onEdit && (
+                <button
+                  onClick={handleEdit}
+                  disabled={disabled}
+                  className="px-3 py-1 bg-blue-500 text-white rounded text-sm hover:bg-blue-600 disabled:opacity-50 w-full sm:w-auto"
+                >
+                  수정
+                </button>
+              )}
               {onImageEdit && (
                 <button
                   onClick={() => setIsImageEditing(!isImageEditing)}
