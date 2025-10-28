@@ -3,6 +3,7 @@ import { cookies } from "next/headers";
 import { NextRequest, NextResponse } from "next/server";
 import * as Sentry from "@sentry/nextjs";
 import { notifySlack } from "@/app/utils/sentry/slack";
+import { formatInTimeZone } from 'date-fns-tz';
 
 export async function POST(req: NextRequest) {
   try {
@@ -23,12 +24,16 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    const now = new Date();
+    const kstDateString = formatInTimeZone(now, 'Asia/Seoul', "yyyy-MM-dd'T'HH:mm:ss.SSSXXX");
+
     // Add to BannedIp table
     const { error: banError } = await supabase.from("BannedIp").insert({
       ipAddress: ipAddress,
       contact: contact,
       details: details,
-      updatedAt: new Date().toISOString(),
+      createdAt: kstDateString,
+      updatedAt: kstDateString,
     });
 
     if (banError) {

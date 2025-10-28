@@ -23,6 +23,7 @@
 select Element에는 기본값설정을 컴포넌트 인자로 설정해두었다
 만일 select값을 바꿀 일이 있으면 기본값 설정 확인을 잊지말 것
 
+2. KST기준으로 DB가 저장됨. 만일 다른나라를 만들경우 UTC 기준으로 만들어서 배포할것
 
 ## sentry & slack
 npx @sentry/wizard@latest -i nextjs --saas --org chilgok --project javascript-nextjs

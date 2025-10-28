@@ -3,6 +3,7 @@ import { cookies } from "next/headers";
 import { type NextRequest, NextResponse } from "next/server";
 import * as Sentry from "@sentry/nextjs";
 import { notifySlack } from "@/app/utils/sentry/slack";
+import { formatInTimeZone } from 'date-fns-tz';
 
 export async function POST(request: NextRequest) {
   try {
@@ -105,9 +106,12 @@ async function createAccessLog(request: NextRequest, supabase: any) {
             }
         } catch (error) {
           Sentry.captureException(error);
-                await notifySlack(error, req.url);
+          // await notifySlack(error, req.url); // req is not available here
         }
     }
+
+    const now = new Date();
+    const kstDateString = formatInTimeZone(now, 'Asia/Seoul', "yyyy-MM-dd'T'HH:mm:ss.SSSXXX");
 
     const logData = {
       ip,
@@ -115,6 +119,7 @@ async function createAccessLog(request: NextRequest, supabase: any) {
       os,
       referrer,
       location,
+      createdAt: kstDateString,
     };
 
     const { data: insertData, error: logError } = await supabase.from("access_logs").insert(logData).select();
