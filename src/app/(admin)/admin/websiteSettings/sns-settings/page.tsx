@@ -6,7 +6,7 @@ const SnsSettingsPage = () => {
   return (
     <ListManager
       title="SNS 설정"
-      placeholder="새로운 SNS 링크"
+      placeholder="새로운 SNS 이름"
       buttonText="SNS 추가"
       apiEndpoint="/api/sns-settings"
       enableImageUpload={true}

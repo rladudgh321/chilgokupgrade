@@ -1,16 +1,6 @@
 import BoardClient from './BoardClient';
 import { BoardPost } from './BoardClient';
 const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL!
-async function getPosts() {
-
-  const response = await fetch(`${BASE_URL}/api/board/posts`, { next: { revalidate: 28_800, tags: ['public', 'admin-board'] } });
-  if (!response.ok) {
-    console.error('Error fetching posts:', await response.text());
-    return [];
-  }
-  const { data } = await response.json();
-  return data;
-}
 
 async function getPostsAdmin() {
 

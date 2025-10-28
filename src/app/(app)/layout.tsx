@@ -4,13 +4,13 @@ import Footer from "../layout/app/Footer";
 import SnsIcon, { SnsSetting } from "@/app/components/SnsIcon";
 const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL!
 
-export async function getHeaderInfo(): Promise<HeaderProps> {
-  const res = await fetch(`${BASE_URL}/api/header-info`, { next: { tags: ['public', 'headerInfo'], revalidate: 28_800 } });
-  if(!res.ok) {
-    throw new Error('Network response was not ok');
+export async function getWorkInfo(): Promise<HeaderProps> {
+  const response = await fetch(`${BASE_URL}/api/admin/website-info`, { next: { tags: ["public", "workInfo"], revalidate: 28_800 } });
+  if (!response.ok) {
+    console.error('Error fetching posts:', await response.text());
+    return {};
   }
-  const data = await res.json();
-  return data.data;
+  return response.json();
 }
 
 export async function getSnsSettings(): Promise<SnsSetting[]> {
@@ -31,7 +31,7 @@ export default async function AppLayout({
   children: React.ReactNode;
   modal: React.ReactNode;
 }>) {
-   const [headerPromise, snsSettings] = await Promise.all([getHeaderInfo(), getSnsSettings()]);
+   const [headerPromise, snsSettings] = await Promise.all([getWorkInfo(), getSnsSettings()]);
    console.log('***', headerPromise);
   return (
     <>

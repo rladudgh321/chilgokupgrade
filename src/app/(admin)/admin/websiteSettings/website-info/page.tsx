@@ -1,28 +1,18 @@
-import { cookies } from "next/headers";
 import WebsiteInfoForm from "./WebsiteInfoForm";
-import { createClient } from "@/app/utils/supabase/server";
 
-async function getWorkInfo() {
-  const cookieStore = await cookies();
-  const supabase = createClient(cookieStore);
+const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL!
 
-  try {
-    const { data } = await supabase
-    .from("WorkInfo")
-    .select("*")
-    .eq("id", "main")
-    .single();
-  
-    return data;
-  } catch (error) {
-    console.error("Error fetching work info on server:", error);
-    return null;
+async function getWorkInfoAdmin() {
+  const response = await fetch(`${BASE_URL}/api/admin/website-info`);
+  if (!response.ok) {
+    console.error('Error fetching posts:', await response.text());
+    return [];
   }
+  return response.json();
 }
 
 export default async function WebsiteInfoPage() {
-  const workInfo = await getWorkInfo();
-
+  const workInfo = await getWorkInfoAdmin();
   return (
     <div className="p-4 sm:p-6 lg:p-8">
       <div className="max-w-2xl mx-auto">

@@ -83,43 +83,54 @@ export async function PUT(request: NextRequest) {
     const body = await request.json();
     const { id, newName, newUrl, imageUrl, imageName } = body;
 
-    const cookieStore = await cookies();
-    const supabase = createClient(cookieStore);
-    
-    let response;
-
-    if (id && (newName || newUrl)) { // From onEdit
-        response = await supabase
-            .from("SnsSetting")
-            .update({ name: newName, url: newUrl })
-            .eq("id", Number(id))
-            .select();
-    } else if (id && (imageUrl !== undefined || imageName !== undefined)) { // From onImageEdit
-        response = await supabase
-            .from("SnsSetting")
-            .update({ imageUrl, imageName })
-            .eq("id", Number(id))
-            .select();
-    } else {
-        return NextResponse.json({ ok: false, error: { message: "Invalid request" } }, { status: 400 });
+    if (!id) {
+      return NextResponse.json(
+        { ok: false, error: { message: "ID가 필요합니다." } },
+        { status: 400 }
+      );
     }
 
-    const { data, error } = response;
+    const updateData: {
+      name?: string;
+      url?: string;
+      imageUrl?: string;
+      imageName?: string;
+    } = {};
+
+    if (newName) updateData.name = newName;
+    if (newUrl) updateData.url = newUrl;
+    if (imageUrl !== undefined) updateData.imageUrl = imageUrl;
+    if (imageName !== undefined) updateData.imageName = imageName;
+    
+    if (Object.keys(updateData).length === 0) {
+      return NextResponse.json(
+        { ok: false, error: { message: "수정할 내용이 없습니다." } },
+        { status: 400 }
+      );
+    }
+
+    const cookieStore = await cookies();
+    const supabase = createClient(cookieStore);
+
+    const { data, error } = await supabase
+      .from("SnsSetting")
+      .update(updateData)
+      .eq("id", Number(id))
+      .select();
 
     if (error) {
       Sentry.captureException(error);
       await notifySlack(error, request.url);
-        if (error.code === '23505') {
-            return NextResponse.json(
-                { ok: false, error: { message: "이미 존재하는 설정입니다." } },
-                { status: 400 }
-              );
-        }
+      if (error.code === "23505") {
+        return NextResponse.json(
+          { ok: false, error: { message: "이미 존재하는 설정입니다." } },
+          { status: 400 }
+        );
+      }
       return NextResponse.json({ ok: false, error }, { status: 400 });
     }
 
     return NextResponse.json({ ok: true, data: data[0] }, { status: 200 });
-
   } catch (e: any) {
     Sentry.captureException(e);
     await notifySlack(e, request.url);

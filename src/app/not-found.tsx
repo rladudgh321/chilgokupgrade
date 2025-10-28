@@ -1,11 +1,11 @@
 import Link from 'next/link';
 import Footer from './layout/app/Footer';
 import Header from './layout/app/Header';
-import { getHeaderInfo, getSnsSettings } from './(app)/layout';
+import { getWorkInfo, getSnsSettings } from './(app)/layout';
 
 export default async function NotFound() {
   const [headerPromise] = 
-    await Promise.all([getHeaderInfo(), getSnsSettings()]);
+    await Promise.all([getWorkInfo(), getSnsSettings()]);
   return (
     <div className="flex flex-col min-h-screen">
       <Header headerPromise={headerPromise} />

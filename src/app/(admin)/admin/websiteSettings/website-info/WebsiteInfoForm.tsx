@@ -2,20 +2,8 @@
 
 import { useForm, SubmitHandler } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { workInfoSchema, WorkInfoFormData } from "./schema";
 
-// API fetch function using fetch
-const getWorkInfo = async (): Promise<WorkInfoFormData> => {
-  const response = await fetch("/api/admin/website-info");
-  if (!response.ok) {
-    throw new Error("Failed to fetch data");
-  }
-  return response.json();
-};
-
-// API post function using fetch
 const postWorkInfo = async (data: WorkInfoFormData): Promise<any> => {
   const response = await fetch("/api/admin/website-info", {
     method: "POST",
@@ -26,44 +14,40 @@ const postWorkInfo = async (data: WorkInfoFormData): Promise<any> => {
   });
 
   if (!response.ok) {
-    const errorData = await response.json();
-    throw new Error(errorData.error || "Failed to save data");
+    // 서버가 JSON 에러 응답을 보낼 경우 메시지 추출
+    let errorMsg = "Failed to save data";
+    try {
+      const err = await response.json();
+      errorMsg = err?.error || err?.message || errorMsg;
+    } catch {
+      // ignore
+    }
+    throw new Error(errorMsg);
   }
   return response.json();
 };
 
 const WebsiteInfoForm = ({ initialData }: { initialData: WorkInfoFormData | null }) => {
-  const queryClient = useQueryClient();
-
-  const { data: workInfo } = useQuery<WorkInfoFormData>({
-    queryKey: ["workInfo"],
-    queryFn: getWorkInfo,
-    initialData: initialData,
-  });
-
   const {
     register,
     handleSubmit,
     formState: { errors, isSubmitting },
+    reset,
   } = useForm<WorkInfoFormData>({
     resolver: zodResolver(workInfoSchema),
-    values: workInfo || {},
+    values: initialData ?? ({} as WorkInfoFormData),
   });
 
-  const mutation = useMutation({
-    mutationFn: postWorkInfo,
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["workInfo"] });
+  const onSubmit: SubmitHandler<WorkInfoFormData> = async (data) => {
+    try {
+      await postWorkInfo(data);
+      // 서버 저장 후 폼을 갱신된 값으로 리셋(선택적)
+      reset(data);
       alert("정보가 성공적으로 저장되었습니다.");
-    },
-    onError: (error) => {
+    } catch (error: any) {
       console.error("Error saving data:", error);
-      alert(`오류가 발생했습니다: ${error.message}`);
-    },
-  });
-
-  const onSubmit: SubmitHandler<WorkInfoFormData> = (data) => {
-    mutation.mutate(data);
+      alert(`오류가 발생했습니다: ${error?.message || error}`);
+    }
   };
 
   return (
@@ -137,10 +121,10 @@ const WebsiteInfoForm = ({ initialData }: { initialData: WorkInfoFormData | null
         <div className="flex justify-end">
           <button
             type="submit"
-            disabled={isSubmitting || mutation.isPending}
+            disabled={isSubmitting}
             className="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50"
           >
-            {isSubmitting || mutation.isPending ? "저장 중..." : "저장"}
+            {isSubmitting ? "저장 중..." : "저장"}
           </button>
         </div>
       </form>
