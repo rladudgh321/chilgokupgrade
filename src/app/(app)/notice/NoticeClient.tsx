@@ -65,7 +65,7 @@ const NoticeClient = ({ initialPosts }: { initialPosts: BoardPost[] }) => {
         <table className="min-w-full table-auto border-collapse">
           <thead className="bg-gray-100">
             <tr>
-              <th className="p-2 text-center text-sm sm:text-base">번호</th>
+              <th className="p-2 text-center text-sm sm:text-base">구분</th>
               <th className="p-2 text-center text-sm sm:text-base">제목</th>
               <th className="p-2 text-center text-xs sm:text-sm">등록일</th>
             </tr>

@@ -16,6 +16,7 @@ const UpdatePostSchema = z.object({
   popupHeight: z.number().optional(),
   isPublished: z.boolean().default(true),
   popupType: z.enum(['IMAGE', 'CONTENT']).optional(),
+  isAnnouncement: z.boolean().optional(),
 });
 
 export async function GET(req: NextRequest, { params }: { params: { id: string } }) {

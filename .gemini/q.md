@@ -1,18 +1,17 @@
-요청 URL
-http://127.0.0.1:3000/api/board/categories
-요청 메서드
-PUT
-상태 코드
-400 Bad Request
-원격 주소
-127.0.0.1:3000
-리퍼러 정책
-strict-origin-when-cross-origin
----------
-{id: 4, newName: "bbb"}
-id
-: 
-4
-newName
-: 
-"bbb"
+Could not find the 'isAnnouncement' column of 'BoardPost' in the schema cache
+
+src/app/(admin)/admin/board/admin-board/components/AdminBoardForm.tsx (104:15) @ AdminBoardForm.useMutation[postMutation] [as mutationFn]
+
+
+  102 |       const result = await response.json();
+  103 |       if (!response.ok) {
+> 104 |         throw new Error(result.message || `게시글 ${isEdit ? '수정' : '저장'}에 실패했습니다`);
+      |               ^
+  105 |       }
+  106 |       return result;
+  107 |     },
+Call Stack
+1
+
+AdminBoardForm.useMutation[postMutation] [as mutationFn]
+src/app/(admin)/admin/board/admin-board/components/AdminBoardForm.tsx (104:15)

@@ -175,7 +175,6 @@ const BoardClient = ({ initialPosts }: { initialPosts: BoardPost[] }) => {
               <th className="p-2 text-center text-xs sm:text-sm">제목</th>
               <th className="p-2 text-center text-xs sm:text-sm">담당자</th>
               <th className="p-2 text-center text-xs sm:text-sm">등록일</th>
-              <th className="p-2 text-center text-xs sm:text-sm">조회수</th>
               <th className="p-2 text-center text-xs sm:text-sm">공지 / 일반</th>
               <th className="p-2 text-center text-xs sm:text-sm">팝업여부</th>
               <th className="p-2 text-center text-xs sm:text-sm">게시</th>
@@ -205,7 +204,6 @@ const BoardClient = ({ initialPosts }: { initialPosts: BoardPost[] }) => {
                       : new Date(post.createdAt).toLocaleDateString('ko-KR')
                     }
                   </td>
-                  <td className="p-2 text-center text-xs sm:text-sm">{post.views}</td>
                   <td className="p-2 text-center">
                     <span className={`px-2 py-1 rounded text-xs ${
                       post.isAnnouncement 

@@ -1,13 +1,14 @@
 "use client"
-import { useState, useCallback, lazy } from "react"
+import { useState, useCallback } from "react"
 import { useRouter } from "next/navigation"
 import Image from "next/image"
 import "react-datepicker/dist/react-datepicker.css";
 import { ko } from "date-fns/locale/ko";
 import { useMutation, useQueryClient } from '@tanstack/react-query';
+import dynamic from 'next/dynamic'
 
-const Editor = lazy(() => import('@/app/components/shared/Editor'));
-const DatePicker = lazy(() => import('react-datepicker'));
+const Editor = dynamic(() => import('@/app/components/shared/Editor'), { ssr: false });
+const DatePicker = dynamic(() => import('react-datepicker'), { ssr: false });
 
 interface Post {
   id?: number
@@ -17,6 +18,7 @@ interface Post {
   representativeImage?: string | null
   registrationDate: string | Date
   manager: string
+  isAnnouncement?: boolean
   isPopup: boolean
   popupWidth?: number
   popupHeight?: number
@@ -54,6 +56,7 @@ const AdminBoardForm = ({ initialData, isEdit = false, categories }: AdminBoardF
     popupHeight: initialData?.popupHeight?.toString() || "400",
     isPublished: initialData?.isPublished === undefined ? true : initialData.isPublished,
     popupType: initialData?.popupType || 'IMAGE',
+    isAnnouncement: initialData?.isAnnouncement || false,
   });
 
   const handleContentChange = useCallback((value: string) => {
@@ -136,6 +139,7 @@ const AdminBoardForm = ({ initialData, isEdit = false, categories }: AdminBoardF
         popupHeight: formData.popupHeight ? parseInt(formData.popupHeight) : undefined,
         isPublished: formData.isPublished,
         popupType: formData.popupType,
+        isAnnouncement: formData.isAnnouncement,
       };
 
       await postMutation.mutateAsync(submitData);
@@ -249,7 +253,15 @@ const AdminBoardForm = ({ initialData, isEdit = false, categories }: AdminBoardF
               </label>
               <select
                 value={formData.categoryId}
-                onChange={(e) => setFormData(prev => ({ ...prev, categoryId: parseInt(e.target.value) }))}
+                onChange={(e) => {
+                  const newCategoryId = parseInt(e.target.value);
+                  const selectedCategory = categories.find(c => c.id === newCategoryId);
+                  setFormData(prev => ({
+                    ...prev,
+                    categoryId: newCategoryId,
+                    isAnnouncement: selectedCategory ? selectedCategory.name === '공지' : false
+                  }));
+                }}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
               >
                 <option value="">선택</option>

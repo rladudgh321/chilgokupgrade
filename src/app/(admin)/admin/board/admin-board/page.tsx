@@ -12,6 +12,17 @@ async function getPosts() {
   return data;
 }
 
+async function getPostsAdmin() {
+
+  const response = await fetch(`${BASE_URL}/api/board/posts`);
+  if (!response.ok) {
+    console.error('Error fetching posts:', await response.text());
+    return [];
+  }
+  const { data } = await response.json();
+  return data;
+}
+
 function serializePosts(posts: any[]): BoardPost[] {
   return posts.map(post => ({
     ...post,
@@ -36,7 +47,7 @@ function serializePosts(posts: any[]): BoardPost[] {
 
 
 export default async function AdminBoardPage() {
-  const posts = await getPosts();
+  const posts = await getPostsAdmin();
   const serializedPosts = serializePosts(posts);
   return <BoardClient initialPosts={serializedPosts} />;
 }
