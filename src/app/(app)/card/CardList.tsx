@@ -56,6 +56,39 @@ const CardList = ({
     router.push(`/card?${params.toString()}`);
   };
 
+  const handleSortClick = (sortKey: string) => {
+    if (sortKey === "price") {
+      const newSortBy = sortBy === "price-desc" ? "price-asc" : "price-desc";
+      handleSortChange(newSortBy);
+    } else if (sortKey === "area") {
+      const newSortBy = sortBy === "area-desc" ? "area-asc" : "area-desc";
+      handleSortChange(newSortBy);
+    } else {
+      handleSortChange(sortKey);
+    }
+  };
+
+  const getSortOptions = () => [
+    { key: "latest", label: "최신순" },
+    { key: "popular", label: "인기순" },
+    {
+      key: "price",
+      label: sortBy.startsWith("price-")
+        ? sortBy === "price-asc"
+          ? "금액순↑"
+          : "금액순↓"
+        : "금액순↓",
+    },
+    {
+      key: "area",
+      label: sortBy.startsWith("area-")
+        ? sortBy === "area-asc"
+          ? "면적순↑"
+          : "면적순↓"
+        : "면적순↓",
+    },
+  ];
+
   const displayListings = useMemo(() => {
     let filteredListings = listings;
 
@@ -160,24 +193,26 @@ const CardList = ({
 
       <div className="p-2 sm:p-4 md:p-6">
         <div className="flex border-b bg-white mb-6 overflow-x-auto">
-          {[
-            { key: "latest", label: "최신순" },
-            { key: "popular", label: "인기순" },
-            { key: "price-desc", label: "금액순↓" },
-            { key: "area-desc", label: "면적순↓" },
-          ].map((option) => (
-            <button
-              key={option.key}
-              onClick={() => handleSortChange(option.key)}
-              className={`px-4 py-3 text-sm font-medium border-b-2 transition-colors whitespace-nowrap ${
-                sortBy === option.key
-                  ? "border-blue-500 text-blue-600"
-                  : "border-transparent text-gray-500 hover:text-gray-700"
-              }`}
-            >
-              {option.label}
-            </button>
-          ))}
+          {getSortOptions().map((option) => {
+            const isToggleable = ["price", "area"].includes(option.key);
+            const isActive = isToggleable
+              ? sortBy.startsWith(option.key)
+              : sortBy === option.key;
+
+            return (
+              <button
+                key={option.key}
+                onClick={() => handleSortClick(option.key)}
+                className={`px-4 py-3 text-sm font-medium border-b-2 transition-colors whitespace-nowrap ${
+                  isActive && !isToggleable
+                    ? "border-blue-500 text-blue-600"
+                    : "border-transparent text-gray-500 hover:text-gray-700"
+                }`}
+              >
+                {option.label}
+              </button>
+            );
+          })}
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">

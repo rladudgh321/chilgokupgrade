@@ -23,11 +23,37 @@ const ListingList = ({
   isFetchingNextPage,
   onCardClick,
 }: Props) => {
-  const sortOptions = [
+  const handleSortClick = (sortKey: string) => {
+    if (sortKey === "price") {
+      const newSortBy = sortBy === "price-desc" ? "price-asc" : "price-desc";
+      onSortChange(newSortBy);
+    } else if (sortKey === "area") {
+      const newSortBy = sortBy === "area-desc" ? "area-asc" : "area-desc";
+      onSortChange(newSortBy);
+    } else {
+      onSortChange(sortKey);
+    }
+  };
+
+  const getSortOptions = () => [
     { key: "latest", label: "최신순" },
     { key: "popular", label: "인기순" },
-    { key: "price-desc", label: "금액순↓" },
-    { key: "area-desc", label: "면적순↓" },
+    {
+      key: "price",
+      label: sortBy.startsWith("price-")
+        ? sortBy === "price-asc"
+          ? "금액순↑"
+          : "금액순↓"
+        : "금액순↓",
+    },
+    {
+      key: "area",
+      label: sortBy.startsWith("area-")
+        ? sortBy === "area-asc"
+          ? "면적순↑"
+          : "면적순↓"
+        : "면적순↓",
+    },
   ];
 
   const parentRef = useRef<HTMLDivElement>(null);
@@ -62,19 +88,26 @@ const ListingList = ({
     <div className="h-full flex flex-col">
       {/* 정렬 탭 */}
       <div className="flex border-b bg-white flex-shrink-0 overflow-x-auto">
-        {sortOptions.map((option) => (
-          <button
-            key={option.key}
-            onClick={() => onSortChange(option.key)}
-            className={`px-4 py-3 text-sm font-medium border-b-2 transition-colors whitespace-nowrap ${
-              sortBy === option.key
-                ? "border-blue-500 text-blue-600"
-                : "border-transparent text-gray-500 hover:text-gray-700"
-            }`}
-          >
-            {option.label}
-          </button>
-        ))}
+        {getSortOptions().map((option) => {
+          const isToggleable = ["price", "area"].includes(option.key);
+          const isActive = isToggleable
+            ? sortBy.startsWith(option.key)
+            : sortBy === option.key;
+
+          return (
+            <button
+              key={option.key}
+              onClick={() => handleSortClick(option.key)}
+              className={`px-4 py-3 text-sm font-medium border-b-2 transition-colors whitespace-nowrap ${
+                isActive && !isToggleable
+                  ? "border-blue-500 text-blue-600"
+                  : "border-transparent text-gray-500 hover:text-gray-700"
+              }`}
+            >
+              {option.label}
+            </button>
+          );
+        })}
       </div>
 
       {/* 매물 리스트 */}
