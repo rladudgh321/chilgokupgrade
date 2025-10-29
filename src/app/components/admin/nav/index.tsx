@@ -9,6 +9,7 @@ import WebsiteSettingsMenu from "./WebsiteSettingsMenu";
 import WebViewMenu from "./WebViewMenu";
 import OtherMenu from "./OtherMenu";
 import { clsx } from "clsx";
+import Link from "next/link";
 
 // 메뉴 데이터
 const listingsData = [
@@ -146,9 +147,13 @@ const AdminNav = ({ isOpen, setIsOpen }: AdminNavProps) => {
         {totalMenu.map(({ menu, title, data, component, icon }) => (
           <MenuItem key={menu} menu={menu} title={title} data={data} Component={component} icon={icon} />
         ))}
+        <Link href="/admin"><li className="flex justify-center bg-blue-900 py-10">대시<br />보드</li></Link>
       </ul>
     </nav>
   );
 };
 
 export default AdminNav;
+
+
+{/* <li className="flex justify-center bg-blue-900 py-10"><Link href="/admin">대시<br />보드</Link></li> */}
