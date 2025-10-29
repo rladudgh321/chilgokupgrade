@@ -15,7 +15,6 @@ model Build {
   ho               String?
   etc              String?
   isAddressPublic  AddressPublic? @default(public)
-  mapLocation      String?
   propertyType     String?
   listingType      ListingType?   @relation(fields: [listingTypeId], references: [id], onDelete: SetNull)
   listingTypeId    Int?

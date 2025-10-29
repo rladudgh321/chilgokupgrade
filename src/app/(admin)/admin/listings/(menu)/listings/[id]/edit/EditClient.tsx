@@ -92,7 +92,6 @@ function normalizeForForm(d: any, themeOptions: string[]): FormData {
     ho: d.ho ?? "",
     etc: d.etc ?? "",
     isAddressPublic: d.isAddressPublic ?? "public",
-    mapLocation: d.mapLocation ?? "",
 
     // LandInfo / 관계
     propertyType: d.propertyType ?? "",
@@ -250,7 +249,6 @@ export default function EditClient({ id }: { id: number }) {
         ho: payload.ho ?? null,
         etc: payload.etc ?? null,
         isAddressPublic: payload.isAddressPublic ?? "public",
-        mapLocation: payload.mapLocation ?? null,
 
         // LandInfo
         propertyType: payload.propertyType ?? null,

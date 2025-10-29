@@ -40,7 +40,6 @@ export interface IBuild {
   ho?: string | null;
   etc?: string | null;
   isAddressPublic?: AddressPublic | null; // default(public)
-  mapLocation?: string | null;
 
   // 분류/노출
   propertyType?: string | null;

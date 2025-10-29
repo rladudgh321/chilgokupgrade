@@ -20,7 +20,6 @@ export interface FormData {
   ho: string;
   etc: string;
   isAddressPublic: AddressState;
-  mapLocation: string;
 
   // LandInfo (리스팅/거래/가격)
   propertyType: string | null;       // 자유 문자열 필드 유지
@@ -116,7 +115,6 @@ export const BASE_DEFAULTS: FormData = {
   ho: "",
   etc: "",
   isAddressPublic: "public",
-  mapLocation: "",
 
   // LandInfo
   propertyType: "",
