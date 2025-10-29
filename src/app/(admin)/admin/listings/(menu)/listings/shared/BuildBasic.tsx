@@ -164,7 +164,7 @@ const SelectField = ({
                 className
               )}
           >
-            {options.map((op) => (
+            {(options || []).map((op) => (
               <option key={op} value={op}>
                 {op}
               </option>
@@ -383,7 +383,7 @@ const BuildBasic = ({ roomOptions, bathroomOptions, themeOptions, labelOptions, 
       <div className="flex flex-col">
         <label>옵션</label>
         <div className="flex space-x-2 mt-2 flex-wrap gap-y-4">
-          {buildingOptions.map((opt) => {
+          {(buildingOptions || []).map((opt) => {
             const checked = watchedBuildingOptions.includes(opt.id);
             return (
               <label key={opt.id} className="cursor-pointer">

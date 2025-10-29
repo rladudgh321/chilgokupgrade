@@ -3,6 +3,7 @@ import { createClient } from "@/app/utils/supabase/server";
 import { cookies } from "next/headers";
 import * as Sentry from "@sentry/nextjs";
 import { notifySlack } from "@/app/utils/sentry/slack";
+import { toZonedTime } from 'date-fns-tz';
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -132,6 +133,7 @@ export async function PATCH(
 
     const dataToUpdate: any = {
         ...restOfBody,
+        updatedAt: toZonedTime(new Date(), 'Asia/Seoul'),
     };
     if (label !== undefined) dataToUpdate.labelId = labelId;
     if (propertyType !== undefined) dataToUpdate.listingTypeId = listingTypeId;

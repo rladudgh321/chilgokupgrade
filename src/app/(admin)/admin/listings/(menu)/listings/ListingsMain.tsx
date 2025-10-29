@@ -564,7 +564,7 @@ const ListingsMain = ({ ListingsData, sortKey }: ListingsMainProps) => {
                 ? new Date(String(listing.updatedAt))
                 : null;
               const hasUpdate = !!(
-                updatedAtDate && updatedAtDate.getTime() > createdAtDate.getTime()
+                updatedAtDate && updatedAtDate.getTime() - createdAtDate.getTime() > 1000
               );
 
               return (

@@ -1,28 +1,10 @@
-const handleCardClick = (id: number) => {
-    // Increment views
-    fetch(`/api/build/${id}/increment-views`, { method: 'POST' })
-      .then(response => {
-        if (!response.ok) {
-          console.error('Failed to increment views');
-        }
-      })
-      .catch(error => console.error('Error incrementing views:', error));
+`ListingsMain`컴포넌트에서 `const hasUpdate = !!(
+                updatedAtDate && updatedAtDate.getTime() > createdAtDate.getTime()
+              );` 코드에서 나는 수정을 한번이라도 했으면 hasUpdate가 true로 되어서 `(수정일: {formatYYYYMMDD(updatedAtDate!)})` 이 코드가 브라우저에 표현되었으면 좋겠어. 코드를 수정해줘
+              -----------
 
-    const build = allListings.find(l => l.id === id);
-    setSelectedBuild(build || null);
-  };
----------
-create or replace function public.increment_build_views(build_id int)
-returns void
-language plpgsql
-security definer
-as $$
-begin
-  update "Build"
-  set views = coalesce(views, 0) + 1
-  where id = build_id;
-end;
-$$;
------
-이미 위와 같이 sql editor에 했어.
-ListingSection컴포넌트에서 onCardClick하게 되면 위와 같은 로직도 같이 더해져서 views를 올려줬으면 좋겠어
+              `/admin/listings/listings/[id]/edit`페이지에서 수정을 하게 되면 updatedAt이 최신날짜로 되면서 `hasUpdate` 변수가 작동되었으면 좋겠어
+
+              --------
+              DB에 여전히 updatedAt이 반영이 안되고 있어. 수정을 할 때 의도적으로 updatedAt에 한국시간으로 DB에 넣어줘
+              `import { toZonedTime } from 'date-fns-tz';`
