@@ -8,7 +8,7 @@ const menuItems = [
   { title: "목록으로 검색", href: "/card" },
   { title: "회사소개", href: "/intro" },
   { title: "공지사항", href: "/notice" },
-  { title: "고객센터", href: "/orders" },
+  { title: "매물의뢰", href: "/orders" },
 ];
 
 const NavMenu = () => {
