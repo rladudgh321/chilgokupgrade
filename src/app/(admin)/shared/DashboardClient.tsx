@@ -16,7 +16,7 @@ const renderCustomizedLabel = ({ cx, cy, midAngle, innerRadius, outerRadius, per
   );
 };
 
-const ChartWithSortedList = ({ title, data, topListings }) => (
+const ChartWithSortedList = ({ title, data }) => (
   <div className="bg-white p-6 rounded-lg shadow-md">
     <h2 className="text-2xl font-bold mb-4">{title}</h2>
     <div style={{ width: '100%', height: 300 }}>
@@ -51,17 +51,6 @@ const ChartWithSortedList = ({ title, data, topListings }) => (
         ))}
       </ul>
     </div>
-    <div className="mt-6">
-      <h3 className="text-lg font-semibold mb-2">조회수 상위 5개 매물</h3>
-      <ul>
-        {topListings.map((listing, index) => (
-          <li key={index} className="flex justify-between py-1 border-b">
-            <span className="truncate pr-4">{listing.address}</span>
-            <span>{listing.views.toLocaleString()}</span>
-          </li>
-        ))}
-      </ul>
-    </div>
   </div>
 );
 
@@ -92,9 +81,21 @@ export default function DashboardClient({ dashboardData }) {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        <ChartWithSortedList title="카테고리별 조회수" data={categoryViews} topListings={topListings} />
-        <ChartWithSortedList title="테마별 조회수" data={themeViews} topListings={topListings} />
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+        <ChartWithSortedList title="카테고리별 조회수" data={categoryViews} />
+        <ChartWithSortedList title="테마별 조회수" data={themeViews} />
+      </div>
+
+      <div className="bg-white p-6 rounded-lg shadow-md">
+        <h2 className="text-2xl font-bold mb-4">조회수 상위 5개 매물</h2>
+        <ul>
+          {topListings.map((listing, index) => (
+            <li key={index} className="flex justify-between py-1 border-b">
+              <span className="truncate pr-4">{listing.address}</span>
+              <span>{listing.views.toLocaleString()}</span>
+            </li>
+          ))}
+        </ul>
       </div>
     </div>
   );

@@ -76,6 +76,15 @@ export default function LandSearchClient({
 }: Props) {
   const [selectedBuild, setSelectedBuild] = useState<Listing | null>(null);
   const handleCardClick = (id: number) => {
+    // Increment views
+    fetch(`/api/build/${id}/increment-views`, { method: 'POST' })
+      .then(response => {
+        if (!response.ok) {
+          console.error('Failed to increment views');
+        }
+      })
+      .catch(error => console.error('Error incrementing views:', error));
+
     const build = allListings.find(l => l.id === id);
     setSelectedBuild(build || null);
   };

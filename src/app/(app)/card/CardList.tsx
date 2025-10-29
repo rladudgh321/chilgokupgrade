@@ -30,6 +30,15 @@ const CardList = ({
   const [selectedBuildId, setSelectedBuildId] = useState<number | null>(null);
 
   const handleCardClick = (id: number) => {
+    // Increment views
+    fetch(`/api/build/${id}/increment-views`, { method: 'POST' })
+      .then(response => {
+        if (!response.ok) {
+          console.error('Failed to increment views');
+        }
+      })
+      .catch(error => console.error('Error incrementing views:', error));
+
     setSelectedBuildId(id);
   };
 

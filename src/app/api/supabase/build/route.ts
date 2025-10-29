@@ -47,7 +47,11 @@ export async function GET(req: NextRequest) {
     // Sorting logic
     switch (sortBy) {
       case 'popular':
+      case 'popular-desc':
         q = q.order('views', { ascending: false, nullsFirst: true });
+        break;
+      case 'popular-asc':
+        q = q.order('views', { ascending: true, nullsFirst: true });
         break;
       case 'price-desc':
         q = q.order('max_price', { ascending: false, nullsFirst: true });
