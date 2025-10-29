@@ -134,8 +134,10 @@ export default function SearchBar({
       isInitial.current = false;
       return;
     }
+    const currentSortBy = sp.get("sortBy");
     const q: Record<string, string> = {
       page: "1",
+      ...(currentSortBy ? { sortBy: currentSortBy } : {}),
       ...(deferredSearch ? { keyword: deferredSearch } : {}),
       ...(propertyType ? { propertyType } : {}),
       ...(buyType ? { buyType } : {}),

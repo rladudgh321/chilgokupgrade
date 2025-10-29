@@ -27,7 +27,7 @@ export default function AdminLayoutClient({ children, logoUrl }: { children: Rea
   return (
     <>
       <div className="relative z-10 flex">
-        <Header isOpen={isMobileMenuOpen} setIsOpen={setIsMobileMenuOpen} logoUrl={logoUrl} />
+        <Header isOpen={isMobileMenuOpen} setIsOpen={setIsMobileMenuOpen} logoUrl={logoUrl!} />
       </div>
       <div className="relative flex -z-0">
         <div

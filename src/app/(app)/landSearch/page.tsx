@@ -4,21 +4,22 @@ import LandSearchClient from "./LandSearchClient";
 const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL!;
 
 async function fetchJson(url: string) {
-  const res = await fetch(url, { next: { revalidate: 28_800, tags: ['public', 'list'] } });
+  const res = await fetch(url);
   if (!res.ok) {
     return { data: [] };
   }
   return res.json();
 }
 
-export default async function Page({ searchParams }: { searchParams: { [key: string]: string | string[] | undefined } }) {
+export default async function Page({ searchParams }: { searchParams: Promise<{ [key: string]: string | string[] | undefined }> }) {
+  const resolvedSearchParams = await searchParams;
   const { 
     keyword: keywordParam,
     theme: themeParam,
     propertyType: propertyTypeParam,
     buyType: buyTypeParam,
     sortBy: sortByParam 
-  } = searchParams;
+  } = resolvedSearchParams;
 
   const page = 1; // Always fetch first page on server
   const keyword = typeof keywordParam === 'string' ? keywordParam : undefined;
@@ -47,6 +48,7 @@ export default async function Page({ searchParams }: { searchParams: { [key: str
 
   return (
     <LandSearchClient 
+      key={JSON.stringify(resolvedSearchParams)}
       initialListings={processedListings ?? []}
       settings={settings.data}
       roomOptions={roomOptions.data}
