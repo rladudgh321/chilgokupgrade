@@ -3,6 +3,7 @@
 import React, { useRef, useEffect } from "react";
 import { useVirtualizer } from "@tanstack/react-virtual";
 import ListingCard from "./ListingCard";
+import ListingCardSkeleton from "./ListingCardSkeleton";
 
 type Props = {
   listings: any[];
@@ -11,6 +12,7 @@ type Props = {
   fetchNextPage?: () => void;
   hasNextPage?: boolean;
   isFetchingNextPage?: boolean;
+  isLoading: boolean; // Add isLoading prop
   onCardClick: (id: number) => void;
 };
 
@@ -21,6 +23,7 @@ const ListingList = ({
   fetchNextPage,
   hasNextPage,
   isFetchingNextPage,
+  isLoading,
   onCardClick,
 }: Props) => {
   const handleSortClick = (sortKey: string) => {
@@ -115,7 +118,13 @@ const ListingList = ({
         ref={parentRef}
         className="flex-1 overflow-y-auto scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100"
       >
-        {listings.length === 0 && !isFetchingNextPage ? (
+        {isLoading ? (
+          <div className="p-4 space-y-4">
+            {Array.from({ length: 5 }).map((_, i) => (
+              <ListingCardSkeleton key={i} />
+            ))}
+          </div>
+        ) : listings.length === 0 && !isFetchingNextPage ? (
           <div className="flex items-center justify-center h-full text-gray-500">
             <p>표시할 매물이 없습니다.</p>
           </div>

@@ -93,13 +93,13 @@ export default function LandSearchClient({
     console.log("Current Query Params:", params);
     return params;
   }, [currentSearchParams]);
-  const { 
-    data: paginatedData,
-    fetchNextPage,
-    hasNextPage,
-    isFetchingNextPage,
-  } = useInfiniteQuery({
-    queryKey: ["listings", queryParams],
+    const {
+      data: paginatedData,
+      fetchNextPage,
+      hasNextPage,
+      isFetchingNextPage,
+      isLoading,
+    } = useInfiniteQuery({    queryKey: ["listings", queryParams],
     queryFn: fetchListings,
     getNextPageParam: (lastPage) => {
       if (lastPage.currentPage < lastPage.totalPages) {
@@ -529,6 +529,8 @@ export default function LandSearchClient({
               hasNextPage={hasNextPage}
 
               isFetchingNextPage={isFetchingNextPage}
+
+              isLoading={isLoading}
 
               onCardClick={handleCardClick}
 
