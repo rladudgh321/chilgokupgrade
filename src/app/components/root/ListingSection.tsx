@@ -46,6 +46,15 @@ const ListingSection = ({ RecommendData, QuickSaleData, RecentlyData }:{
 }) => {
   const router = useRouter();
   const handleCardClick = (id: number) => {
+    // Increment views
+    fetch(`/api/build/${id}/increment-views`, { method: 'POST' })
+      .then(response => {
+        if (!response.ok) {
+          console.error('Failed to increment views');
+        }
+      })
+      .catch(error => console.error('Error incrementing views:', error));
+
     router.push(`/build/${id}`, { scroll: false }); // ← 모달 인터셉트 라우트로 이동
   };
   const RecommendDataPromise = use(RecommendData);
