@@ -136,7 +136,6 @@ export default function SearchBar({
     }
     const currentSortBy = sp.get("sortBy");
     const q: Record<string, string> = {
-      page: "1",
       ...(currentSortBy ? { sortBy: currentSortBy } : {}),
       ...(deferredSearch ? { keyword: deferredSearch } : {}),
       ...(propertyType ? { propertyType } : {}),
