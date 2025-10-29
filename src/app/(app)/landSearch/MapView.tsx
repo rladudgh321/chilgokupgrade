@@ -42,6 +42,12 @@ const MapView = ({
   const [scriptLoaded, setScriptLoaded] = useState(false);
   const [scriptError, setScriptError] = useState(false);
 
+  useEffect(() => {
+    if (window.kakao?.maps) {
+      setScriptLoaded(true);
+    }
+  }, []);
+
   const circleStyle = (size: number, bg: string) => ({
     width: `${size}px`,
     height: `${size}px`,
@@ -198,16 +204,18 @@ const MapView = ({
 
   return (
     <>
-      <Script
-        id="kakao-maps-sdk"
-        src={`https://dapi.kakao.com/v2/maps/sdk.js?appkey=${KAKAO_KEY}&libraries=services,clusterer&autoload=false`}
-        strategy="afterInteractive"
-        onLoad={() => setScriptLoaded(true)}
-        onError={() => {
-          console.error("Kakao SDK load error");
-          setScriptError(true);
-        }}
-      />
+      {!scriptLoaded && (
+        <Script
+          id="kakao-maps-sdk"
+          src={`https://dapi.kakao.com/v2/maps/sdk.js?appkey=${KAKAO_KEY}&libraries=services,clusterer&autoload=false`}
+          strategy="afterInteractive"
+          onLoad={() => setScriptLoaded(true)}
+          onError={() => {
+            console.error("Kakao SDK load error");
+            setScriptError(true);
+          }}
+        />
+      )}
       <div ref={containerRef} style={{ width, height }}>
         {scriptError && (
           <div

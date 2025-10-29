@@ -2,7 +2,6 @@ import TanstackProvider from "./components/shared/TanstackProvider";
 import "./globals.css";
 import "react-datepicker/dist/react-datepicker.css";
 import localFont from 'next/font/local'
-import KakaoScript from "./components/shared/KakaoScript";
 
 const myFontWoff2 = localFont({
   src: [
@@ -36,10 +35,6 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         className={`${myFontWoff2.variable} ${myFontFallback.variable} antialiased h-full flex flex-col`}
       >
         <TanstackProvider>{children}</TanstackProvider>
-
-        {/* 카카오맵 SDK */}
-         <KakaoScript />
-
       </body>
     </html>
   );
