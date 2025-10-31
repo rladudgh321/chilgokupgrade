@@ -87,39 +87,71 @@ const SaveImage: React.FC = () => {
     },
   });
 
-  const propertyImagesMutation = useMutation({
-    mutationFn: uploadImages,
-    onSuccess: (data: { urls: string[] }) => {
-      const urls = unique((data.urls || []).filter(isValidImgSrc));
-      if (urls.length === 0) return;
+    const propertyImagesMutation = useMutation({
 
-      setPropertyImages((prev) => {
-        const next = unique([...prev, ...urls]);
-        const curr = Array.isArray(getValues("subImage")) ? getValues("subImage")! : [];
-        if (!arraysEqual(next, curr)) {
-          setValue("subImage", next, { shouldDirty: true });
-        }
-        return next;
-      });
-    },
-  });
+      mutationFn: uploadImages,
 
-  const adminImagesMutation = useMutation({
-    mutationFn: uploadImages,
-    onSuccess: (data: { urls: string[] }) => {
-      const urls = unique((data.urls || []).filter(isValidImgSrc));
-      if (urls.length === 0) return;
+      onSuccess: (data: { urls: string[] }) => {
 
-      setAdminImages((prev) => {
-        const next = unique([...prev, ...urls]);
-        const curr = Array.isArray(getValues("adminImage")) ? getValues("adminImage")! : [];
-        if (!arraysEqual(next, curr)) {
-          setValue("adminImage", next, { shouldDirty: true });
-        }
-        return next;
-      });
-    },
-  });
+        const urls = unique((data.urls || []).filter(isValidImgSrc));
+
+        if (urls.length === 0) return;
+
+  
+
+        setPropertyImages((prev) => unique([...prev, ...urls]));
+
+      },
+
+    });
+
+  
+
+    const adminImagesMutation = useMutation({
+
+      mutationFn: uploadImages,
+
+      onSuccess: (data: { urls: string[] }) => {
+
+        const urls = unique((data.urls || []).filter(isValidImgSrc));
+
+        if (urls.length === 0) return;
+
+  
+
+        setAdminImages((prev) => unique([...prev, ...urls]));
+
+      },
+
+    });
+
+  
+
+    useEffect(() => {
+
+      const curr = Array.isArray(getValues("subImage")) ? getValues("subImage")! : [];
+
+      if (!arraysEqual(propertyImages, curr)) {
+
+        setValue("subImage", propertyImages, { shouldDirty: true });
+
+      }
+
+    }, [propertyImages, getValues, setValue]);
+
+  
+
+    useEffect(() => {
+
+      const curr = Array.isArray(getValues("adminImage")) ? getValues("adminImage")! : [];
+
+      if (!arraysEqual(adminImages, curr)) {
+
+        setValue("adminImage", adminImages, { shouldDirty: true });
+
+      }
+
+    }, [adminImages, getValues, setValue]);
 
   // ─────────────────────────────────────────────────────────
   // 파일 선택 핸들러

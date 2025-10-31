@@ -3,6 +3,8 @@ import { Upload } from '@aws-sdk/lib-storage';
 import { S3client, PUBLIC_BUCKET, supabasePublicUrl, makeObjectKey } from '@/app/api/supabase/S3';
 import * as Sentry from "@sentry/nextjs";
 import { notifySlack } from "@/app/utils/sentry/slack";
+import sharp from 'sharp';
+
 export const runtime = 'nodejs';
 
 export async function POST(req: NextRequest) {
@@ -29,16 +31,23 @@ export async function POST(req: NextRequest) {
     const out: { key: string; url: string }[] = [];
 
     for (const f of files) {
-      const Key = makeObjectKey(f.name, prefix);
-      const Body = new Uint8Array(await f.arrayBuffer()); // 간단/안정
+      const buffer = Buffer.from(await f.arrayBuffer());
+
+      const processedImage = await sharp(buffer)
+        .resize(1600)
+        .webp({ quality: 80 })
+        .toBuffer();
+
+      const originalName = f.name.substring(0, f.name.lastIndexOf('.'));
+      const Key = makeObjectKey(`${originalName}.webp`, prefix);
 
       const uploader = new Upload({
         client: S3client,
         params: {
           Bucket: bucket,          // ✅ 반드시 채워짐
           Key,
-          Body,
-          ContentType: f.type || 'application/octet-stream',
+          Body: processedImage,
+          ContentType: 'image/webp',
         },
         queueSize: 4,
         partSize: 10 * 1024 * 1024,

@@ -3,6 +3,8 @@ import { PutObjectCommand } from '@aws-sdk/client-s3';
 import { S3client, PUBLIC_BUCKET, supabasePublicUrl, makeObjectKey } from '@/app/api/supabase/S3';
 import * as Sentry from "@sentry/nextjs";
 import { notifySlack } from "@/app/utils/sentry/slack";
+import sharp from 'sharp';
+
 export const runtime = 'nodejs';
 
 export async function POST(req: NextRequest) {
@@ -16,14 +18,21 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ message: 'file 필드가 필요합니다.' }, { status: 400 });
     }
 
-    const Key = makeObjectKey(file.name, prefix);
-    const Body = new Uint8Array(await file.arrayBuffer()); // ✅ 핵심
+    const buffer = Buffer.from(await file.arrayBuffer());
+
+    const processedImage = await sharp(buffer)
+      .resize(1600)
+      .webp({ quality: 80 })
+      .toBuffer();
+
+    const originalName = file.name.substring(0, file.name.lastIndexOf('.'));
+    const Key = makeObjectKey(`${originalName}.webp`, prefix);
 
     await S3client.send(new PutObjectCommand({
       Bucket: bucket,
       Key,
-      Body,                                 // ✅ 타입 에러 해결
-      ContentType: file.type || 'application/octet-stream',
+      Body: processedImage,
+      ContentType: 'image/webp',
     }));
 
     const url = supabasePublicUrl(bucket, Key);

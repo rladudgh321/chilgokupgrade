@@ -1,13 +1,28 @@
-ManagementAPI컴포넌트에서 기본모드는 free모드로 해주고 props로 유료요금제를 넣게 되면 유료요금제 기준으로 설정해줘
-그러니까 props를 아무것도 안 넣으면 free모드로 해줘.
-내가 원하는 것은 요청 몇번 했냐고가 중요한게 아니고 요금제가 한달에 얼만큼은 무료니까 `100건/한달: 1000건` 이렇게 해서 한달에 1000건이 제한이고 그중에 100건 했다 혹은 `10GB/하루: 100GB 전송량` 하루 100GB 전송이 최대 전송량이지만 현재 하루 10GB를 사용했다
-이렇게 표시가 되었으면 좋겠어
---------
-좋아 위에있는 사항을 잘 작성해준것 같아.
-하지만 ManagementAPI컴포넌트가 사용량이 0.001GB단위로 표현되었으면 좋겠어
-`npm run dev`로 테스트 하지마 왜냐하면 너는 그것을 실행하지도 못하고 계속 시간끄니까 말이야.
----------
-데이터베이스 크기 (Database Size),
-파일 저장소 크기 (Storage Size),
-데이터 송출량/이그레스 (Egress),
-캐시된 이그레스 (Cached Egress)를 표시해줘
+Console Error
+
+Cannot update a component (`CreateClient`) while rendering a different component (`SaveImage`). To locate the bad setState() call inside `SaveImage`, follow the stack trace as described in https://react.dev/link/setstate-in-render
+
+src/app/(admin)/admin/listings/(menu)/listings/shared/SaveImage.tsx (100:11) @ SaveImage.useMutation[propertyImagesMutation]
+
+
+   98 |         const curr = Array.isArray(getValues("subImage")) ? getValues("subImage")! : [];
+   99 |         if (!arraysEqual(next, curr)) {
+> 100 |           setValue("subImage", next, { shouldDirty: true });
+      |           ^
+  101 |         }
+  102 |         return next;
+  103 |       });
+Call Stack
+31
+
+Show 26 ignore-listed frame(s)
+SaveImage.useMutation[propertyImagesMutation]
+src/app/(admin)/admin/listings/(menu)/listings/shared/SaveImage.tsx (100:11)
+SaveImage
+src/app/(admin)/admin/listings/(menu)/listings/shared/SaveImage.tsx (44:55)
+BuildForm
+src/app/(admin)/admin/listings/(menu)/listings/shared/BuildForm.tsx (267:11)
+CreateClient
+src/app/(admin)/admin/listings/(menu)/listings/create/CreateClient.tsx (93:5)
+CreateListings
+src\app\(admin)\admin\listings\(menu)\listings\create\page.tsx (7:7)
