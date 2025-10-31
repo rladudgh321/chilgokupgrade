@@ -2,6 +2,7 @@
 
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
+import ManagementAPI from './ManagementAPI';
 
 interface HeaderProps {
   isOpen: boolean;
@@ -57,6 +58,9 @@ const Header = ({ isOpen, setIsOpen, logoUrl }: HeaderProps) => {
         <div className="relative inline-block h-10 w-24">
           <Image alt="logo" src={logoUrl} fill objectFit="contain" priority={true} />
         </div>
+      </div>
+      <div>
+        <ManagementAPI />
       </div>
       <div>
         <button onClick={handleRevalidate} className="px-4 py-2 hover:bg-gray-700 rounded">데이터 최신화</button>

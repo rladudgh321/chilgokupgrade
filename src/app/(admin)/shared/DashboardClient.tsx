@@ -1,5 +1,6 @@
 'use client';
 
+import ManagementAPI from '@/app/layout/admin/Header/ManagementAPI';
 import { PieChart, Pie, Cell, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 
 const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#AF19FF', '#FF1919'];
@@ -85,6 +86,7 @@ export default function DashboardClient({ dashboardData }) {
         <ChartWithSortedList title="카테고리별 조회수" data={categoryViews} />
         <ChartWithSortedList title="테마별 조회수" data={themeViews} />
       </div>
+      <ManagementAPI />
 
       <div className="bg-white p-6 rounded-lg shadow-md">
         <h2 className="text-2xl font-bold mb-4">조회수 상위 5개 매물</h2>
