@@ -10,6 +10,7 @@ const ListingTypePage = () => {
       buttonText="유형 등록"
       apiEndpoint="/api/listing-type"
       enableImageUpload={true}
+      imageMaxWidthOrHeight={300}
     />
   );
 };

@@ -21,6 +21,7 @@ type ListManagerProps = {
   apiEndpoint?: string; // ex) '/api/labels'
   enableImageUpload?: boolean;
   enableUrlInput?: boolean;
+  imageMaxWidthOrHeight?: number;
 };
 
 const ListManager = ({
@@ -30,6 +31,7 @@ const ListManager = ({
   apiEndpoint = "",
   enableImageUpload = false,
   enableUrlInput = false,
+  imageMaxWidthOrHeight = 300,
 }: ListManagerProps) => {
   const queryClient = useQueryClient();
 
@@ -334,7 +336,7 @@ const ListManager = ({
                 try {
                   const options = {
                     maxSizeMB: 1,
-                    maxWidthOrHeight: 300,
+                    maxWidthOrHeight: imageMaxWidthOrHeight,
                     useWebWorker: true,
                     fileType: "image/webp",
                     quality: 0.8,

@@ -11,6 +11,7 @@ const SnsSettingsPage = () => {
       apiEndpoint="/api/sns-settings"
       enableImageUpload={true}
       enableUrlInput={true}
+      imageMaxWidthOrHeight={50}
     />
   );
 };
