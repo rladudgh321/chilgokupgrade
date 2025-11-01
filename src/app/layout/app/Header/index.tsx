@@ -20,7 +20,6 @@ export interface HeaderProps {
 }
 
 const Header = ({ headerPromise }: {headerPromise: HeaderProps}) => {
-  console.log('headerPromise', headerPromise);
   return (
     <header className="fixed top-0 left-0 w-full z-50 border-b border-white/10 bg-black">
       <div className="mx-auto max-w-7xl h-14 px-4 flex items-center justify-between">
