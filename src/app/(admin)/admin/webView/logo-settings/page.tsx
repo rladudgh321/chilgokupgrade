@@ -9,6 +9,7 @@ const LogoSettingsPage = () => {
       getApiEndpoint="/api/admin/settings/logo"
       updateApiEndpoint="/api/admin/settings/logo"
       uploadApiEndpoint="/api/admin/settings/logo/upload"
+      imageMaxWidthOrHeight={200}
     />
   );
 };

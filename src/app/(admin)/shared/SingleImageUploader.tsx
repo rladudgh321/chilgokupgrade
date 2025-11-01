@@ -3,15 +3,17 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useDropzone } from 'react-dropzone';
 import Image from 'next/image';
+import imageCompression from "browser-image-compression";
 
 interface SingleImageUploaderProps {
   title: string;
   getApiEndpoint: string;
   updateApiEndpoint: string;
   uploadApiEndpoint: string;
+  imageMaxWidthOrHeight?: number;
 }
 
-const SingleImageUploader = ({ title, getApiEndpoint, updateApiEndpoint, uploadApiEndpoint }: SingleImageUploaderProps) => {
+const SingleImageUploader = ({ title, getApiEndpoint, updateApiEndpoint, uploadApiEndpoint, imageMaxWidthOrHeight = 200 }: SingleImageUploaderProps) => {
   const [imageUrl, setImageUrl] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -38,10 +40,19 @@ const SingleImageUploader = ({ title, getApiEndpoint, updateApiEndpoint, uploadA
     const file = acceptedFiles[0];
     if (!file) return;
 
-    const formData = new FormData();
-    formData.append('file', file);
-
     try {
+      const options = {
+        maxSizeMB: 1,
+        maxWidthOrHeight: imageMaxWidthOrHeight,
+        useWebWorker: true,
+        fileType: "image/webp",
+        quality: 0.8,
+      };
+      const compressedFile = await imageCompression(file, options);
+
+      const formData = new FormData();
+      formData.append('file', compressedFile);
+
       // 1. Upload to S3
       const uploadResponse = await fetch(uploadApiEndpoint, {
         method: 'POST',
@@ -72,7 +83,7 @@ const SingleImageUploader = ({ title, getApiEndpoint, updateApiEndpoint, uploadA
     } catch (e: any) {
       setError(e.message || '로고 변경 중 오류가 발생했습니다.');
     }
-  }, [uploadApiEndpoint, updateApiEndpoint]);
+  }, [uploadApiEndpoint, updateApiEndpoint, imageMaxWidthOrHeight]);
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({ 
     onDrop, 
