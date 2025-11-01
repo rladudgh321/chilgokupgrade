@@ -21,8 +21,12 @@ export async function POST(req: NextRequest) {
     const buffer = Buffer.from(await file.arrayBuffer());
 
     const processedImage = await sharp(buffer)
-      .resize(1600)
-      .webp({ quality: 80 })
+      .resize({
+        width: 1600,
+        withoutEnlargement: true, // 원본보다 클 경우 확대하지 않음
+        fit: "inside",             // 비율 유지
+      })
+      .webp({ quality: 80, effort: 6, smartSubsample: true, nearLossless: false })
       .toBuffer();
 
     const originalName = file.name.substring(0, file.name.lastIndexOf('.'));
