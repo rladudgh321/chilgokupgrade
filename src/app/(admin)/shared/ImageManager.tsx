@@ -2,13 +2,15 @@
 
 import { useState, useEffect, useCallback, useRef } from 'react';
 import DraggableItem from './DraggableItem';
+import imageCompression from "browser-image-compression";
 
 type ImageManagerProps = {
   title: string;
   apiEndpoint?: string;
+  imageMaxWidthOrHeight?: number;
 };
 
-const ImageManager = ({ title, apiEndpoint = '' }: ImageManagerProps) => {
+const ImageManager = ({ title, apiEndpoint = '', imageMaxWidthOrHeight = 1920 }: ImageManagerProps) => {
   const [items, setItems] = useState<{ id: number; name: string; url?: string; imageUrl?: string; imageName?: string }[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -207,7 +209,25 @@ const ImageManager = ({ title, apiEndpoint = '' }: ImageManagerProps) => {
           <input
             type="file"
             accept="image/*"
-            onChange={(e) => setSelectedFile(e.target.files?.[0] || null)}
+            onChange={async (e) => {
+              const file = e.target.files?.[0];
+              if (!file) return;
+
+              try {
+                const options = {
+                  maxSizeMB: 1,
+                  maxWidthOrHeight: imageMaxWidthOrHeight,
+                  useWebWorker: true,
+                  fileType: "image/webp",
+                  quality: 0.8,
+                };
+                const compressedFile = await imageCompression(file, options);
+                setSelectedFile(compressedFile);
+              } catch (error) {
+                console.error(error);
+                setSelectedFile(file);
+              }
+            }}
             className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
             disabled={loading}
           />

@@ -7,6 +7,7 @@ const BannerPage = () => {
     <ImageManager
       title="웹뷰 배너 관리"
       apiEndpoint="/api/admin/webView/banner"
+      imageMaxWidthOrHeight={1920}
     />
   );
 };
