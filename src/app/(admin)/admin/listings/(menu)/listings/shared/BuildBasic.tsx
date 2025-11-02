@@ -139,11 +139,13 @@ const SelectField = ({
   label,
   name,
   options,
+  placeholder,
   className = "",
 }: {
   label: string;
   name: string;
   options: string[];
+  placeholder?: string;
   className?: string;
 }) => {
   const { control } = useFormContext();
@@ -159,11 +161,20 @@ const SelectField = ({
         render={({ field }) => (
           <select
             {...field}
-              className={clsx(
-                "mt-1 block w-full p-2 sm:p-3 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500",
-                className
-              )}
+            onChange={(e) => {
+              if (e.target.value === "") {
+                field.onChange(null);
+              } else {
+                field.onChange(e.target.value);
+              }
+            }}
+            value={field.value || ""}
+            className={clsx(
+              "mt-1 block w-full p-2 sm:p-3 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500",
+              className
+            )}
           >
+            {placeholder && <option value="">{placeholder}</option>}
             {(options || []).map((op) => (
               <option key={op} value={op}>
                 {op}
@@ -258,11 +269,6 @@ const BuildBasic = ({ roomOptions, bathroomOptions, themeOptions, labelOptions, 
     setValue("themes", next, { shouldDirty: true, shouldTouch: true });
   };
 
-  const onClickCustomer: MouseEventHandler<HTMLButtonElement> = (e) => {
-    e.preventDefault();
-    // TODO: 모달/페이지 이동 등
-  };
-
   return (
     <div className="p-2 sm:p-4 space-y-4 sm:space-y-6 bg-slate-100">
       {/* 인기/급매 */}
@@ -285,73 +291,6 @@ const BuildBasic = ({ roomOptions, bathroomOptions, themeOptions, labelOptions, 
             </label>
           ))}
         </div>
-      </div>
-
-      {/* 라벨선택 */}
-      <div className="flex flex-col">
-        <SelectField
-          label="라벨선택"
-          name="label"
-          options={labelOptions}
-        />
-      </div>
-
-      {/* 층수 */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <SelectField label="층수" name="floorType" options={["지상", "지하", "반지하", "옥탑"]} />
-        <InputField label="현재층" name="currentFloor" type="number" placeholder="숫자만 입력하세요" />
-        <InputField label="전체층" name="totalFloors" type="number" placeholder="숫자만 입력하세요" />
-        <InputField label="지하층" name="basementFloors" type="number" placeholder="숫자만 입력하세요" />
-        <InputField label="층수 설명" name="floorDescription" placeholder="" />
-      </div>
-
-      {/* 방수/화장실수 */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <div className="flex flex-col">
-          <label className="block text-sm font-medium text-gray-700">방수</label>
-          <div className="flex space-x-0 mt-2 flex-wrap gap-y-4">
-            {(roomOptions || []).map((item) => (
-              <label key={item} className="cursor-pointer">
-                <input
-                  type="radio"
-                  {...register("rooms")}
-                  value={item}
-                  className="hidden"
-                  checked={watchedRooms === item}
-                  onChange={() => handleRadioChange(item, "rooms")}
-                />
-                <span style={getButtonStyle(watchedRooms, item)}>{item}</span>
-              </label>
-            ))}
-          </div>
-        </div>
-        <div className="flex flex-col">
-          <label className="block text-sm font-medium text-gray-700">화장실수</label>
-          <div className="flex space-x-0 mt-2 flex-wrap gap-y-4">
-            {(bathroomOptions || []).map((item) => (
-              <label key={item} className="cursor-pointer">
-                <input
-                  type="radio"
-                  {...register("bathrooms")}
-                  value={item}
-                  className="hidden"
-                  checked={watchedBathrooms === item}
-                  onChange={() => handleRadioChange(item, "bathrooms")}
-                />
-                <span style={getButtonStyle(watchedBathrooms, item)}>{item}</span>
-              </label>
-            ))}
-          </div>
-        </div>
-      </div>
-
-      {/* 면적 */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <InputField label="실면적" name="actualArea" type="number" placeholder="m² 단위 숫자" />
-        <InputField label="공급면적" name="supplyArea" type="number" placeholder="m² 단위 숫자" />
-        <InputField label="대지면적" name="landArea" type="number" placeholder="m² 단위 숫자" />
-        <InputField label="건축면적" name="buildingArea" type="number" placeholder="m² 단위 숫자" />
-        <InputField label="연면적" name="totalArea" type="number" placeholder="m² 단위 숫자" />
       </div>
 
       {/* 테마 */}
@@ -402,18 +341,44 @@ const BuildBasic = ({ roomOptions, bathroomOptions, themeOptions, labelOptions, 
         </div>
       </div>
 
-      {/* 건축정보(캘린더) */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <InputField label="착공일자" name="constructionYear" isDatePicker />
-        <InputField label="허가일자" name="permitDate" isDatePicker />
-        <InputField label="사용승인일자" name="approvalDate" isDatePicker />
-      </div>
-
-      {/* 주차 숫자 */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <InputField label="세대당 주차수" name="parkingPerUnit" type="number" />
-        <InputField label="전체주차수" name="totalParking" type="number" />
-        <InputField label="주차비" name="parkingFee" type="number" />
+      {/* 방수/화장실수 */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div className="flex flex-col">
+          <label className="block text-sm font-medium text-gray-700">방수</label>
+          <div className="flex space-x-0 mt-2 flex-wrap gap-y-4">
+            {(roomOptions || []).map((item) => (
+              <label key={item} className="cursor-pointer">
+                <input
+                  type="radio"
+                  {...register("rooms")}
+                  value={item}
+                  className="hidden"
+                  checked={watchedRooms === item}
+                  onChange={() => handleRadioChange(item, "rooms")}
+                />
+                <span style={getButtonStyle(watchedRooms, item)}>{item}</span>
+              </label>
+            ))}
+          </div>
+        </div>
+        <div className="flex flex-col">
+          <label className="block text-sm font-medium text-gray-700">화장실수</label>
+          <div className="flex space-x-0 mt-2 flex-wrap gap-y-4">
+            {(bathroomOptions || []).map((item) => (
+              <label key={item} className="cursor-pointer">
+                <input
+                  type="radio"
+                  {...register("bathrooms")}
+                  value={item}
+                  className="hidden"
+                  checked={watchedBathrooms === item}
+                  onChange={() => handleRadioChange(item, "bathrooms")}
+                />
+                <span style={getButtonStyle(watchedBathrooms, item)}>{item}</span>
+              </label>
+            ))}
+          </div>
+        </div>
       </div>
 
       {/* 주차옵션 */}
@@ -479,25 +444,60 @@ const BuildBasic = ({ roomOptions, bathroomOptions, themeOptions, labelOptions, 
         </div>
       </div>
 
+      {/* 라벨선택 */}
+      <div className="flex flex-col">
+        <SelectField
+          label="라벨선택"
+          name="label"
+          options={labelOptions}
+          placeholder="선택없음"
+        />
+      </div>
+
+      {/* 층수 */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <SelectField label="층수" name="floorType" options={["지상", "지하", "반지하", "옥탑"]} />
+        <InputField label="현재층" name="currentFloor" type="number" placeholder="숫자만 입력하세요" />
+        <InputField label="전체층" name="totalFloors" type="number" placeholder="숫자만 입력하세요" />
+        <InputField label="지하층" name="basementFloors" type="number" placeholder="숫자만 입력하세요" />
+        <InputField label="층수 설명" name="floorDescription" placeholder="" />
+      </div>
+
+      {/* 면적 */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <InputField label="실면적" name="actualArea" type="number" placeholder="m² 단위 숫자" />
+        <InputField label="공급면적" name="supplyArea" type="number" placeholder="m² 단위 숫자" />
+        <InputField label="대지면적" name="landArea" type="number" placeholder="m² 단위 숫자" />
+        <InputField label="건축면적" name="buildingArea" type="number" placeholder="m² 단위 숫자" />
+        <InputField label="연면적" name="totalArea" type="number" placeholder="m² 단위 숫자" />
+      </div>
+
+      {/* 건축정보(캘린더) */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <InputField label="착공일자" name="constructionYear" isDatePicker />
+        <InputField label="허가일자" name="permitDate" isDatePicker />
+        <InputField label="사용승인일자" name="approvalDate" isDatePicker />
+      </div>
+
+      {/* 주차 숫자 */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <InputField label="세대당 주차수" name="parkingPerUnit" type="number" />
+        <InputField label="전체주차수" name="totalParking" type="number" />
+        <InputField label="주차비" name="parkingFee" type="number" />
+      </div>
+
       {/* 토지건축물정보 */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <SelectField label="용도지역" name="landUse" options={["상업지구", "주거지구"]} />
-        <SelectField label="지목" name="landType" options={["대지", "전"]} />
+        <SelectField label="용도지역" name="landUse" options={["주거지역", "상업지역", "공업지역", "녹지지역", "보전관리지역", "생산관리지역", "계획관리지역", "농림지역", "자연환경보전지역"]} />
+        <SelectField label="지목" name="landType" options={["전", "답", "과수원", "목장용지", "임야", "광천지", "염전", "대", "공장용지", "학교용지", "주차장", "주유소용지", "창고용지", "도로", "철도용지", "제방", "하천", "구거", "유지", "양어장", "수도용지", "공원", "체육용지", "유원지", "종교용지", "사적지", "묘지", "잡종지"]} />
         <InputField label="건축물용도" name="buildingUse" />
       </div>
 
       {/* 담당자 및 고객 */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <SelectField label="담당자" name="staff" options={["권오길", "다른사람A", "다른사람B"]} />
-        <SelectField label="고객 종류" name="customerType" options={["매도자", "매수자", "임대인"]} />
+        <InputField label="담당자" name="staff" />
+        <SelectField label="고객 종류" name="customerType" options={["매도자", "매수자", "임대인","기타"]} />
         <InputField label="고객 이름" name="customerName" />
-      </div>
-
-      {/* 버튼 */}
-      <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-4">
-        <Button type="submit" label="고객 등록" className="bg-blue-500 text-white w-full sm:w-auto" onClick={onClickCustomer} />
-        <Button type="button" label="고객 관리" className="bg-gray-500 text-white w-full sm:w-auto" onClick={onClickCustomer} />
-        <Button type="button" label="담당자 관리" className="bg-gray-500 text-white w-full sm:w-auto" onClick={onClickCustomer} />
       </div>
     </div>
   );

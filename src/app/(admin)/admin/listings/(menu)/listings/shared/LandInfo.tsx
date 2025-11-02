@@ -42,9 +42,9 @@ const LandInfo = () => {
   // ✅ RHF 값 구독 (reset로 내려온 서버 데이터가 바로 들어옴)
   const propertyType = useWatch({ control, name: "propertyType" }) ?? "";
   const buyTypeId = useWatch({ control, name: "buyTypeId" });
-  const dealScope = useWatch({ control, name: "dealScope" }) ?? "";
-  const visibility = useWatch({ control, name: "visibility" }) ?? true; // 불린
-  const priceDisplay = useWatch({ control, name: "priceDisplay" }) ?? "";
+  const dealScope = useWatch({ control, name: "dealScope" });
+  const visibility = useWatch({ control, name: "visibility" }); // 불린
+  const priceDisplay = useWatch({ control, name: "priceDisplay" });
 
   const onPick = <K extends keyof FormData>(field: K, value: FormData[K]) => {
     setValue(field, value, { shouldDirty: true, shouldTouch: true });
@@ -153,26 +153,6 @@ const LandInfo = () => {
         </div>
       </div>
 
-      {/* 거래범위 */}
-      <div className="flex flex-col">
-        <label className="block text-sm font-medium text-gray-700">거래범위</label>
-        <div className="flex space-x-0 mt-2 flex-wrap gap-y-4 gap-x-2">
-          {["부분", "전체"].map((item) => (
-            <label key={item} className="cursor-pointer">
-              <input
-                type="radio"
-                className="hidden"
-                {...register("dealScope")}
-                value={item}
-                checked={dealScope === item}
-                onChange={() => onPick("dealScope", item)}
-              />
-              <span style={chip(isActive(dealScope, item))}>{item}</span>
-            </label>
-          ))}
-        </div>
-      </div>
-
       {/* 숫자 입력들: 숫자로 보정 */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
         <PriceInput name="salePrice" label="분양가/매매가" enabledName="isSalePriceEnabled" />
@@ -197,7 +177,7 @@ const LandInfo = () => {
                 {...register("visibility")}
                 value={String(value)}
                 checked={visibility === value}
-                onChange={() => onPick("visibility", value)} // ✅ 불린으로 저장
+                onChange={() => onPick("visibility", value)}
               />
               <span style={chip(isActive(visibility, value))}>{label}</span>
             </label>
@@ -220,6 +200,26 @@ const LandInfo = () => {
                 onChange={() => onPick("priceDisplay", item)}
               />
               <span style={chip(isActive(priceDisplay, item))}>{item}</span>
+            </label>
+          ))}
+        </div>
+      </div>
+
+      {/* 거래범위 */}
+      <div className="flex flex-col">
+        <label className="block text-sm font-medium text-gray-700">거래범위</label>
+        <div className="flex space-x-0 mt-2 flex-wrap gap-y-4 gap-x-2">
+          {["부분", "전체"].map((item) => (
+            <label key={item} className="cursor-pointer">
+              <input
+                type="radio"
+                className="hidden"
+                {...register("dealScope")}
+                value={item}
+                checked={dealScope === item}
+                onChange={() => onPick("dealScope", item)}
+              />
+              <span style={chip(isActive(dealScope, item))}>{item}</span>
             </label>
           ))}
         </div>

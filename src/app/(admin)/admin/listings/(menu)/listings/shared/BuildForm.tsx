@@ -120,9 +120,9 @@ export const BASE_DEFAULTS: FormData = {
   propertyType: "",
   listingTypeId: null,
   buyTypeId: null,
-  dealScope: "",
+  dealScope: "전체",
   visibility: true,
-  priceDisplay: "",
+  priceDisplay: "공개",
 
   salePrice: null,
   isSalePriceEnabled: false,
@@ -209,11 +209,11 @@ type Props = {
   submitLabel?: string;
   onCancel?: () => void;
   // 선택 옵션들 (id/label로 내려받는 걸 권장)
-  roomOptions: string[];      // 필요하면 { id:number; name:string }[] 로 전환
-  bathroomOptions: string[];  // 동일
-  themeOptions: string[];
-  labelOptions: string[];
-  buildingOptions: { id: number, name: string }[];
+  roomOptions?: string[];      // 필요하면 { id:number; name:string }[] 로 전환
+  bathroomOptions?: string[];  // 동일
+  themeOptions?: string[];
+  labelOptions?: string[];
+  buildingOptions?: { id: number, name: string }[];
 };
 
 export default function BuildForm({
@@ -247,11 +247,11 @@ export default function BuildForm({
         <Container title="기본정보">
           {/* buildingOptions를 id 배열로 받도록 컴포넌트도 맞춰주면 백엔드 매핑이 깔끔합니다 */}
           <BuildBasic
-            roomOptions={roomOptions}
-            bathroomOptions={bathroomOptions}
-            themeOptions={themeOptions}
-            labelOptions={labelOptions}
-            buildingOptions={buildingOptions}
+            roomOptions={roomOptions!}
+            bathroomOptions={bathroomOptions!}
+            themeOptions={themeOptions!}
+            labelOptions={labelOptions!}
+            buildingOptions={buildingOptions!}
           />
         </Container>
 
