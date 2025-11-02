@@ -1,1 +1,1 @@
-`DeletedListings`컴포넌트에서 listing.buyType는 없지만 listing.buyTypeId는 존재하거든. 나는 거래종류에 대하여 해당 Id에 대한 name값을 원해
+ListingCard컴포넌트에서 `방과 욕실`이 정상적인 데이터로 안나온다

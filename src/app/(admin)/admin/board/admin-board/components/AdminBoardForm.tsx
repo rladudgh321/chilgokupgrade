@@ -1,14 +1,13 @@
 "use client"
-import { useState, useCallback } from "react"
+import { useState, useCallback, lazy } from "react"
 import { useRouter } from "next/navigation"
 import Image from "next/image"
 import "react-datepicker/dist/react-datepicker.css";
 import { ko } from "date-fns/locale/ko";
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import dynamic from 'next/dynamic'
 
-const Editor = dynamic(() => import('@/app/components/shared/Editor'), { ssr: false });
-const DatePicker = dynamic(() => import('react-datepicker'), { ssr: false });
+const Editor = lazy(() => import('@/app/components/shared/Editor'));
+const DatePicker = lazy(() => import('react-datepicker'));
 
 interface Post {
   id?: number
