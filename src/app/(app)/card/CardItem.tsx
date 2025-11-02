@@ -35,6 +35,8 @@ type Props = {
     basementFloors?: number;
     rooms?: number;
     bathrooms?: number;
+    roomOption?: { name: string };
+    bathroomOption?: { name: string };
     actualArea?: number;
     supplyArea?: number;
     mainImage?: string;
@@ -187,7 +189,7 @@ const CardItem = ({ listing, onClick, priority }: Props & { onClick: (id: number
             <div className="flex items-center gap-1.5">
               <BedDouble className="w-4 h-4 text-gray-500 flex-shrink-0" />
               <span>
-                방 {listing.rooms || "-"} / 욕실 {listing.bathrooms || "-"}
+                방 {listing.roomOption?.name || "-"} / 욕실 {listing.bathroomOption?.name || "-"}
               </span>
             </div>
             {listing.parking && listing.parking.length > 0 && (

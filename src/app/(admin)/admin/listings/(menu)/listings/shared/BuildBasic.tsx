@@ -429,7 +429,7 @@ const BuildBasic = ({ roomOptions, bathroomOptions, themeOptions, labelOptions, 
 
       {/* 방향 */}
       <div className="flex flex-col">
-        <label className="block text-sm font-medium text-gray-700">방향</label>
+        <label className="block text-sm font-medium text-gray-700">햇빛 방향</label>
         <div className="flex space-x-0 mt-2 flex-wrap gap-y-4">
           {["동향", "서향", "남향", "북향", "북동향", "남동향", "남서향", "북서향"].map((item) => (
             <label key={item} className="cursor-pointer">
