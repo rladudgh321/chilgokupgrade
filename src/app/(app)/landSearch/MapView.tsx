@@ -1,7 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState, useCallback } from "react";
-import Script from "next/script";
+import { useEffect, useRef, useCallback } from "react";
 
 declare global {
   interface Window {
@@ -38,15 +37,6 @@ const MapView = ({
   useEffect(() => {
     onClusterClickRef.current = onClusterClick;
   }, [onClusterClick]);
-
-  const [scriptLoaded, setScriptLoaded] = useState(false);
-  const [scriptError, setScriptError] = useState(false);
-
-  useEffect(() => {
-    if (window.kakao?.maps) {
-      setScriptLoaded(true);
-    }
-  }, []);
 
   const circleStyle = (size: number, bg: string) => ({
     width: `${size}px`,
@@ -174,19 +164,12 @@ const MapView = ({
   }, []);
 
   useEffect(() => {
-    if (scriptLoaded && !scriptError && !mapRef.current) {
-      window.kakao.maps.load(() => {
-        const checkClusterer = () => {
-          if (window.kakao && window.kakao.maps && window.kakao.maps.MarkerClusterer) {
+    if (window.kakao && window.kakao.maps) {
+        window.kakao.maps.load(() => {
             initMap();
-          } else {
-            setTimeout(checkClusterer, 100);
-          }
-        };
-        checkClusterer();
-      });
+        });
     }
-  }, [scriptLoaded, scriptError, initMap]);
+  }, [initMap]);
 
   useEffect(() => {
     if (mapRef.current && clustererRef.current) {
@@ -204,43 +187,7 @@ const MapView = ({
 
   return (
     <>
-      {!scriptLoaded && (
-        <Script
-          id="kakao-maps-sdk"
-          src={`https://dapi.kakao.com/v2/maps/sdk.js?appkey=${KAKAO_KEY}&libraries=services,clusterer&autoload=false`}
-          strategy="afterInteractive"
-          onLoad={() => setScriptLoaded(true)}
-          onError={() => {
-            console.error("Kakao SDK load error");
-            setScriptError(true);
-          }}
-        />
-      )}
-      <div ref={containerRef} style={{ width, height }}>
-        {scriptError && (
-          <div
-            style={{
-              width: "100%",
-              height: "100%",
-              display: "flex",
-              flexDirection: "column",
-              alignItems: "center",
-              justifyContent: "center",
-              background: "#f8f8f8",
-              color: "#666",
-              textAlign: "center",
-              padding: "20px",
-            }}
-          >
-            <h3 style={{ color: "#e53e3e", marginBottom: "1rem" }}>
-              카카오 지도를 불러오는데 실패했습니다.
-            </h3>
-            <p style={{ fontSize: "0.875rem", lineHeight: "1.5" }}>
-              네트워크 연결을 확인하거나 API 키가 정확한지 확인해주세요.
-            </p>
-          </div>
-        )}
-      </div>
+      <div ref={containerRef} style={{ width, height }} />
     </>
   );
 };

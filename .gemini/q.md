@@ -1,2 +1,1 @@
-cardItem컴포넌트를 수정하고자해.
-`방과 욕실` 갯수를 정확히 가져 왔으면 좋겠어.
+`DeletedListings`컴포넌트에서 listing.buyType는 없지만 listing.buyTypeId는 존재하거든. 나는 거래종류에 대하여 해당 Id에 대한 name값을 원해

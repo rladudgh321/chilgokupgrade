@@ -27,7 +27,7 @@ export async function GET(req: NextRequest) {
     // 기본 쿼리: 항상 "삭제된 것만"
     let q = supabase
       .from(table)
-      .select("*", { count: "exact" })
+      .select("*, buyType:BuyType(name)", { count: "exact" })
       .not(deletedCol, "is", null)               // ✅ deletedAt IS NOT NULL
       .order(createdCol, { ascending: false })
       .order("id", { ascending: false })
@@ -47,12 +47,17 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ ok: false, error }, { status: 400 });
     }
 
+    const processedData = data.map((d: any) => ({
+      ...d,
+      buyType: d.buyType?.name,
+    }));
+
     return NextResponse.json({
       ok: true,
       totalItems: count ?? 0,
       totalPages: Math.ceil((count ?? 0) / limit),
       currentPage: page,
-      data: data ?? [],
+      data: processedData ?? [],
     });
   } catch (e: any) {
     Sentry.captureException(e);
