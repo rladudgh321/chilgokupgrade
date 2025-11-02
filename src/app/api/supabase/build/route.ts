@@ -199,6 +199,7 @@ export async function GET(req: NextRequest) {
       buildingOptions: d.buildingOptions.map((o: any) => o.name),
       propertyType: d.listingType?.name,
       buyType: d.buyType?.name,
+      floorType: d.floorType,
     }));
 
     return NextResponse.json({

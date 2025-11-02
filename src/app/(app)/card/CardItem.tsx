@@ -29,8 +29,10 @@ type Props = {
     managementFee?: number;
     isManagementFeeEnabled?: boolean;
     propertyType?: string;
+    floorType?: string;
     currentFloor?: number;
     totalFloors?: number;
+    basementFloors?: number;
     rooms?: number;
     bathrooms?: number;
     actualArea?: number;
@@ -56,6 +58,33 @@ const CardItem = ({ listing, onClick, priority }: Props & { onClick: (id: number
     if (!area) return "";
     const pyeong = area / 3.305785;
     return `${pyeong.toFixed(2)}평`;
+  };
+
+  const formatFloor = (floorType?: string, currentFloor?: number, totalFloors?: number, basementFloors?: number) => {
+    if (currentFloor === undefined || currentFloor === null) {
+      return "층수 정보 없음";
+    }
+
+    let currentFloorDisplay = `${currentFloor}`;
+    if (floorType === '지하' || currentFloor < 0) {
+      currentFloorDisplay = `B${Math.abs(currentFloor)}`;
+    }
+
+    let floorTypeDisplay = floorType ? `${floorType} ` : '';
+
+    let details = "";
+    if (totalFloors) {
+      details = `${totalFloors}F`;
+      if (basementFloors && basementFloors > 0) {
+        details += ` / B${basementFloors}`;
+      }
+    }
+
+    if (details) {
+      return `${floorTypeDisplay}${currentFloorDisplay}층(${details})`;
+    }
+
+    return `${floorTypeDisplay}${currentFloorDisplay}층`;
   };
 
   const renderPrice = (label: string, value: number | undefined) => {
@@ -152,9 +181,7 @@ const CardItem = ({ listing, onClick, priority }: Props & { onClick: (id: number
             <div className="flex items-center gap-1.5">
               <Layers className="w-4 h-4 text-gray-500 flex-shrink-0" />
               <span>
-                {listing.currentFloor && listing.totalFloors
-                  ? `${listing.currentFloor}/${listing.totalFloors}층`
-                  : "층수 정보 없음"}
+                {formatFloor(listing.floorType, listing.currentFloor, listing.totalFloors, listing.basementFloors)}
               </span>
             </div>
             <div className="flex items-center gap-1.5">
