@@ -32,3 +32,12 @@ body {
   color: var(--foreground);
   font-family: NanumSquareB;
 }
+
+@media (max-width: 768px) {
+  .table-auto td:before {
+    content: attr(data-label);
+    float: left;
+    font-weight: bold;
+    margin-right: 1rem;
+  }
+}

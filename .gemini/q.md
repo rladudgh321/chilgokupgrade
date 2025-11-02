@@ -1,5 +1,2 @@
-`/admin/webView/logo-settings`페이지에서 이미지 upload할 때 `/api/image/upload/route.ts`를 참고하여 `sharp라이브러리를 사용하여  가로 200px 리사이즈 후에 webp 80%품질로 변환`해줘
-
----------
-내 말은 `/api/image/upload/route.ts`를 참고해달라는 거지 `/api/image/upload/route.ts`를 수정하라는 말이 아니야.
-`/admin/webView/logo-settings`페이지에서 이미지 업로드하는 것을 200px로 리사이징 후에 webp 80%압축을 해달라는거였어
+`/admin/listings/deleted-listings`
+`/admin/listings/listings`페이지에서처럼 pc버전뿐만아니라 테블릿과 모바일 버전에 친화적으로 UI 디자인을 수정해줘. 나는 tailwindcss를 사용하고 있어

@@ -157,10 +157,10 @@ const DeletedListings = ({ DeletedData, sortKey }: DeletedListingsProps) => {
       </div>
 
       {/* 테이블 */}
-      <div className="overflow-x-auto bg-white shadow-lg rounded-lg">
+      <div className="overflow-hidden bg-white shadow-lg rounded-lg">
         <table className="min-w-full table-auto text-center">
-          <thead>
-            <tr className="bg-slate-600 text-white">
+          <thead className="bg-slate-600 text-white hidden md:table-header-group">
+            <tr>
               <th className="p-2 sm:p-3 text-xs sm:text-sm font-medium">매물번호</th>
               <th className="p-2 sm:p-3 text-xs sm:text-sm font-medium">공개/거래</th>
               <th className="p-2 sm:p-3 text-xs sm:text-sm font-medium">거래종류</th>
@@ -175,7 +175,7 @@ const DeletedListings = ({ DeletedData, sortKey }: DeletedListingsProps) => {
             </tr>
           </thead>
 
-          <tbody>
+          <tbody className="divide-y divide-gray-200 md:table-row-group">
             {sortedRows.map((listing: IBuild, index: number) => {
               const id = Number(listing.id);
               const createdAt = new Date(String(listing.createdAt));
@@ -186,13 +186,13 @@ const DeletedListings = ({ DeletedData, sortKey }: DeletedListingsProps) => {
                 <tr
                   key={id}
                   className={clsx(
-                    "hover:bg-slate-300 transition-colors duration-300",
+                    "block md:table-row hover:bg-slate-300 transition-colors duration-300",
                     index % 2 === 0 ? "bg-slate-100" : "bg-slate-200",
                   )}
                 >
-                  <td className="p-2 sm:p-3 text-xs sm:text-sm">{id}</td>
+                  <td className="p-2 sm:p-3 text-xs sm:text-sm block md:table-cell" data-label="매물번호">{id}</td>
 
-                  <td className="p-2 sm:p-3 text-xs sm:text-sm">
+                  <td className="p-2 sm:p-3 text-xs sm:text-sm block md:table-cell" data-label="공개/거래">
                     <AddressVisibility
                       activeAddressPublic={listing.isAddressPublic as "public" | "private" | "exclude"}
                       listingId={id}
@@ -210,38 +210,38 @@ const DeletedListings = ({ DeletedData, sortKey }: DeletedListingsProps) => {
                     />
                   </td>
 
-                  <td className="p-2 sm:p-3 text-xs sm:text-sm">{listing.buyType}</td>
-                  <td className="p-2 sm:p-3 text-xs sm:text-sm">{listing.propertyType}</td>
-                  <td className="p-2 sm:p-3 text-xs sm:text-sm"><CopyText text={listing.address ?? ""} /></td>
+                  <td className="p-2 sm:p-3 text-xs sm:text-sm block md:table-cell" data-label="거래종류">{listing.buyType}</td>
+                  <td className="p-2 sm:p-3 text-xs sm:text-sm block md:table-cell" data-label="매물종류">{listing.propertyType}</td>
+                  <td className="p-2 sm:p-3 text-xs sm:text-sm block md:table-cell" data-label="주소"><CopyText text={listing.address ?? ""} /></td>
 
-                  <td className="p-2 sm:p-3 text-xs sm:text-sm">
+                  <td className="p-2 sm:p-3 text-xs sm:text-sm block md:table-cell" data-label="매물정보">
                     <div>{listing.title}</div>
                     <div>방 {listing.roomOption?.name} / 화장실 {listing.bathroomOption?.name}</div>
                     <div>실면적 {listing.actualArea}평 / 공급면적 {listing.supplyArea}평</div>
                     <div>{listing.direction} / 지상 {listing.currentFloor}/{listing.totalFloors}층</div>
                   </td>
 
-                  <td className="p-2 sm:p-3 text-xs sm:text-sm">
+                  <td className="p-2 sm:p-3 text-xs sm:text-sm block md:table-cell" data-label="금액">
                     {listing.salePrice && <div>분: {formatFullKoreanMoney(Number(listing.salePrice))}</div>}
                     {listing.rentalPrice && <div>전: {formatFullKoreanMoney(Number(listing.rentalPrice))}</div>}
                     {listing.actualEntryCost && <div>실: {formatFullKoreanMoney(Number(listing.actualEntryCost))}</div>}
                     {listing.managementFee && <div>관: {formatFullKoreanMoney(Number(listing.managementFee))}</div>}
                   </td>
 
-                  <td className="p-2 sm:p-3 text-xs sm:text-sm">{listing?.views ?? 0}</td>
+                  <td className="p-2 sm:p-3 text-xs sm:text-sm block md:table-cell" data-label="조회수">{listing?.views ?? 0}</td>
 
-                  <td className="p-2 sm:p-3 text-xs sm:text-sm">
+                  <td className="p-2 sm:p-3 text-xs sm:text-sm block md:table-cell" data-label="등록일(수정일)">
                     <div>{createdAt.toLocaleDateString()}</div>
                     {showUpdated && (
                       <div>({updatedAt!.toLocaleDateString()})</div>
                     )}
                   </td>
 
-                  <td className="p-2 sm:p-3 text-xs sm:text-sm">
+                  <td className="p-2 sm:p-3 text-xs sm:text-sm block md:table-cell" data-label="삭제일">
                     {listing?.deletedAt ? new Date(String(listing.deletedAt)).toLocaleDateString() : "-"}
                   </td>
 
-                  <td className="p-2 sm:p-3 text-xs sm:text-sm">
+                  <td className="p-2 sm:p-3 text-xs sm:text-sm block md:table-cell" data-label="비고">
                     <div className="flex gap-2 justify-center flex-col">
                       <button
                         onClick={() => {
