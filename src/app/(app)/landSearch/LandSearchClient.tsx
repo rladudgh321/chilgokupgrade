@@ -119,6 +119,7 @@ export default function LandSearchClient({
     },
 
     initialPageParam: 1,
+    keepPreviousData: true,
   });
   const { data: mapListings = [] } = useQuery({
     queryKey: ["map-listings", queryParams],

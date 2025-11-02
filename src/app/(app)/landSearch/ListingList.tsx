@@ -60,9 +60,10 @@ const ListingList = ({
   ];
 
   const parentRef = useRef<HTMLDivElement>(null);
+  const skeletonCount = 5; // Number of skeleton loaders to show
 
   const rowVirtualizer = useVirtualizer({
-    count: hasNextPage ? listings.length + 1 : listings.length,
+    count: hasNextPage && isFetchingNextPage ? listings.length + skeletonCount : listings.length,
     getScrollElement: () => parentRef.current,
     estimateSize: () => 272, // 각 항목의 예상 높이 (조정 필요)
   });
@@ -88,7 +89,7 @@ const ListingList = ({
   ]);
 
   return (
-    <div className="h-full flex flex-col">
+    <div className="h-full flex flex-col relative">
       {/* 정렬 탭 */}
       <div className="flex border-b bg-white flex-shrink-0 overflow-x-auto">
         {getSortOptions().map((option) => {
@@ -118,13 +119,7 @@ const ListingList = ({
         ref={parentRef}
         className="flex-1 overflow-y-auto scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100"
       >
-        {isLoading ? (
-          <div className="p-4 space-y-4">
-            {Array.from({ length: 5 }).map((_, i) => (
-              <ListingCardSkeleton key={i} />
-            ))}
-          </div>
-        ) : listings.length === 0 && !isFetchingNextPage ? (
+        {listings.length === 0 && !isFetchingNextPage && !isLoading ? (
           <div className="flex items-center justify-center h-full text-gray-500">
             <p>표시할 매물이 없습니다.</p>
           </div>
@@ -137,7 +132,7 @@ const ListingList = ({
             }}
           >
             {virtualItems.map((virtualRow) => {
-              const isLoaderRow = virtualRow.index > listings.length - 1;
+              const isSkeletonRow = virtualRow.index >= listings.length;
               const listing = listings[virtualRow.index];
 
               return (
@@ -153,22 +148,24 @@ const ListingList = ({
                     transform: `translateY(${virtualRow.start}px)`,
                   }}
                 >
-                  {isLoaderRow ? (
-                    hasNextPage ? (
-                      <div className="flex justify-center items-center p-4">
-                        <p>불러오는 중...</p>
-                      </div>
-                    ) : (
-                      <div className="flex justify-center items-center p-4">
-                        <p>모든 매물을 확인했습니다.</p>
-                      </div>
-                    )
+                  {isSkeletonRow ? (
+                    <ListingCardSkeleton />
                   ) : (
                     <ListingCard listing={listing} onClick={onCardClick} />
                   )}
                 </div>
               );
             })}
+            {hasNextPage && isFetchingNextPage && (
+              <div className="flex justify-center items-center p-4">
+                <p>불러오는 중...</p>
+              </div>
+            )}
+            {!hasNextPage && listings.length > 0 && (
+              <div className="flex justify-center items-center p-4">
+                <p>모든 매물을 확인했습니다.</p>
+              </div>
+            )}
           </div>
         )}
       </div>
