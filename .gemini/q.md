@@ -1,1 +1,1 @@
-CardItem컴포넌트를 클릭할때마다 열리는 모달을 보면 관리비가 없는데도 불구하고 관리비가 있더라고. 나는 `/admin/listings/listings/[id]/edit`, `/admin/listings/listings/create`에서 매물정보의 매매가, 전세가, 실입주금, 보증금, 월세, 반전세의 월세, 관리비가 체크된 것에 한하여 있게 하고 싶어
+BuildDetailModalClient컴포넌트에서 입주가능일에서 입주가능을 했을 경우 날짜없이 (입주가능)이라고 뜨게 해줘

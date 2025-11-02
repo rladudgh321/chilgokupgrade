@@ -8,11 +8,11 @@ import { IBuild } from "@/app/interface/build";
 
 export default function BuildDetailModalClient({ build, onClose }: { build: IBuild, onClose: () => void }) {
   const [areaUnit, setAreaUnit] = useState<"m2" | "pyeong">("m2");
-
+  console.log('build', build);
 
   const convertToPyeong = (m2: number) => (m2 / 3.305785).toFixed(2);
   const formatPrice = (price?: number | string | null) =>
-    price == null || Number.isNaN(Number(price)) ? "-" : `${Number(price).toLocaleString()} 만원`;
+    price == null || Number.isNaN(Number(price)) ? "-" : `${Number(price).toLocaleString()}원`;
 
   const allImages = useMemo(
     () =>
@@ -41,7 +41,7 @@ export default function BuildDetailModalClient({ build, onClose }: { build: IBui
         </div>
 
         <div className="p-4 sm:p-6 space-y-4 sm:space-y-6" style={{ maxHeight: "85vh", overflowY: "auto" }}>
-          <ImageSlider images={allImages} />
+          <ImageSlider images={allImages as string[]} />
 
           <div className="pb-4 border-b">
             <h3 className="text-xl sm:text-2xl font-bold">{build.title}</h3>
@@ -52,13 +52,15 @@ export default function BuildDetailModalClient({ build, onClose }: { build: IBui
             <h4 className="text-base sm:text-lg font-semibold mb-3 text-purple-800">매물 정보</h4>
             <div className="border rounded-lg overflow-hidden grid grid-cols-1 md:grid-cols-2">
               {Row("매물 종류", build.propertyType)}
-              {Row("거래 종류", build.buyType?.name)}
+              {Row("거래 종류", build.buyType)}
               {build.isSalePriceEnabled && Row("매매가", formatPrice(build.salePrice))}
               {build.isLumpSumPriceEnabled && Row("전세가", formatPrice(build.lumpSumPrice))}
-              {build.isRentalPriceEnabled &&
-                Row("월세", `${formatPrice(build.deposit)} / ${formatPrice(build.rentalPrice)}`)}
-              {build.managementFee &&
-                Row("관리비", `${formatPrice(build.managementFee)} (포함: ${build.managementEtc || "-"})`)}
+              {build.isActualEntryCostEnabled && Row("실입주금", formatPrice(build.actualEntryCost))}
+              {build.isDepositEnabled && Row("보증금", formatPrice(build.deposit))}
+              {build.isRentalPriceEnabled && Row("월세", formatPrice(build.rentalPrice))}
+              {build.isHalfLumpSumMonthlyRentEnabled && Row("반전세의 월세", formatPrice(build.halfLumpSumMonthlyRent))}
+              {build.isManagementFeeEnabled && build.managementFee &&
+                Row("관리비", `${formatPrice(build.managementFee)}`)}
               {Row("건물 층수", `지상 ${build.totalFloors || '-'}층 / 지하 ${build.basementFloors || '-'}층`)}
               {Row("해당 층수", `${build.floorType || ''} ${build.currentFloor ? (build.currentFloor < 0 ? `B${Math.abs(build.currentFloor)}` : build.currentFloor) + '층' : '-'}`)}
               {Row("방/화장실 수", `${build.roomOption?.name || "-"} / ${build.bathroomOption?.name || "-"}`)}
@@ -90,7 +92,11 @@ export default function BuildDetailModalClient({ build, onClose }: { build: IBui
               {Row("난방 방식", build.heatingType)}
               {Row(
                 "입주 가능일",
-                build.moveInDate ? `${new Date(build.moveInDate).toLocaleDateString()} (${build.moveInType})` : "-"
+                build.moveInType === "즉시"
+                  ? "(즉시 입주가능)"
+                  : build.moveInDate
+                  ? `${new Date(build.moveInDate).toLocaleDateString()} (${build.moveInType})`
+                  : "-"
               )}
               {Row("건축 년도", build.constructionYear ? new Date(build.constructionYear).toLocaleDateString() : "-")}
               {Row("방향", build.direction ? `${build.direction} (기준: ${build.directionBase})` : "-")}

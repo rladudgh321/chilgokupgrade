@@ -21,8 +21,8 @@ export interface BuyTypeRef {
 export interface OptionRef {
   id: number;
   name: string;
-  imageUrl?: string | null;
-  imageName?: string | null;
+  imageUrl?: string | undefined;
+  imageName?: string | undefined;
 }
 
 // Json 필드에 대한 유틸 타입
@@ -46,7 +46,7 @@ export interface IBuild {
   listingTypeId?: number | null;
   listingType?: ListingTypeRef | null;
   buyTypeId?: number | null;
-  buyType?: BuyTypeRef | null;
+  buyType?: string;
   dealScope?: string | null;
   visibility?: boolean | null;     // default(true)
   priceDisplay?: string | null;
