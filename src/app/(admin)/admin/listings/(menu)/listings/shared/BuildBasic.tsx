@@ -404,6 +404,26 @@ const BuildBasic = ({ roomOptions, bathroomOptions, themeOptions, labelOptions, 
         </div>
       </div>
 
+      {/* 방향기준 */}
+      <div className="flex flex-col">
+        <label className="block text-sm font-medium text-gray-700">햇빛 방향기준</label>
+        <div className="flex space-x-0 mt-2 flex-wrap gap-y-4">
+          {["거실", "안방", "주된출입구"].map((item) => (
+            <label key={item} className="cursor-pointer">
+              <input
+                type="radio"
+                {...register("directionBase")}
+                value={item}
+                className="hidden"
+                checked={watchedDirectionBase === item}
+                onChange={() => handleRadioChange(item, "directionBase")}
+              />
+              <span style={getButtonStyle(watchedDirectionBase, item)}>{item}</span>
+            </label>
+          ))}
+        </div>
+      </div>
+
       {/* 방향 */}
       <div className="flex flex-col">
         <label className="block text-sm font-medium text-gray-700">방향</label>
@@ -424,26 +444,6 @@ const BuildBasic = ({ roomOptions, bathroomOptions, themeOptions, labelOptions, 
         </div>
       </div>
 
-      {/* 방향기준 */}
-      <div className="flex flex-col">
-        <label className="block text-sm font-medium text-gray-700">방향기준</label>
-        <div className="flex space-x-0 mt-2 flex-wrap gap-y-4">
-          {["거실", "안방", "주된출입구"].map((item) => (
-            <label key={item} className="cursor-pointer">
-              <input
-                type="radio"
-                {...register("directionBase")}
-                value={item}
-                className="hidden"
-                checked={watchedDirectionBase === item}
-                onChange={() => handleRadioChange(item, "directionBase")}
-              />
-              <span style={getButtonStyle(watchedDirectionBase, item)}>{item}</span>
-            </label>
-          ))}
-        </div>
-      </div>
-
       {/* 라벨선택 */}
       <div className="flex flex-col">
         <SelectField
@@ -457,9 +457,9 @@ const BuildBasic = ({ roomOptions, bathroomOptions, themeOptions, labelOptions, 
       {/* 층수 */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <SelectField label="층수" name="floorType" options={["지상", "지하", "반지하", "옥탑"]} />
-        <InputField label="현재층" name="currentFloor" type="number" placeholder="숫자만 입력하세요" />
-        <InputField label="전체층" name="totalFloors" type="number" placeholder="숫자만 입력하세요" />
-        <InputField label="지하층" name="basementFloors" type="number" placeholder="숫자만 입력하세요" />
+        <InputField label="현재층(지하는 음수로 표현)" name="currentFloor" type="number" placeholder="숫자만 입력하세요" />
+        <InputField label="지상 전체층" name="totalFloors" type="number" placeholder="숫자만 입력하세요" />
+        <InputField label="지하 전체층" name="basementFloors" type="number" placeholder="숫자만 입력하세요" />
         <InputField label="층수 설명" name="floorDescription" placeholder="" />
       </div>
 
@@ -490,12 +490,12 @@ const BuildBasic = ({ roomOptions, bathroomOptions, themeOptions, labelOptions, 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <SelectField label="용도지역" name="landUse" options={["주거지역", "상업지역", "공업지역", "녹지지역", "보전관리지역", "생산관리지역", "계획관리지역", "농림지역", "자연환경보전지역"]} />
         <SelectField label="지목" name="landType" options={["전", "답", "과수원", "목장용지", "임야", "광천지", "염전", "대", "공장용지", "학교용지", "주차장", "주유소용지", "창고용지", "도로", "철도용지", "제방", "하천", "구거", "유지", "양어장", "수도용지", "공원", "체육용지", "유원지", "종교용지", "사적지", "묘지", "잡종지"]} />
-        <InputField label="건축물용도" name="buildingUse" />
+        <InputField label="건축물용도" name="buildingUse" placeholder='ex) 주거용도' />
       </div>
 
       {/* 담당자 및 고객 */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <InputField label="담당자" name="staff" />
+        <InputField label="담당자" name="staff" placeholder='대표님 성함' />
         <SelectField label="고객 종류" name="customerType" options={["매도자", "매수자", "임대인","기타"]} />
         <InputField label="고객 이름" name="customerName" />
       </div>
