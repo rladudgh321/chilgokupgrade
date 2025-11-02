@@ -490,23 +490,38 @@ const ListingsMain = ({ ListingsData, sortKey }: ListingsMainProps) => {
                     className="p-2 sm:p-3 text-xs sm:text-sm block md:table-cell"
                     data-label="금액"
                   >
-                    {listing.salePrice && (
+                    {listing.isSalePriceEnabled && listing.salePrice && (
                       <div>
-                        분: {formatFullKoreanMoney(Number(listing.salePrice))}
+                        매: {formatFullKoreanMoney(Number(listing.salePrice))}
                       </div>
                     )}
-                    {listing.rentalPrice && (
-                      <div>
-                        전: {formatFullKoreanMoney(Number(listing.rentalPrice))}
-                      </div>
+                    {listing.isLumpSumPriceEnabled && listing.lumpSumPrice && (
+                        <div>
+                        전: {formatFullKoreanMoney(Number(listing.lumpSumPrice))}
+                        </div>
                     )}
-                    {listing.actualEntryCost && (
+                    {listing.isActualEntryCostEnabled && listing.actualEntryCost && (
                       <div>
                         실:{" "}
                         {formatFullKoreanMoney(Number(listing.actualEntryCost))}
                       </div>
                     )}
-                    {listing.managementFee && (
+                    {listing.isDepositEnabled && listing.deposit && (
+                        <div>
+                        보: {formatFullKoreanMoney(Number(listing.deposit))}
+                        </div>
+                    )}
+                    {listing.isRentalPriceEnabled && listing.rentalPrice && (
+                      <div>
+                        월: {formatFullKoreanMoney(Number(listing.rentalPrice))}
+                      </div>
+                    )}
+                    {listing.isHalfLumpSumMonthlyRentEnabled && listing.halfLumpSumMonthlyRent && (
+                        <div>
+                        반월: {formatFullKoreanMoney(Number(listing.halfLumpSumMonthlyRent))}
+                        </div>
+                    )}
+                    {listing.isManagementFeeEnabled && listing.managementFee && (
                       <div>
                         관:{" "}
                         {formatFullKoreanMoney(Number(listing.managementFee))}
