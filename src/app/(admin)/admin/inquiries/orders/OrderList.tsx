@@ -152,7 +152,7 @@ const OrderList = ({ initialOrders, totalPages, currentPage }: OrderListProps) =
 
       <div className="overflow-x-auto">
         <table className="min-w-full table-auto border-collapse">
-          <thead className="bg-gray-100">
+          <thead className="bg-gray-100 hidden md:table-header-group">
             <tr>
               <th className="p-2 text-xs sm:text-sm">번호</th>
               <th className="p-2 text-xs sm:text-sm">확인여부</th>
@@ -170,32 +170,32 @@ const OrderList = ({ initialOrders, totalPages, currentPage }: OrderListProps) =
               <th className="p-2 text-xs sm:text-sm">비고</th>
             </tr>
           </thead>
-          <tbody>
+          <tbody className="divide-y divide-gray-200 md:table-row-group">
             {filteredOrders.map((order, index) => (
-              <tr key={order.id} className={index % 2 === 0 ? 'bg-slate-200' : 'bg-slate-300'}>
-                <td className="p-2 text-xs sm:text-sm">{order.id}</td>
-                <td className="p-2">
+              <tr key={order.id} className={`block md:table-row ${index % 2 === 0 ? 'bg-slate-200' : 'bg-slate-300'}`}>
+                <td className="p-2 text-xs sm:text-sm block md:table-cell" data-label="번호">{order.id}</td>
+                <td className="p-2 block md:table-cell" data-label="확인여부">
                   <ToggleSwitch
                     toggle={order.confirm}
                     id={String(order.id)}
                     onToggle={(value) => handleToggleChange(order.id, value)}
                   />
                 </td>
-                <td className="p-2 text-xs sm:text-sm">{order.category}</td>
-                <td className="p-2 text-xs sm:text-sm">{order.transactionType}</td>
-                <td className="p-2 text-xs sm:text-sm">{order.author}</td>
-                <td className="p-2 text-xs sm:text-sm">{order.propertyType}</td>
-                <td className="p-2 text-xs sm:text-sm">{order.estimatedAmount}</td>
-                <td className="p-2 text-xs sm:text-sm">{order.contact}</td>
-                <td className="p-2 text-xs sm:text-sm">
+                <td className="p-2 text-xs sm:text-sm block md:table-cell" data-label="구분">{order.category}</td>
+                <td className="p-2 text-xs sm:text-sm block md:table-cell" data-label="거래유형">{order.transactionType}</td>
+                <td className="p-2 text-xs sm:text-sm block md:table-cell" data-label="작성자">{order.author}</td>
+                <td className="p-2 text-xs sm:text-sm block md:table-cell" data-label="매물종류">{order.propertyType}</td>
+                <td className="p-2 text-xs sm:text-sm block md:table-cell" data-label="견적금액">{order.estimatedAmount}</td>
+                <td className="p-2 text-xs sm:text-sm block md:table-cell" data-label="연락처">{order.contact}</td>
+                <td className="p-2 text-xs sm:text-sm block md:table-cell" data-label="IP주소">
                   <IpActions
                     ipAddress={order.ipAddress}
                     contact={order.contact}
                     details={order.description}
                   />
                 </td>
-                <td className="p-2 text-xs sm:text-sm">{order.region}</td>
-                <td className="p-2 text-xs sm:text-sm">
+                <td className="p-2 text-xs sm:text-sm block md:table-cell" data-label="의뢰지역">{order.region}</td>
+                <td className="p-2 text-xs sm:text-sm block md:table-cell" data-label="제목">
                   <p className="border p-2">{order.title}</p>
                   <textarea
                     value={notes[order.id] || ''}
@@ -210,7 +210,7 @@ const OrderList = ({ initialOrders, totalPages, currentPage }: OrderListProps) =
                     메모저장
                   </button>
                 </td>
-                <td className="p-2 text-xs sm:text-sm">
+                <td className="p-2 text-xs sm:text-sm block md:table-cell" data-label="상세내용">
                   <button
                     className="p-2 bg-blue-500 text-white rounded w-full"
                     onClick={() => alert(`내용 보기: ${order.description}`)}
@@ -218,8 +218,8 @@ const OrderList = ({ initialOrders, totalPages, currentPage }: OrderListProps) =
                     내용보기
                   </button>
                 </td>
-                <td className="p-2 text-xs sm:text-sm">{new Date(order.createdAt).toLocaleDateString()}</td>
-                <td className="p-2 text-xs sm:text-sm">
+                <td className="p-2 text-xs sm:text-sm block md:table-cell" data-label="등록일">{new Date(order.createdAt).toLocaleDateString()}</td>
+                <td className="p-2 text-xs sm:text-sm block md:table-cell" data-label="비고">
                   <button
                     className="p-2 bg-red-500 text-white rounded w-full"
                     onClick={() => handleDelete(order.id)}

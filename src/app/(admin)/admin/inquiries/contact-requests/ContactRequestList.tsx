@@ -119,7 +119,7 @@ const ContactRequestList = ({ initialRequests, totalPages, currentPage }: Contac
 
       <div className="overflow-x-auto">
         <table className="min-w-full table-auto border-collapse">
-          <thead className="bg-gray-100">
+          <thead className="bg-gray-100 hidden md:table-header-group">
             <tr>
               <th className="p-2 text-xs sm:text-sm">번호</th>
               <th className="p-2 text-xs sm:text-sm">확인여부</th>
@@ -132,28 +132,28 @@ const ContactRequestList = ({ initialRequests, totalPages, currentPage }: Contac
               <th className="p-2 text-xs sm:text-sm">비고</th>
             </tr>
           </thead>
-          <tbody>
+          <tbody className="divide-y divide-gray-200 md:table-row-group">
             {filteredRequests.map((request, index) => (
-              <tr key={request.id} className={index % 2 === 0 ? 'bg-slate-200' : 'bg-slate-300'}>
-                <td className="p-2 text-xs sm:text-sm">{request.id}</td>
-                <td className="p-2">
+              <tr key={request.id} className={`block md:table-row ${index % 2 === 0 ? 'bg-slate-200' : 'bg-slate-300'}`}>
+                <td className="p-2 text-xs sm:text-sm block md:table-cell" data-label="번호">{request.id}</td>
+                <td className="p-2 block md:table-cell" data-label="확인여부">
                   <ToggleSwitch
                     toggle={request.confirm}
                     id={`confirm${request.id}`}
                     onToggle={(checked) => handleToggleChange(String(request.id), checked)}
                   />
                 </td>
-                <td className="p-2 text-xs sm:text-sm">{request.author}</td>
-                <td className="p-2 text-xs sm:text-sm">{request.contact}</td>
-                <td className="p-2 text-xs sm:text-sm">
+                <td className="p-2 text-xs sm:text-sm block md:table-cell" data-label="이름">{request.author}</td>
+                <td className="p-2 text-xs sm:text-sm block md:table-cell" data-label="연락처">{request.contact}</td>
+                <td className="p-2 text-xs sm:text-sm block md:table-cell" data-label="IP">
                   <IpActions
                     ipAddress={request.ipAddress}
                     contact={request.contact}
                     details={request.description}
                   />
                 </td>
-                <td className="p-2 text-xs sm:text-sm">{request.description}</td>
-                <td className="p-2">
+                <td className="p-2 text-xs sm:text-sm block md:table-cell" data-label="상세내용">{request.description}</td>
+                <td className="p-2 block md:table-cell" data-label="관리용메모">
                   <textarea
                     value={notes[request.id] ?? ''}
                     onChange={(e) => handleNoteChange(request.id, e.target.value)}
@@ -167,8 +167,8 @@ const ContactRequestList = ({ initialRequests, totalPages, currentPage }: Contac
                     메모저장
                   </button>
                 </td>
-                <td className="p-2 text-xs sm:text-sm">{request.date}</td>
-                <td className="p-2">
+                <td className="p-2 text-xs sm:text-sm block md:table-cell" data-label="등록일">{request.date}</td>
+                <td className="p-2 block md:table-cell" data-label="비고">
                   <button
                     className="p-2 bg-red-500 text-white rounded w-full"
                     onClick={() => handleDelete(request.id)}
