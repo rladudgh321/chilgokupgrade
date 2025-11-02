@@ -41,7 +41,6 @@ export default function CardPageClient({
   return (
     <Suspense>
       <CardList 
-        listings={listings} 
         settings={settings}
         roomOptions={roomOptions}
         bathroomOptions={bathroomOptions}

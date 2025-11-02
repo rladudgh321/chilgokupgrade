@@ -108,6 +108,7 @@ export default function LandSearchClient({
       hasNextPage,
       isFetchingNextPage,
       isLoading,
+      isFetching,
     } = useInfiniteQuery({    queryKey: ["listings", queryParams],
     queryFn: fetchListings,
     getNextPageParam: (lastPage) => {
@@ -116,16 +117,7 @@ export default function LandSearchClient({
       }
       return undefined;
     },
-    initialData: () => {
-        return {
-          pageParams: [1],
-          pages: [{
-            listings: initialListings,
-            totalPages: 1, // We don't know total pages on client, so we start with 1
-            currentPage: 1
-          }]
-        }
-    },
+
     initialPageParam: 1,
   });
   const { data: mapListings = [] } = useQuery({
@@ -539,7 +531,7 @@ export default function LandSearchClient({
 
               isFetchingNextPage={isFetchingNextPage}
 
-              isLoading={isLoading}
+              isLoading={isFetching}
 
               onCardClick={handleCardClick}
 

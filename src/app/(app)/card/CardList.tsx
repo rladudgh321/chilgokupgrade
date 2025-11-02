@@ -5,9 +5,18 @@ import SearchBar from "../landSearch/SearchBar"
 import { useRouter, useSearchParams } from "next/navigation"
 import BuildDetailModalClient from '@/app/components/root/BuildDetailModal'
 import { koreanToNumber } from '@/app/utility/koreanToNumber'
+import { useQuery } from "@tanstack/react-query";
+import CardItemSkeleton from "./CardItemSkeleton";
+
+const fetchListings = async (searchParams: URLSearchParams) => {
+  const res = await fetch(`/api/listings?${searchParams.toString()}`);
+  if (!res.ok) {
+    throw new Error("Network response was not ok");
+  }
+  return res.json();
+};
 
 const CardList = ({ 
-  listings, 
   settings,
   roomOptions,
   bathroomOptions,
@@ -17,7 +26,6 @@ const CardList = ({
   propertyTypeOptions,
   buyTypeOptions
 }: { 
-  listings: any[],
   settings: any,
   roomOptions: any[],
   bathroomOptions: any[],
@@ -28,6 +36,15 @@ const CardList = ({
   buyTypeOptions: any[]
 }) => {
   const [selectedBuildId, setSelectedBuildId] = useState<number | null>(null);
+  const router = useRouter();
+  const searchParams = useSearchParams();
+
+  const { data, isLoading } = useQuery({
+    queryKey: ["listings", searchParams.toString()],
+    queryFn: () => fetchListings(searchParams),
+  });
+
+  const listings = data?.listings || [];
 
   const handleCardClick = (id: number) => {
     // Increment views
@@ -45,9 +62,6 @@ const CardList = ({
   const handleCloseModal = () => {
     setSelectedBuildId(null);
   };
-
-  const router = useRouter()
-  const searchParams = useSearchParams()
 
   const sortBy = searchParams.get("sortBy") || "recommended"
 
@@ -225,12 +239,14 @@ const CardList = ({
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-          {displayListings.map((listing, index) => (
-            <CardItem key={listing.id} listing={listing} onClick={() => handleCardClick(listing.id)} priority={index < 3} />
-          ))}
+          {isLoading
+            ? Array.from({ length: 12 }).map((_, i) => <CardItemSkeleton key={i} />)
+            : displayListings.map((listing, index) => (
+                <CardItem key={listing.id} listing={listing} onClick={() => handleCardClick(listing.id)} priority={index < 3} />
+              ))}
         </div>
 
-        {displayListings.length === 0 && (
+        {displayListings.length === 0 && !isLoading && (
           <div className="flex items-center justify-center h-64 text-gray-500">
             <p>표시할 매물이 없습니다.</p>
           </div>
