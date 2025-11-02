@@ -168,7 +168,7 @@ const BoardClient = ({ initialPosts }: { initialPosts: BoardPost[] }) => {
 
       <div className="overflow-x-auto">
         <table className="min-w-full table-auto border-collapse">
-          <thead className="bg-gray-100">
+          <thead className="bg-gray-100 hidden md:table-header-group">
             <tr>
               <th className="p-2 text-center text-xs sm:text-sm">번호</th>
               {/* 카테고리 컬럼 삭제 */}
@@ -181,7 +181,7 @@ const BoardClient = ({ initialPosts }: { initialPosts: BoardPost[] }) => {
               <th className="p-2 text-center text-xs sm:text-sm">비고</th>
             </tr>
           </thead>
-          <tbody>
+          <tbody className="divide-y divide-gray-200 md:table-row-group">
             {paginatedPosts.length === 0 ? (
               <tr>
                 <td colSpan={10} className="p-8 text-center text-gray-500">
@@ -190,21 +190,21 @@ const BoardClient = ({ initialPosts }: { initialPosts: BoardPost[] }) => {
               </tr>
             ) : (
               paginatedPosts.map((post, index) => (
-                <tr key={post.id} className={index % 2 === 0 ? 'bg-slate-200' : 'bg-slate-300'}>
-                  <td className="p-2 text-center text-xs sm:text-sm">{post.id}</td>
-                  <td className="p-2 text-xs sm:text-sm">
+                <tr key={post.id} className={`block md:table-row ${index % 2 === 0 ? 'bg-slate-200' : 'bg-slate-300'}`}>
+                  <td className="p-2 text-center text-xs sm:text-sm block md:table-cell" data-label="번호">{post.id}</td>
+                  <td className="p-2 text-xs sm:text-sm block md:table-cell" data-label="제목">
                     <div className="max-w-xs truncate" title={post.title}>
                       {post.title}
                     </div>
                   </td>
-                  <td className="p-2 text-center text-xs sm:text-sm">{post.manager || '미지정'}</td>
-                  <td className="p-2 text-center text-xs sm:text-sm">
+                  <td className="p-2 text-center text-xs sm:text-sm block md:table-cell" data-label="담당자">{post.manager || '미지정'}</td>
+                  <td className="p-2 text-center text-xs sm:text-sm block md:table-cell" data-label="등록일">
                     {post.registrationDate 
                       ? new Date(post.registrationDate).toLocaleDateString('ko-KR')
                       : new Date(post.createdAt).toLocaleDateString('ko-KR')
                     }
                   </td>
-                  <td className="p-2 text-center">
+                  <td className="p-2 text-center block md:table-cell" data-label="공지 / 일반">
                     <span className={`px-2 py-1 rounded text-xs ${
                       post.isAnnouncement 
                         ? 'bg-red-100 text-red-800' 
@@ -213,7 +213,7 @@ const BoardClient = ({ initialPosts }: { initialPosts: BoardPost[] }) => {
                       {post.isAnnouncement ? '공지' : '일반'}
                     </span>
                   </td>
-                  <td className="p-2 text-center">
+                  <td className="p-2 text-center block md:table-cell" data-label="팝업여부">
                     <span className={`px-2 py-1 rounded text-xs ${
                       post.isPopup 
                         ? 'bg-blue-100 text-blue-800' 
@@ -222,7 +222,7 @@ const BoardClient = ({ initialPosts }: { initialPosts: BoardPost[] }) => {
                       {post.isPopup ? '팝업' : '일반'}
                     </span>
                   </td>
-                  <td className="p-2 text-center">
+                  <td className="p-2 text-center block md:table-cell" data-label="게시">
                     <span className={`px-2 py-1 rounded text-xs ${
                       post.isPublished 
                         ? 'bg-green-100 text-green-800' 
@@ -231,7 +231,7 @@ const BoardClient = ({ initialPosts }: { initialPosts: BoardPost[] }) => {
                       {post.isPublished ? '게시' : '비공개'}
                     </span>
                   </td>
-                  <td className="p-2 text-center">
+                  <td className="p-2 text-center block md:table-cell" data-label="비고">
                     <div className="flex justify-center gap-2">
                       <HoverContent content={post.content} />
                       <button

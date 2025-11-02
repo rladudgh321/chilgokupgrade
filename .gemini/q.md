@@ -1,1 +1,1 @@
-`/admin/inquiries/orders`페이지와 `/admin/inquiries/contact-requests`페이지를 tailwindcss를 사용하여 PC버전뿐만 아니라 테블릿 모바일 반응형에도 사용자경험이 우수하도록 수정해줘
+`/admin/board/admin-board`페이지를 tailwindcss를 사용하여 PC버전뿐만 아니라 테블릿 모바일 반응형에도 사용자경험이 우수하도록 수정해줘`
