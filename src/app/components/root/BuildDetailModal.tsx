@@ -13,12 +13,6 @@ export default function BuildDetailModalClient({ build, onClose }: { build: IBui
   const convertToPyeong = (m2: number) => (m2 / 3.305785).toFixed(2);
   const formatPrice = (price?: number | string | null) =>
     price == null || Number.isNaN(Number(price)) ? "-" : `${Number(price).toLocaleString()} 만원`;
-  const getFloorString = (floor?: number | null) => {
-    if (floor == null) return "-";
-    if (floor > 0) return `지상 ${floor}층`;
-    if (floor < 0) return `지하 ${Math.abs(floor)}층`;
-    return `${floor}층`;
-  };
 
   const allImages = useMemo(
     () =>
@@ -65,7 +59,8 @@ export default function BuildDetailModalClient({ build, onClose }: { build: IBui
                 Row("월세", `${formatPrice(build.deposit)} / ${formatPrice(build.rentalPrice)}`)}
               {build.managementFee &&
                 Row("관리비", `${formatPrice(build.managementFee)} (포함: ${build.managementEtc || "-"})`)}
-              {Row("층수", `${getFloorString(build.currentFloor)} / ${getFloorString(build.totalFloors)}`)}
+              {Row("건물 층수", `지상 ${build.totalFloors || '-'}층 / 지하 ${build.basementFloors || '-'}층`)}
+              {Row("해당 층수", `${build.floorType || ''} ${build.currentFloor ? (build.currentFloor < 0 ? `B${Math.abs(build.currentFloor)}` : build.currentFloor) + '층' : '-'}`)}
               {Row("방/화장실 수", `${build.roomOption?.name || "-"} / ${build.bathroomOption?.name || "-"}`)}
               {Row(
                 "면적",
