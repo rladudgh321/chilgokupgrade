@@ -3,6 +3,7 @@
 import Image from 'next/image';
 import { useRef, useState } from 'react';
 import { useDrag, useDrop } from 'react-dnd';
+import imageCompression from "browser-image-compression";
 
 type DraggableItemProps = {
   id: number;
@@ -16,9 +17,10 @@ type DraggableItemProps = {
   onImageEdit?: (id: number, newImageUrl: string, newImageName: string) => void;
   disabled?: boolean;
   uploadEndpoint?: string;
+  imageMaxWidthOrHeight?: number;
 };
 
-const DraggableItem = ({ id, name, url, imageUrl, imageName, moveItem, onEdit, onDelete, onImageEdit, disabled = false, uploadEndpoint }: DraggableItemProps) => {
+const DraggableItem = ({ id, name, url, imageUrl, imageName, moveItem, onEdit, onDelete, onImageEdit, disabled = false, uploadEndpoint, imageMaxWidthOrHeight = 300 }: DraggableItemProps) => {
   const ref = useRef<HTMLDivElement>(null);
   const [isEditing, setIsEditing] = useState(false);
   const [editValue, setEditValue] = useState(name);
@@ -81,8 +83,17 @@ const DraggableItem = ({ id, name, url, imageUrl, imageName, moveItem, onEdit, o
     if (!selectedImageFile || !onImageEdit || !uploadEndpoint) return;
 
     try {
+      const options = {
+        maxSizeMB: 1,
+        maxWidthOrHeight: imageMaxWidthOrHeight,
+        useWebWorker: true,
+        fileType: "image/webp",
+        quality: 0.8,
+      };
+      const compressedFile = await imageCompression(selectedImageFile, options);
+
       const formData = new FormData();
-      formData.append('file', selectedImageFile);
+      formData.append('file', compressedFile);
       formData.append('label', name);
       const response = await fetch(uploadEndpoint, { method: 'POST', body: formData });
       const result = await response.json();

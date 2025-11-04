@@ -384,6 +384,7 @@ const ListManager = ({
               newImageName,
             }) : undefined}
             uploadEndpoint={enableImageUpload ? `${apiEndpoint}/upload` : undefined}
+            imageMaxWidthOrHeight={imageMaxWidthOrHeight}
             disabled={isLoading}
           />
         ))}
