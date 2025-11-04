@@ -208,6 +208,7 @@ type Props = {
   mode: "create" | "update";
   submitLabel?: string;
   onCancel?: () => void;
+  onImageLoadingStateChange?: (isLoading: boolean) => void;
   // 선택 옵션들 (id/label로 내려받는 걸 권장)
   roomOptions?: { id: number, name: string }[];      // 필요하면 { id:number; name:string }[] 로 전환
   bathroomOptions?: { id: number, name: string }[];  // 동일
@@ -223,6 +224,7 @@ export default function BuildForm({
   mode,
   submitLabel,
   onCancel,
+  onImageLoadingStateChange,
   roomOptions,
   bathroomOptions,
   themeOptions,
@@ -264,7 +266,7 @@ export default function BuildForm({
         </Container>
 
         <Container title="사진 작업">
-          <SaveImage />
+          <SaveImage onImageLoadingStateChange={onImageLoadingStateChange} />
         </Container>
 
         <div className="mt-4 flex gap-x-4">

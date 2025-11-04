@@ -192,6 +192,7 @@ function normalizeForForm(d: any, themeOptions: string[]): FormData {
 export default function EditClient({ id }: { id: number }) {
   const queryClient = useQueryClient();
   const router = useRouter();
+  const [isImageLoading, setIsImageLoading] = useState(true);
 
   
   // 단건
@@ -364,10 +365,11 @@ export default function EditClient({ id }: { id: number }) {
     <BuildForm
       mode="update"
       methods={methods}
-      isSubmitting={isPending}
+      isSubmitting={isPending || isImageLoading}
       onSubmit={(form) => mutate(form)}
       onCancel={() => router.back()}
       submitLabel="수정"
+      onImageLoadingStateChange={setIsImageLoading}
       // 선택지 전달(컴포넌트 내부에서 id/name 바인딩)
       roomOptions={roomOptions}
       bathroomOptions={bathroomOptions}

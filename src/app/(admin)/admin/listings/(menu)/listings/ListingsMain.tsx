@@ -22,6 +22,7 @@ import formatFullKoreanMoney from "@/app/utility/NumberToKoreanMoney";
 import { formatYYYYMMDD } from "@/app/utility/koreaDateControl";
 import { printPhotoVersion } from "./shared/PrintPhotoVersion";
 import { printTextVersion } from "./shared/PrintTextVersion";
+import AreaInfo from "./shared/AreaInfo";
 
 type SearchFormValues = { keyword: string };
 
@@ -472,18 +473,19 @@ const ListingsMain = ({ ListingsData, sortKey }: ListingsMainProps) => {
                     data-label="매물정보"
                   >
                     <div>{listing.title}</div>
-                    <div>
-                      방 {listing.roomOption?.name} / 화장실{" "}
-                      {listing.bathroomOption?.name}
-                    </div>
-                    <div>
-                      실면적 {listing.actualArea}평 / 공급면적{" "}
-                      {listing.supplyArea}평
-                    </div>
-                    <div>
-                      {listing.direction} / 지상 {listing.currentFloor}/
-                      {listing.totalFloors}층
-                    </div>
+                    {(listing.roomOption?.name || listing.bathroomOption?.name) && (
+                      <div>
+                        방 {listing.roomOption?.name} / 화장실{" "}
+                        {listing.bathroomOption?.name}
+                      </div>
+                    )}
+                    <AreaInfo listing={listing} />
+                    {listing.currentFloor && (
+                      <div>
+                        {listing.direction} / 지상 {listing.currentFloor}/
+                        {listing.totalFloors}층
+                      </div>
+                    )}
                   </td>
 
                   <td

@@ -232,6 +232,7 @@ const SaveImage: React.FC<{ onImageLoadingStateChange?: (isLoading: boolean) => 
               setMainImageLoading(false);
               setMainImageError(true);
             }} />
+            {mainImageError && <div className="text-red-500">이미지 로드 실패</div>}
             <button
               type="button"
               className="px-3 py-1 rounded bg-red-500 text-white"
@@ -239,6 +240,9 @@ const SaveImage: React.FC<{ onImageLoadingStateChange?: (isLoading: boolean) => 
             >
               삭제
             </button>
+            {mainImageError && <button type="button" className="px-3 py-1 rounded bg-blue-500 text-white" onClick={() => setMainImage(mainImageField)}>
+              재시도
+            </button>}
           </div>
         )}
       </div>
@@ -247,11 +251,30 @@ const SaveImage: React.FC<{ onImageLoadingStateChange?: (isLoading: boolean) => 
       <div className="mb-6">
         <label className="block text-lg sm:text-xl font-semibold">매물 사진들</label>
         <input type="file" accept="image/*" multiple onChange={onPickSubs} className="mt-2" />
+        {propertyImagesError.some(Boolean) && <div className="text-red-500">일부 이미지 로드 실패</div>}
+        {propertyImagesError.some(Boolean) && <button type="button" className="px-3 py-1 rounded bg-blue-500 text-white" onClick={() => setPropertyImages(subImageField ? [...subImageField] : [])}>재시도</button>}
         {propertyImages.length > 0 && (
           <div className="mt-3 grid grid-cols-2 md:grid-cols-3 gap-3">
             {propertyImages.filter(isValidImgSrc).map((img, idx) => (
               <div key={img + idx} className="relative">
-                <Image src={img} alt={`매물 ${idx + 1}`} width={300} height={300} className="w-full h-auto" />
+                <Image src={img} alt={`매물 ${idx + 1}`} width={300} height={300} className="w-full h-auto" onLoad={() => {
+                  setPropertyImagesLoading(prev => {
+                    const next = [...prev];
+                    next[idx] = false;
+                    return next;
+                  });
+                }} onError={() => {
+                  setPropertyImagesError(prev => {
+                    const next = [...prev];
+                    next[idx] = true;
+                    return next;
+                  });
+                  setPropertyImagesLoading(prev => {
+                    const next = [...prev];
+                    next[idx] = false;
+                    return next;
+                  });
+                }} />
                 <button
                   type="button"
                   className="absolute top-2 right-2 bg-black/60 text-white px-2 py-1 rounded"
@@ -269,11 +292,30 @@ const SaveImage: React.FC<{ onImageLoadingStateChange?: (isLoading: boolean) => 
       <div className="mb-2">
         <label className="block text-lg sm:text-xl font-semibold">관리자만 볼 수 있는 사진들</label>
         <input type="file" accept="image/*" multiple onChange={onPickAdmins} className="mt-2" />
+        {adminImagesError.some(Boolean) && <div className="text-red-500">일부 이미지 로드 실패</div>}
+        {adminImagesError.some(Boolean) && <button type="button" className="px-3 py-1 rounded bg-blue-500 text-white" onClick={() => setAdminImages(adminImageField ? [...adminImageField] : [])}>재시도</button>}
         {adminImages.length > 0 && (
           <div className="mt-3 grid grid-cols-2 md:grid-cols-3 gap-3">
             {adminImages.filter(isValidImgSrc).map((img, idx) => (
               <div key={img + idx} className="relative">
-                <Image src={img} alt={`관리자 ${idx + 1}`} width={300} height={300} className="w-full h-auto" />
+                <Image src={img} alt={`관리자 ${idx + 1}`} width={300} height={300} className="w-full h-auto" onLoad={() => {
+                  setAdminImagesLoading(prev => {
+                    const next = [...prev];
+                    next[idx] = false;
+                    return next;
+                  });
+                }} onError={() => {
+                  setAdminImagesError(prev => {
+                    const next = [...prev];
+                    next[idx] = true;
+                    return next;
+                  });
+                  setAdminImagesLoading(prev => {
+                    const next = [...prev];
+                    next[idx] = false;
+                    return next;
+                  });
+                }} />
                 <button
                   type="button"
                   className="absolute top-2 right-2 bg-black/60 text-white px-2 py-1 rounded"
