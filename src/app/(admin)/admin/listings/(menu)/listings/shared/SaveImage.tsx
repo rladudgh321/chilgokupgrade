@@ -31,7 +31,7 @@ const arraysEqual = (a: string[] = [], b: string[] = []) => {
 
 const unique = (arr: string[]) => Array.from(new Set(arr));
 
-const SaveImage: React.FC = () => {
+const SaveImage: React.FC<{ onImageLoadingStateChange?: (isLoading: boolean) => void }> = ({ onImageLoadingStateChange }) => {
   const { getValues, setValue, watch } = useFormContext<FormShape>();
 
   // RHF 값 변경 감시(서버에서 reset으로 들어오는 초기값 포함)
@@ -44,11 +44,25 @@ const SaveImage: React.FC = () => {
   const [propertyImages, setPropertyImages] = useState<string[]>([]);
   const [adminImages, setAdminImages] = useState<string[]>([]);
 
+  // 이미지 로딩 상태
+  const [mainImageLoading, setMainImageLoading] = useState(false);
+  const [propertyImagesLoading, setPropertyImagesLoading] = useState<boolean[]>([]);
+  const [adminImagesLoading, setAdminImagesLoading] = useState<boolean[]>([]);
+
+  // 이미지 에러 상태
+  const [mainImageError, setMainImageError] = useState(false);
+  const [propertyImagesError, setPropertyImagesError] = useState<boolean[]>([]);
+  const [adminImagesError, setAdminImagesError] = useState<boolean[]>([]);
+
   // ─────────────────────────────────────────────────────────
   //  RHF → 로컬 미리보기 동기화 (렌더 루프 방지: effect + 동등성 체크)
   // ─────────────────────────────────────────────────────────
   useEffect(() => {
     setMainImage(isValidImgSrc(mainImageField) ? mainImageField : null);
+    if (isValidImgSrc(mainImageField)) {
+      setMainImageLoading(true);
+      setMainImageError(false);
+    }
   }, [mainImageField]);
 
   useEffect(() => {
@@ -57,6 +71,8 @@ const SaveImage: React.FC = () => {
       : [];
     if (!arraysEqual(propertyImages, sanitized)) {
       setPropertyImages(sanitized);
+      setPropertyImagesLoading(new Array(sanitized.length).fill(true));
+      setPropertyImagesError(new Array(sanitized.length).fill(false));
     }
   }, [subImageField]);
 
@@ -66,6 +82,8 @@ const SaveImage: React.FC = () => {
       : [];
     if (!arraysEqual(adminImages, sanitized)) {
       setAdminImages(sanitized);
+      setAdminImagesLoading(new Array(sanitized.length).fill(true));
+      setAdminImagesError(new Array(sanitized.length).fill(false));
     }
   }, [adminImageField]);
 
@@ -142,16 +160,9 @@ const SaveImage: React.FC = () => {
   
 
     useEffect(() => {
-
-      const curr = Array.isArray(getValues("adminImage")) ? getValues("adminImage")! : [];
-
-      if (!arraysEqual(adminImages, curr)) {
-
-        setValue("adminImage", adminImages, { shouldDirty: true });
-
-      }
-
-    }, [adminImages, getValues, setValue]);
+    const isLoading = mainImageLoading || propertyImagesLoading.some(Boolean) || adminImagesLoading.some(Boolean);
+    onImageLoadingStateChange?.(isLoading);
+  }, [mainImageLoading, propertyImagesLoading, adminImagesLoading, onImageLoadingStateChange]);
 
   // ─────────────────────────────────────────────────────────
   // 파일 선택 핸들러
@@ -217,7 +228,10 @@ const SaveImage: React.FC = () => {
         <input type="file" accept="image/*" onChange={onPickMain} className="mt-2" />
         {mainImage && isValidImgSrc(mainImage) && (
           <div className="mt-3 flex items-center gap-3">
-            <Image src={mainImage} alt="대표 사진" width={300} height={300} className="w-full max-w-[300px] h-auto" />
+            <Image src={mainImage} alt="대표 사진" width={300} height={300} className="w-full max-w-[300px] h-auto" onLoad={() => setMainImageLoading(false)} onError={() => {
+              setMainImageLoading(false);
+              setMainImageError(true);
+            }} />
             <button
               type="button"
               className="px-3 py-1 rounded bg-red-500 text-white"

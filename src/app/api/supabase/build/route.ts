@@ -224,7 +224,7 @@ export async function GET(req: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const raw = await request.json();
-    const { label, buildingOptions, propertyType, buyType, id, ...restOfBody } = raw as any;
+    const { label, buildingOptions, propertyType, id, ...restOfBody } = raw as any;
 
     const cookieStore = await cookies();
     const supabase = createClient(cookieStore);
@@ -251,16 +251,7 @@ export async function POST(request: NextRequest) {
         }
     }
 
-    let buyTypeId: number | null = null;
-    if (buyType) {
-        const { data: typeRec } = await supabase.from("BuyType").select("id").eq("name", buyType).single();
-        if (!typeRec) {
-            const { data: newType } = await supabase.from("BuyType").insert({ name: buyType }).select("id").single();
-            if (newType) buyTypeId = newType.id;
-        } else {
-            buyTypeId = typeRec.id;
-        }
-    }
+    let buyTypeId: number | null = raw.buyTypeId ?? null;
 
     const dataToInsert = {
         ...restOfBody,
