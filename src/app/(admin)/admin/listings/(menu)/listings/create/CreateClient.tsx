@@ -118,8 +118,6 @@ export default function CreateClient() {
       "currentFloor",
       "totalFloors",
       "basementFloors",
-      "rooms",
-      "bathrooms",
       "actualArea",
       "supplyArea",
       "landArea",
@@ -141,7 +139,7 @@ export default function CreateClient() {
 
   const { mutate, isPending } = useMutation({
     mutationFn: BuildCreate,
-    onSuccess: () => router.back(),
+    onSuccess: () => router.push("/admin/listings/listings"),
     onError: () => alert("등록 중 에러가 발생했습니다."),
   });
 
@@ -152,8 +150,8 @@ export default function CreateClient() {
       isSubmitting={isPending}
       onSubmit={(data) => mutate(normalizePayload(data))}
       onCancel={() => router.back()}
-      roomOptions={roomOptions.map(o => o.name)}
-      bathroomOptions={bathroomOptions.map(o => o.name)}
+      roomOptions={roomOptions}
+      bathroomOptions={bathroomOptions}
       themeOptions={themeOptions}
       labelOptions={labelOptions.map(o => o.name)}
       buildingOptions={buildingOptions}

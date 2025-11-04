@@ -58,7 +58,7 @@ const SaveImage: React.FC = () => {
     if (!arraysEqual(propertyImages, sanitized)) {
       setPropertyImages(sanitized);
     }
-  }, [subImageField, propertyImages]);
+  }, [subImageField]);
 
   useEffect(() => {
     const sanitized = Array.isArray(adminImageField)
@@ -67,7 +67,7 @@ const SaveImage: React.FC = () => {
     if (!arraysEqual(adminImages, sanitized)) {
       setAdminImages(sanitized);
     }
-  }, [adminImageField, adminImages]);
+  }, [adminImageField]);
 
   // ─────────────────────────────────────────────────────────
   // 업로드 뮤테이션
@@ -198,19 +198,15 @@ const SaveImage: React.FC = () => {
   };
 
   const removeSubAt = (idx: number) => {
-    setPropertyImages((prev) => {
-      const next = prev.filter((_, i) => i !== idx);
-      setValue("subImage", next, { shouldDirty: true });
-      return next;
-    });
+    const next = propertyImages.filter((_, i) => i !== idx);
+    setPropertyImages(next);
+    setValue("subImage", next, { shouldDirty: true });
   };
 
   const removeAdminAt = (idx: number) => {
-    setAdminImages((prev) => {
-      const next = prev.filter((_, i) => i !== idx);
-      setValue("adminImage", next, { shouldDirty: true });
-      return next;
-    });
+    const next = adminImages.filter((_, i) => i !== idx);
+    setAdminImages(next);
+    setValue("adminImage", next, { shouldDirty: true });
   };
 
   return (

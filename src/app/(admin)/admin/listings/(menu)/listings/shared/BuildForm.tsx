@@ -54,8 +54,8 @@ export interface FormData {
   totalFloors: number | null;
   basementFloors: number | null;
   floorDescription: string | null;
-  rooms: string | null;
-  bathrooms: string | null;
+  roomOptionId: number | null;
+  bathroomOptionId: number | null;
   actualArea: number | null;
   supplyArea: number | null;
   landArea: number | null;
@@ -148,8 +148,8 @@ export const BASE_DEFAULTS: FormData = {
   totalFloors: null,
   basementFloors: null,
   floorDescription: "",
-  rooms: "",
-  bathrooms: "",
+  roomOptionId: null,
+  bathroomOptionId: null,
   actualArea: null,
   supplyArea: null,
   landArea: null,
@@ -209,8 +209,8 @@ type Props = {
   submitLabel?: string;
   onCancel?: () => void;
   // 선택 옵션들 (id/label로 내려받는 걸 권장)
-  roomOptions?: string[];      // 필요하면 { id:number; name:string }[] 로 전환
-  bathroomOptions?: string[];  // 동일
+  roomOptions?: { id: number, name: string }[];      // 필요하면 { id:number; name:string }[] 로 전환
+  bathroomOptions?: { id: number, name: string }[];  // 동일
   themeOptions?: string[];
   labelOptions?: string[];
   buildingOptions?: { id: number, name: string }[];

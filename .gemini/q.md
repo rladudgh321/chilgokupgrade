@@ -1,1 +1,1 @@
-`BuildBasic`컴포넌트에서 submit할때 null값도 허용되도록 해줘
+`/admin/listings/listings/create`페이지에서 submit을 할 때 buyType이 정보가 안넘어가.

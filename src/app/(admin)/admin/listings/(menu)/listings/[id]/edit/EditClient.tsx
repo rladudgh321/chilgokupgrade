@@ -132,8 +132,8 @@ function normalizeForForm(d: any, themeOptions: string[]): FormData {
     buildingArea: d.buildingArea ?? null,
     totalArea: d.totalArea ?? null,
 
-    rooms: d.roomOption?.name ?? "",
-    bathrooms: d.bathroomOption?.name ?? "",
+    roomOptionId: d.roomOptionId ?? null,
+    bathroomOptionId: d.bathroomOptionId ?? null,
 
     // 배열들
     themes: Array.isArray(d.themes) ? d.themes : (themeOptions ?? []),
@@ -238,8 +238,6 @@ export default function EditClient({ id }: { id: number }) {
 
   const { mutate, isPending } = useMutation({
     mutationFn: (payload: FormData) => {
-      const roomOptionId = roomOptions.find((o) => o.name === payload.rooms)?.id ?? null;
-      const bathroomOptionId = bathroomOptions.find((o) => o.name === payload.bathrooms)?.id ?? null;
       const labelId = labelOptions.find((o) => o.name === payload.label)?.id ?? null;
       // 서버에 맞게 변환
       const serverPayload = {
@@ -285,8 +283,8 @@ export default function EditClient({ id }: { id: number }) {
         floorDescription: payload.floorDescription ?? null,
 
         // relation: 옵션 선택
-        roomOptionId: roomOptionId,
-        bathroomOptionId: bathroomOptionId,
+        roomOptionId: payload.roomOptionId,
+        bathroomOptionId: payload.bathroomOptionId,
 
         // 면적
         actualArea: payload.actualArea ?? null,
@@ -371,8 +369,8 @@ export default function EditClient({ id }: { id: number }) {
       onCancel={() => router.back()}
       submitLabel="수정"
       // 선택지 전달(컴포넌트 내부에서 id/name 바인딩)
-      roomOptions={roomOptions.map(o => o.name)}
-      bathroomOptions={bathroomOptions.map(o => o.name)}
+      roomOptions={roomOptions}
+      bathroomOptions={bathroomOptions}
       themeOptions={themeOptions}
       labelOptions={labelOptions.map(o => o.name)}
       buildingOptions={buildingOptions}

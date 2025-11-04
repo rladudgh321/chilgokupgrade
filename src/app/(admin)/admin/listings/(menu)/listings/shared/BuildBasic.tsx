@@ -11,7 +11,7 @@ const DatePicker = lazy(() => import('react-datepicker'));
 /* =========================
    공통 스타일/컴포넌트
    ========================= */
-const getButtonStyle = (activeState: string | null | boolean, item?: string) => {
+const getButtonStyle = (activeState: string | null | boolean | number, item?: string | number) => {
   return {
     backgroundColor: activeState === item ? "#2b6cb0" : "white",
     color: activeState === item ? "white" : "gray",
@@ -129,7 +129,11 @@ const InputField = ({
                 className
               )}
               {...field}
-              value={field.value ?? ""}
+              value={field.value === null || field.value === undefined ? "" : field.value}
+              onChange={(e) => {
+                const val = e.target.value;
+                field.onChange(val === "" ? null : val);
+              }}
             />
           )
         }
@@ -220,8 +224,8 @@ const Button = ({
    BuildBasic 본문
    ========================= */
 interface BuildBasicProps {
-  roomOptions: string[];
-  bathroomOptions: string[];
+  roomOptions: { id: number; name: string }[];
+  bathroomOptions: { id: number; name: string }[];
   themeOptions: string[];
   labelOptions: string[];
   buildingOptions: { id: number; name: string }[];
@@ -234,16 +238,16 @@ const BuildBasic = ({ roomOptions, bathroomOptions, themeOptions, labelOptions, 
   const watchedPopularity = watch("popularity") ?? "";
   const watchedDirection = watch("direction") ?? "";
   const watchedDirectionBase = watch("directionBase") ?? "";
-  const watchedRooms = watch("rooms") ?? "";
-  const watchedBathrooms = watch("bathrooms") ?? "";
+  const watchedRoomOptionId = watch("roomOptionId") ?? "";
+  const watchedBathroomOptionId = watch("bathroomOptionId") ?? "";
   const watchedThemes = watch("themes") ?? [];
   const watchedBuildingOptions = watch("buildingOptions") ?? [];
   const watchedParking = watch("parking") ?? [];
 
   // ✅ 라디오(단일 선택) → 폼 값 갱신
   const handleRadioChange = (
-    item: string,
-    type: "popularity" | "direction" | "directionBase" | "rooms" | "bathrooms"
+    item: string | number,
+    type: "popularity" | "direction" | "directionBase" | "roomOptionId" | "bathroomOptionId"
   ) => {
     setValue(type, item, { shouldDirty: true, shouldTouch: true });
   };
@@ -350,16 +354,16 @@ const BuildBasic = ({ roomOptions, bathroomOptions, themeOptions, labelOptions, 
           <label className="block text-sm font-medium text-gray-700">방수</label>
           <div className="flex space-x-0 mt-2 flex-wrap gap-y-4">
             {(roomOptions || []).map((item) => (
-              <label key={item} className="cursor-pointer">
+              <label key={`${item.id}-${item.name}`} className="cursor-pointer">
                 <input
                   type="radio"
-                  {...register("rooms")}
-                  value={item}
+                  {...register("roomOptionId")}
+                  value={item.id}
                   className="hidden"
-                  checked={watchedRooms === item}
-                  onChange={() => handleRadioChange(item, "rooms")}
+                  checked={watchedRoomOptionId === item.id}
+                  onChange={() => handleRadioChange(item.id, "roomOptionId")}
                 />
-                <span style={getButtonStyle(watchedRooms, item)}>{item}</span>
+                <span style={getButtonStyle(watchedRoomOptionId, item.id)}>{item.name}</span>
               </label>
             ))}
           </div>
@@ -368,16 +372,16 @@ const BuildBasic = ({ roomOptions, bathroomOptions, themeOptions, labelOptions, 
           <label className="block text-sm font-medium text-gray-700">화장실수</label>
           <div className="flex space-x-0 mt-2 flex-wrap gap-y-4">
             {(bathroomOptions || []).map((item) => (
-              <label key={item} className="cursor-pointer">
+              <label key={`${item.id}-${item.name}`} className="cursor-pointer">
                 <input
                   type="radio"
-                  {...register("bathrooms")}
-                  value={item}
+                  {...register("bathroomOptionId")}
+                  value={item.id}
                   className="hidden"
-                  checked={watchedBathrooms === item}
-                  onChange={() => handleRadioChange(item, "bathrooms")}
+                  checked={watchedBathroomOptionId === item.id}
+                  onChange={() => handleRadioChange(item.id, "bathroomOptionId")}
                 />
-                <span style={getButtonStyle(watchedBathrooms, item)}>{item}</span>
+                <span style={getButtonStyle(watchedBathroomOptionId, item.id)}>{item.name}</span>
               </label>
             ))}
           </div>

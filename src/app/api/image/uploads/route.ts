@@ -34,8 +34,12 @@ export async function POST(req: NextRequest) {
       const buffer = Buffer.from(await f.arrayBuffer());
 
       const processedImage = await sharp(buffer)
-        .resize(1600)
-        .webp({ quality: 80 })
+        .resize({
+          width: 1600,
+          withoutEnlargement: true,
+          fit: "inside",
+        })
+        .webp({ quality: 80, effort: 6, smartSubsample: true, nearLossless: false })
         .toBuffer();
 
       const originalName = f.name.substring(0, f.name.lastIndexOf('.'));
